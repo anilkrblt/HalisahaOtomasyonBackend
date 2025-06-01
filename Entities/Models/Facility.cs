@@ -1,0 +1,67 @@
+﻿
+// geolocation kısmına bak
+// logo fotoğrafı ekle
+// kullanıcıların facility yorumlarını getir
+// user rating atması için yeni bir tablo ratings tablosu yazılacak
+// user id ile ilişkili tüm fcilityler dönsün
+// user eklenince role eklemiyor
+
+
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Entities.Models
+{
+
+    public class Facility
+    {
+        public int Id { get; set; }
+
+        [MaxLength(128)] public string Name { get; set; } = null!;
+        public string? LogoUrl { get; set; }
+
+        /* Sahibi */
+        public int OwnerId { get; set; }
+        public Owner? Owner { get; set; }
+
+        /* Konum — Google Maps lat/lng */
+        [Column(TypeName = "decimal(9,6)")]
+        public decimal? Latitude { get; set; }
+        [Column(TypeName = "decimal(9,6)")]
+        public decimal? Longitude { get; set; }
+
+        /* Adres */
+        public string? City { get; set; }
+        public string? Town { get; set; }
+        public string? AddressDetails { get; set; }
+        public string? Description { get; set; }
+
+        /* Özellikler */
+        public bool HasCafeteria { get; set; }
+        public bool HasShower { get; set; }
+        public bool HasToilet { get; set; }
+        public bool HasTransportService { get; set; }
+        public bool ParkingLot { get; set; }
+
+        /* İletişim */
+        public string? Email { get; set; }
+        [MaxLength(32)] public string Phone { get; set; } = string.Empty;
+
+        /* Finans */
+        public string? BankAccountInfo { get; set; }
+
+        /* Rating (0-5) */
+        public double Rating { get; set; }
+        public ICollection<FacilityRating> Ratings { get; set; } = [];
+
+        /* Navigation */
+        public ICollection<Photo> Photos { get; set; } = new List<Photo>();
+        public ICollection<Equipment> Equipments { get; set; } = [];
+        public ICollection<Field> Fields { get; set; } = [];
+        public ICollection<FieldComment> Comments { get; set; } = [];
+        public ICollection<Announcement> Announcements { get; set; } = [];
+        public ICollection<Match> Matches { get; set; } = [];
+        public ICollection<Notification> Notifications { get; set; } = [];
+    }
+
+}

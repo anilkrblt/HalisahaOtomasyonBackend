@@ -1,0 +1,17 @@
+# Build output folders
+**/bin/
+**/obj/
+
+# Visual Studio specific files
+.vs/
+*.user
+*.suo
+
+# SQLite veritabanı ve ilgili dosyalar
+Halisaha.db
+Halisaha.sqbpro
+Halisaha.db-shm
+Halisaha.db-wal
+
+# Internal log dosyası
+internallog.txt
