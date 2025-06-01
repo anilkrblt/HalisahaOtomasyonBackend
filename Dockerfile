@@ -14,26 +14,26 @@ COPY Service/*.csproj ./Service/
 COPY ServiceContracts/*.csproj ./ServiceContracts/
 COPY Shared/*.csproj ./Shared/
 
-# Restore nuget packages
+# NuGet paketlerini indir
 RUN dotnet restore
 
-# Şimdi tüm kaynakları kopyala
+# Tüm kaynakları kopyala
 COPY . .
 
-# HalisahaOtomasyonPresentation API katmanını publish et
+# API projesini publish et (framework bağımlı ve Linux için)
 WORKDIR /src/HalisahaOtomasyonPresentation
-RUN dotnet publish -c Release -o /app/publish
+RUN dotnet publish -c Release -o /app/publish --runtime linux-x64 --self-contained false
 
 # 2️⃣ Runtime aşaması
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
-# Publish edilen çıktıyı al
+# Yayınlanan çıktı dosyalarını al
 COPY --from=build /app/publish .
 
-# Port ayarla (Render ve Railway default 8080 dinler)
+# Port ayarı (Railway 8080 kullanır)
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 
-# Uygulama başlat
+# Uygulamayı başlat
 ENTRYPOINT ["dotnet", "HalisahaOtomasyonPresentation.dll"]
