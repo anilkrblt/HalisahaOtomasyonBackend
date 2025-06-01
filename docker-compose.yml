@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - ConnectionStrings__MySqlConnection=server=db;port=3306;database=halisaha;user=root;password=123456789
+      - Redis__ConnectionString=redis:6379
+      - JwtSettings__validIssuer=TrakyaUniversity
+      - JwtSettings__validAudience=https://localhost:5132
+      - JwtSettings__expires=30
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456789
+      MYSQL_DATABASE: halisaha
+    ports:
+      - "3306:3306"
+
+  redis:
+    image: redis:7
+    restart: always
+    ports:
+      - "6379:6379"
