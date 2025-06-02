@@ -14,12 +14,12 @@ public class FacilityService : IFacilityService
     private readonly IRepositoryManager _repo;
     private readonly ILoggerManager _log;
     private readonly IMapper _map;
-    private readonly IPhotoService _photo;   // <— burada tutuluyor
+    private readonly IPhotoService _photo;
 
     public FacilityService(IRepositoryManager repo,
                            ILoggerManager log,
                            IMapper map,
-                           IPhotoService photoService)   // <— DI
+                           IPhotoService photoService)
     {
         _repo = repo;
         _log = log;
@@ -27,20 +27,15 @@ public class FacilityService : IFacilityService
         _photo = photoService;
     }
 
-    /*───────────────────── CRUD ─────────────────────*/
-
-    /* CREATE ----------------------------------------------------*/
     public async Task<FacilityDto> CreateFacilityAsync(FacilityForCreationDto dto)
     {
         var entity = _map.Map<Facility>(dto);
         _repo.Facility.CreateFacility(entity);
-        await _repo.SaveAsync();                // Id elde edildi
+        await _repo.SaveAsync();
 
-        /* Logo */
         if (dto.LogoFile is not null)
             entity.LogoUrl = await _photo.UploadLogoAsync(dto.LogoFile, $"facility/{entity.Id}");
 
-        /* Fotoğraflar (max 3) */
         if (dto.PhotoFiles?.Any() == true)
             await _photo.UploadPhotosAsync(dto.PhotoFiles, "facility", entity.Id);
 
@@ -48,7 +43,6 @@ public class FacilityService : IFacilityService
         return _map.Map<FacilityDto>(entity);
     }
 
-    /* READ ------------------------------------------------------*/
     public async Task<IEnumerable<FacilityDto>> GetAllFacilitiesAsync(bool track) =>
         _map.Map<IEnumerable<FacilityDto>>(await _repo.Facility.GetAllFacilitiesAsync(track));
 
@@ -63,11 +57,9 @@ public class FacilityService : IFacilityService
         return _map.Map<IEnumerable<FacilityDto>>(list.Where(f => f.OwnerId == ownerId));
     }
 
-    /* UPDATE (PUT) ---------------------------------------------*/
     public async Task UpdateFacilityAsync(int id, FacilityForUpdateDto dto, bool track)
     {
-        var fac = await _repo.Facility.GetFacilityAsync(id, track)
-                  ?? throw new FacilityNotFoundException(id);
+        var fac = await _repo.Facility.GetFacilityAsync(id, track) ?? throw new FacilityNotFoundException(id);
 
         _map.Map(dto, fac);
 
@@ -77,13 +69,11 @@ public class FacilityService : IFacilityService
         await _repo.SaveAsync();
     }
 
-    /* PATCH -----------------------------------------------------*/
     public async Task PatchFacilityAsync(int id, FacilityPatchDto patch)
     {
         var fac = await _repo.Facility.GetFacilityAsync(id, true)
                   ?? throw new FacilityNotFoundException(id);
 
-        // manuel patch
         if (patch.Name is not null) fac.Name = patch.Name;
         if (patch.Description is not null) fac.Description = patch.Description;
         if (patch.BankAccountInfo is not null) fac.BankAccountInfo = patch.BankAccountInfo;
@@ -96,14 +86,17 @@ public class FacilityService : IFacilityService
         if (patch.HasShower is not null) fac.HasShower = patch.HasShower.Value;
         if (patch.HasToilet is not null) fac.HasToilet = patch.HasToilet.Value;
         if (patch.HasTransportService is not null) fac.HasTransportService = patch.HasTransportService.Value;
-        if (patch.ParkingLot is not null) fac.ParkingLot = patch.ParkingLot.Value;
+        if (patch.HasParking is not null) fac.HasParking = patch.HasParking.Value;
+        if (patch.HasFirstAid is not null) fac.HasParking = patch.HasFirstAid.Value;
+        if (patch.HasLockerRoom is not null) fac.HasParking = patch.HasLockerRoom.Value;
+        if (patch.HasSecurityCameras is not null) fac.HasParking = patch.HasSecurityCameras.Value;
+        if (patch.HasRefereeService is not null) fac.HasParking = patch.HasRefereeService.Value;
         if (patch.Email is not null) fac.Email = patch.Email;
         if (patch.Phone is not null) fac.Phone = patch.Phone;
 
         await _repo.SaveAsync();
     }
 
-    /* DELETE ----------------------------------------------------*/
     public async Task DeleteFacility(int id, bool track)
     {
         var fac = await _repo.Facility.GetFacilityAsync(id, track)

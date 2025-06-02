@@ -14,7 +14,11 @@ public class RepositoryContext
   protected override void OnModelCreating(ModelBuilder mb)
   {
     base.OnModelCreating(mb);
-    // ← Identity tablo/ilişkileri
+
+
+    mb.Entity<Facility>()
+        .HasIndex(f => f.Email)
+        .IsUnique();
 
 
     /* ---------- Composite Keys ---------- */
@@ -52,7 +56,7 @@ public class RepositoryContext
       .HasConversion<int>();
 
     /* Friendship */
-    
+
     mb.Entity<Friendship>(cfg =>
     {
       cfg.HasKey(f => new { f.UserId1, f.UserId2 }); // bileşik PK

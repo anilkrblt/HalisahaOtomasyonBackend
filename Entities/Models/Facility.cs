@@ -1,10 +1,7 @@
 ﻿
-// geolocation kısmına bak
-// logo fotoğrafı ekle
 // kullanıcıların facility yorumlarını getir
 // user rating atması için yeni bir tablo ratings tablosu yazılacak
 // user id ile ilişkili tüm fcilityler dönsün
-// user eklenince role eklemiyor
 
 
 using System.ComponentModel.DataAnnotations;
@@ -30,6 +27,8 @@ namespace Entities.Models
         [Column(TypeName = "decimal(9,6)")]
         public decimal? Longitude { get; set; }
 
+
+
         /* Adres */
         public string? City { get; set; }
         public string? Town { get; set; }
@@ -38,12 +37,20 @@ namespace Entities.Models
 
         /* Özellikler */
         public bool HasCafeteria { get; set; }
+        // yeni
+        public bool HasLockerRoom { get; set; }
+        public bool HasFirstAid { get; set; }
+        public bool HasSecurityCameras { get; set; }
+        public bool HasRefereeService { get; set; }
+        //
+        public bool HasParking { get; set; }
+
         public bool HasShower { get; set; }
         public bool HasToilet { get; set; }
         public bool HasTransportService { get; set; }
-        public bool ParkingLot { get; set; }
 
         /* İletişim */
+        [EmailAddress]
         public string? Email { get; set; }
         [MaxLength(32)] public string Phone { get; set; } = string.Empty;
 

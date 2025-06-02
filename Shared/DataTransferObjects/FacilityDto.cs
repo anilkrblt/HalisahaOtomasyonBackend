@@ -23,7 +23,17 @@ public record FacilityDto
     public bool HasShower { get; set; }
     public bool HasToilet { get; set; }
     public bool HasTransportService { get; set; }
-    public bool ParkingLot { get; set; }
+
+
+    public bool HasCamera { get; set; }
+    public bool HasLockerRoom { get; set; }
+    public bool HasFirstAid { get; set; }
+    public bool HasSecurityCameras { get; set; }
+    public bool HasShoeRental { get; set; }
+    public bool HasGlove { get; set; }
+    public bool HasParking { get; set; }
+    public bool HasRefereeService { get; set; }
+
 
     /* İletişim */
     public string Phone { get; set; } = string.Empty;
@@ -59,11 +69,15 @@ public record FacilityForCreationDto
     public string? AddressDetails { get; set; }
 
     /* Özellikler */
+    public bool HasLockerRoom { get; set; }
+    public bool HasFirstAid { get; set; }
+    public bool HasSecurityCameras { get; set; }
     public bool HasCafeteria { get; set; }
     public bool HasShower { get; set; }
     public bool HasToilet { get; set; }
     public bool HasTransportService { get; set; }
-    public bool ParkingLot { get; set; }
+    public bool HasParking { get; set; }
+    public bool HasRefereeService { get; set; }
 
     /* İletişim & Finans */
     public string Phone { get; set; } = string.Empty;
@@ -86,11 +100,16 @@ public record FacilityForUpdateDto
     public string? Town { get; set; }
     public string? AddressDetails { get; set; }
 
+    public bool? HasLockerRoom { get; set; }
+    public bool? HasFirstAid { get; set; }
+    public bool? HasSecurityCameras { get; set; }
     public bool? HasCafeteria { get; set; }
     public bool? HasShower { get; set; }
     public bool? HasToilet { get; set; }
     public bool? HasTransportService { get; set; }
-    public bool? ParkingLot { get; set; }
+    public bool? HasParking { get; set; }
+    public bool? HasRefereeService { get; set; }
+
 
     public string? Email { get; set; }
     public string? Phone { get; set; }
@@ -110,11 +129,15 @@ public class FacilityPatchDto
     public string? Town { get; set; }
     public string? AddressDetails { get; set; }
 
+    public bool? HasLockerRoom { get; set; }
+    public bool? HasFirstAid { get; set; }
+    public bool? HasSecurityCameras { get; set; }
     public bool? HasCafeteria { get; set; }
     public bool? HasShower { get; set; }
     public bool? HasToilet { get; set; }
     public bool? HasTransportService { get; set; }
-    public bool? ParkingLot { get; set; }
+    public bool? HasParking { get; set; }
+    public bool? HasRefereeService { get; set; }
 
     public string? Email { get; set; }
     public string? Phone { get; set; }

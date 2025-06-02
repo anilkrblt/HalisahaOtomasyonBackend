@@ -65,7 +65,19 @@ namespace HalisahaOtomasyon.AutoMap
                 .ForMember(d => d.Equipments,
                            opt => opt.MapFrom(src => src.Equipments))
                 .ForMember(d => d.PhotoUrls,
-                           opt => opt.MapFrom(src => src.Photos.Select(p => p.Url)));
+                           opt => opt.MapFrom(src => src.Photos.Select(p => p.Url)))
+                .ForMember(d => d.HasShoeRental,
+                           opt => opt.MapFrom(src =>
+                               src.Equipments.Any(e => e.Name.ToLower().Contains("ayakkabı") && e.IsRentable)))
+                .ForMember(d => d.HasGlove,
+                           opt => opt.MapFrom(src =>
+                               src.Equipments.Any(e => e.Name.ToLower().Contains("eldiven") && e.IsRentable)))
+                .ForMember(d => d.HasCamera,
+                           opt => opt.MapFrom(src =>
+                               src.Fields.Any(f => f.HasCamera)));
+
+
+
 
             CreateMap<FacilityForCreationDto, Facility>();
             CreateMap<FacilityForUpdateDto, Facility>().ReverseMap();
@@ -97,9 +109,9 @@ namespace HalisahaOtomasyon.AutoMap
             CreateMap<MonthlyMembershipForCreationDto, MonthlyMembership>();
 
 
-            CreateMap<Friendship, FriendshipDto>();   
+            CreateMap<Friendship, FriendshipDto>();
 
-          
+
 
 
 
