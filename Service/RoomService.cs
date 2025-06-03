@@ -8,7 +8,7 @@ using Shared.DataTransferObjects;
 
 namespace Service;
 
-public class RoomService : IRoomService          // interface adı da değişti
+public class RoomService : IRoomService      
 {
     private readonly IRepositoryManager _repo;
     private readonly INotificationService _notifs;
@@ -30,14 +30,12 @@ public class RoomService : IRoomService          // interface adı da değişti
 
     public async Task<RoomDto> CreateRoomAsync(RoomCreateDto dto, int creatorTeamId)
     {
-        var field = await _repo.Field.GetFieldAsync(dto.FieldId, false)
-                   ?? throw new FieldNotFoundException(dto.FieldId);
+        var field = await _repo.Field.GetFieldAsync(dto.FieldId, false) ?? throw new FieldNotFoundException(dto.FieldId);
 
         ValidateSlotAgainstField(dto.SlotStart, field);
 
         bool clash = (await _repo.Room.GetRoomsByFieldIdAsync(dto.FieldId, false))
-                     .Any(r => r.SlotStart < dto.SlotStart.AddHours(1) &&
-                               r.SlotEnd > dto.SlotStart);
+                     .Any(r => r.SlotStart < dto.SlotStart.AddHours(1) && r.SlotEnd > dto.SlotStart);
         if (clash) throw new InvalidOperationException("Bu saat dolu.");
 
         var room = new Room
