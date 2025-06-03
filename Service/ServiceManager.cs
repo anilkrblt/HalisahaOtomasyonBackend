@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Contracts;
 using Entities.Models;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
@@ -40,27 +41,28 @@ public class ServiceManager : IServiceManager
         ILoggerManager log,
         IMapper map,
         IHubContext<NotificationHub> hub,
-        ICodeGenerator code)
+        ICodeGenerator code,
+        IWebHostEnvironment env)
     {
         /* Auth */
-        _auth = new(() =>
+        _auth = new (() =>
             new AuthService(userManager, signInManager, config, roleManager, redis));
-        _photo = new(() => new PhotoService(repo, map));
-        _facility = new(() => new FacilityService(repo, log, map, _photo.Value));
-        _notification = new(() => new NotificationService(repo, log, map, hub));
+        _photo = new (() => new PhotoService(repo, map, env));
+        _facility = new (() => new FacilityService(repo, log, map, _photo.Value));
+        _notification = new (() => new NotificationService(repo, log, map, hub));
 
         /* Core servisler */
-        _comment = new(() => new CommentService(repo, map, log));
-        _field = new(() => new FieldService(repo, log, map, _photo.Value));
-        _room = new(() => new RoomService(repo, _notification.Value,code, map));
-        _equipment = new(() => new EquipmentService(repo, map));
-        _announcement = new(() => new AnnouncementService(repo, log, map));
-        _match = new(() => new MatchService(repo, map));
+        _comment = new (() => new CommentService(repo, map, log));
+        _field = new (() => new FieldService(repo, log, map, _photo.Value));
+        _room = new (() => new RoomService(repo, _notification.Value, code, map));
+        _equipment = new (() => new EquipmentService(repo, map));
+        _announcement = new (() => new AnnouncementService(repo, log, map));
+        _match = new (() => new MatchService(repo, map));
 
         /* Yeni servisler */
-        _facilityRating = new(() => new FacilityRatingService(repo, map));
-        _friendship = new(() => new FriendshipService(repo, map));
-        _team = new(() => new TeamService(repo, map, log, _photo.Value));
+        _facilityRating = new (() => new FacilityRatingService(repo, map));
+        _friendship = new (() => new FriendshipService(repo, map));
+        _team = new (() => new TeamService(repo, map, log, _photo.Value));
     }
 
     /*───────── Arabirim üyeleri ─────────*/
