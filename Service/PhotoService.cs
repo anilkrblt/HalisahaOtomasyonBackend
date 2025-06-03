@@ -20,7 +20,7 @@ namespace Service
         private readonly IMapper _map;
         private readonly IWebHostEnvironment _env;
 
-        private static readonly string[] _allowed = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+        private static readonly string[] _allowed = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
         private const int _maxSize = 5 * 1024 * 1024; // 5 MB
 
         public PhotoService(
@@ -41,6 +41,8 @@ namespace Service
         /// </summary>
         public async Task<string> UploadLogoAsync(IFormFile file, string entityFolder)
         {
+            if (string.IsNullOrWhiteSpace(entityFolder))
+                throw new ArgumentException("entityFolder boş olamaz.", nameof(entityFolder));
             ValidateFile(file);
 
             var ext = Path.GetExtension(file.FileName).ToLower();

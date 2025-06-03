@@ -1,13 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using HalisahaOtomasyon.ActionFilters;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
 using Shared.DataTransferObjects;
-//using Swashbuckle.AspNetCore.Annotations;
 
 namespace HalisahaOtomasyonPresentation.Controllers
 {

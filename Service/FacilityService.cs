@@ -34,20 +34,21 @@ public class FacilityService : IFacilityService
         if (dto.LogoFile is not null)
             entity.LogoUrl = await _photo.UploadLogoAsync(dto.LogoFile, $"facility/{entity.Id}");
 
-        if (dto.PhotoFiles?.Any() == true)
-            await _photo.UploadPhotosAsync(dto.PhotoFiles, "facility", entity.Id);
-
         await _repo.SaveAsync();
         return _map.Map<FacilityDto>(entity);
     }
 
-    public async Task<IEnumerable<FacilityDto>> GetAllFacilitiesAsync(bool track) =>
-        _map.Map<IEnumerable<FacilityDto>>(await _repo.Facility.GetAllFacilitiesAsync(track));
+    public async Task<IEnumerable<FacilityDto>> GetAllFacilitiesAsync(bool track)
+    {
+        return _map.Map<IEnumerable<FacilityDto>>(await _repo.Facility.GetAllFacilitiesAsync(track));
 
-    public async Task<FacilityDto> GetFacilityAsync(int id, bool track) =>
-        _map.Map<FacilityDto>(
-            await _repo.Facility.GetFacilityAsync(id, track)
-            ?? throw new FacilityNotFoundException(id));
+    }
+
+    public async Task<FacilityDto> GetFacilityAsync(int id, bool track)
+    {
+        return _map.Map<FacilityDto>(await _repo.Facility.GetFacilityAsync(id, track) ?? throw new FacilityNotFoundException(id));
+    }
+
 
     public async Task<IEnumerable<FacilityDto>> GetFacilitiesByOwnerIdAsync(int ownerId, bool track)
     {
@@ -69,8 +70,7 @@ public class FacilityService : IFacilityService
 
     public async Task PatchFacilityAsync(int id, FacilityPatchDto patch)
     {
-        var fac = await _repo.Facility.GetFacilityAsync(id, true)
-                  ?? throw new FacilityNotFoundException(id);
+        var fac = await _repo.Facility.GetFacilityAsync(id, true) ?? throw new FacilityNotFoundException(id);
 
         if (patch.Name is not null) fac.Name = patch.Name;
         if (patch.Description is not null) fac.Description = patch.Description;
@@ -97,10 +97,9 @@ public class FacilityService : IFacilityService
 
     public async Task DeleteFacility(int id, bool track)
     {
-        var fac = await _repo.Facility.GetFacilityAsync(id, track)
-                  ?? throw new FacilityNotFoundException(id);
+        var fac = await _repo.Facility.GetFacilityAsync(id, track) ?? throw new FacilityNotFoundException(id);
 
-        await _photo.DeletePhotosByEntityAsync("facility", id, false); // logo+foto
+        await _photo.DeletePhotosByEntityAsync("facility", id, false);
 
         _repo.Facility.DeleteFacility(fac);
         await _repo.SaveAsync();
