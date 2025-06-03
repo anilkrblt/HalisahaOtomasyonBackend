@@ -13,12 +13,11 @@ public interface IRepositoryManager
     IFieldRepository Field { get; }
     IFriendshipRepository Friendship { get; }
     IMatchRepository Match { get; }
-    IMatchRequestRepository MatchRequest { get; }
     IMonthlyMembershipRepository MonthlyMembership { get; }
     INotificationRepository Notification { get; }
     IPhotoRepository Photo { get; }
-    IReservationParticipantRepository ReservationParticipant { get; }
-    IReservationRepository Reservation { get; }
+    IRoomParticipantRepository RoomParticipant { get; }
+    IRoomRepository Room { get; }
     ITeamCommentRepository TeamComment { get; }
     ITeamJoinRequestRepository TeamJoinRequest { get; }
     IWeeklyOpeningRepository WeeklyOpening { get; }

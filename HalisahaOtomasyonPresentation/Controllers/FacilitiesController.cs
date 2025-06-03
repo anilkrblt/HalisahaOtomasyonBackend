@@ -25,17 +25,19 @@ namespace HalisahaOtomasyonPresentation.Controllers
         [HttpGet]
         // [SwaggerOperation(Summary = "Tüm tesisleri getirir", Description = "Kayıtlı tüm tesisleri ve fotoğraflarını listeler.")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetFacilities()
+        public async Task<IActionResult> GetFacilities([FromQuery] int? ownerId = null)
         {
             var facilities = await _service.FacilityService.GetAllFacilitiesAsync(trackChanges: false);
 
-            foreach (var facility in facilities)
+            var filteredFacilities = ownerId.HasValue ? facilities.Where(f => f.OwnerId == ownerId.Value).ToList()
+                                                     : facilities.ToList();
+            foreach (var facility in filteredFacilities)
             {
                 var photoDtos = await _service.PhotoService.GetPhotosAsync("facility", facility.Id, false);
                 facility.PhotoUrls = photoDtos.Select(p => p.Url).ToList();
             }
 
-            return Ok(facilities);
+            return Ok(filteredFacilities);
 
         }
 

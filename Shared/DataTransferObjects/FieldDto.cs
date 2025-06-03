@@ -62,7 +62,7 @@ namespace Shared.DataTransferObjects
 
         // Fotoğraflar + Rezervasyonlar aynen duruyor
         public List<string>? PhotoUrls { get; set; }
-        public List<ReservationDto>? Reservations { get; set; }
+        public List<RoomDto>? Reservations { get; set; }
 
         // Günlük rutin ve istisnalar
         public List<WeeklyOpeningDto>? WeeklyOpenings { get; set; }

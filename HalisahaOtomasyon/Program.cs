@@ -24,7 +24,10 @@ builder.Services.ConfigureLoggerService();
 
 builder.Services.ConfigureRepositoryManager();
 
+builder.Services.ConfigureCodeGenerator();
+
 builder.Services.ConfigureServiceManager();
+
 
 // builder.Services.ConfigureSqlContext(builder.Configuration); SQLite içindi
 builder.Services.ConfigureMySqlContext(builder.Configuration);

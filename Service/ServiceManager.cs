@@ -26,7 +26,7 @@ public class ServiceManager : IServiceManager
     private readonly Lazy<IFieldService> _field;
     private readonly Lazy<IFriendshipService> _friendship;
     private readonly Lazy<IMatchService> _match;
-    private readonly Lazy<IReservationService> _reservation;
+    private readonly Lazy<IRoomService> _room;
     private readonly Lazy<ITeamService> _team;
 
     public ServiceManager(
@@ -39,7 +39,8 @@ public class ServiceManager : IServiceManager
         IRepositoryManager repo,
         ILoggerManager log,
         IMapper map,
-        IHubContext<NotificationHub> hub)
+        IHubContext<NotificationHub> hub,
+        ICodeGenerator code)
     {
         /* Auth */
         _auth = new(() =>
@@ -51,7 +52,7 @@ public class ServiceManager : IServiceManager
         /* Core servisler */
         _comment = new(() => new CommentService(repo, map, log));
         _field = new(() => new FieldService(repo, log, map, _photo.Value));
-        _reservation = new(() => new ReservationService(repo, _notification.Value, map));
+        _room = new(() => new RoomService(repo, _notification.Value,code, map));
         _equipment = new(() => new EquipmentService(repo, map));
         _announcement = new(() => new AnnouncementService(repo, log, map));
         _match = new(() => new MatchService(repo, map));
@@ -75,6 +76,6 @@ public class ServiceManager : IServiceManager
     public IFriendshipService FriendshipService => _friendship.Value;
     public IMatchService MatchService => _match.Value;
     public INotificationService NotificationService => _notification.Value;
-    public IReservationService ReservationService => _reservation.Value;
+    public IRoomService RoomService => _room.Value;
     public ITeamService TeamService => _team.Value;
 }

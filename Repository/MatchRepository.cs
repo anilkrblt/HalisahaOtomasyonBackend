@@ -15,37 +15,38 @@ namespace Repository
         public void CreateMatch(Match match) => Create(match);
         public void DeleteMatch(Match match) => Delete(match);
 
-        /* -------- Helpers for eager-load -------- */
+        /* -------- Helpers for eager-loading -------- */
         private static IQueryable<Match> IncludeAll(IQueryable<Match> q) =>
-            q.Include(m => m.HomeTeam)
-             .Include(m => m.AwayTeam)
-             .Include(m => m.Field)
-                 .ThenInclude(f => f.Facility);   // tesis bilgisi de lazım olursa
+            q.Include(m => m.Room)
+             .ThenInclude(r => r.Field)
+             .ThenInclude(f => f.Facility)
+             .Include(m => m.Room)
+             .ThenInclude(r => r.Participants);
 
-        /* -------- Query: Hepsi -------- */
+        /* -------- Query: All matches -------- */
         public async Task<IEnumerable<Match>> GetAllMatchesAsync(bool trackChanges) =>
             await IncludeAll(FindAll(trackChanges))
-                 .OrderByDescending(m => m.DateTime)
-                 .ToListAsync();
+                .OrderByDescending(m => m.Room.SlotStart)
+                .ToListAsync();
 
-        /* -------- Query: Tek kayıt -------- */
+        /* -------- Query: Single by Id -------- */
         public async Task<Match?> GetMatchAsync(int matchId, bool trackChanges) =>
             await IncludeAll(
                     FindByCondition(m => m.Id == matchId, trackChanges))
-                 .SingleOrDefaultAsync();
+                .SingleOrDefaultAsync();
 
-        /* -------- Query: Saha bazlı -------- */
+        /* -------- Query: By FieldId -------- */
         public async Task<IEnumerable<Match>> GetMatchesByFieldIdAsync(int fieldId, bool trackChanges) =>
             await IncludeAll(
-                    FindByCondition(m => m.FieldId == fieldId, trackChanges))
-                 .OrderByDescending(m => m.DateTime)
-                 .ToListAsync();
+                    FindByCondition(m => m.Room.FieldId == fieldId, trackChanges))
+                .OrderByDescending(m => m.Room.SlotStart)
+                .ToListAsync();
 
-        /* -------- Query: Takım bazlı (home veya away) -------- */
+        /* -------- Query: By TeamId (home or away) -------- */
         public async Task<IEnumerable<Match>> GetMatchesByTeamIdAsync(int teamId, bool trackChanges) =>
             await IncludeAll(
                     FindByCondition(m => m.HomeTeamId == teamId || m.AwayTeamId == teamId, trackChanges))
-                 .OrderByDescending(m => m.DateTime)
-                 .ToListAsync();
+                .OrderByDescending(m => m.Room.SlotStart)
+                .ToListAsync();
     }
 }

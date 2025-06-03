@@ -35,7 +35,7 @@ public class Team
     public ICollection<Match> HomeMatches { get; set; } = [];
     public ICollection<Match> AwayMatches { get; set; } = [];
 
-    public ICollection<ReservationParticipant> TeamReservations { get; set; } = [];
+    public ICollection<RoomParticipant> TeamReservations { get; set; } = [];
 
     /* ---------- Ortalama Takım Puanı ---------- */
     [NotMapped]

@@ -20,7 +20,7 @@ namespace Service.Contracts
         IMatchService MatchService { get; }
         INotificationService NotificationService { get; }
         IPhotoService PhotoService { get; }
-        IReservationService ReservationService { get; }
+        IRoomService RoomService { get; }
         ITeamService TeamService { get; }
     }
 }

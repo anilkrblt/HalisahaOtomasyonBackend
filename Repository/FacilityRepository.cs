@@ -17,11 +17,12 @@ namespace Repository
 
         public async Task<IEnumerable<Facility>> GetAllFacilitiesAsync(bool trackChanges) =>
             await FindAll(trackChanges)
-                      .Include(f => f.Photos)
-    .Include(f => f.Equipments)
-    .Include(f => f.Fields)
-                  .OrderBy(f => f.Name)
-                  .ToListAsync();
+                    .Include(f => f.Photos)
+                    .Include(f => f.Equipments)
+                    .Include(f => f.Owner)
+                    .Include(f => f.Fields)
+                    .OrderBy(f => f.Name)
+                    .ToListAsync();
 
         public async Task<Facility?> GetFacilityAsync(int id, bool trackChanges) =>
             await FindByCondition(f => f.Id == id, trackChanges)

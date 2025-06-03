@@ -1,6 +1,4 @@
-﻿// Service/FacilityService.cs  – tamamı
-
-using AutoMapper;
+﻿using AutoMapper;
 using Contracts;
 using Entities.Exceptions;
 using Entities.Models;

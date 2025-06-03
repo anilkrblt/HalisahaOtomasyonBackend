@@ -23,7 +23,7 @@
         public decimal PricePerHour { get; set; }
         public bool LightingAvailable { get; set; }
         public DateTime CreatedAt { get; set; }
-        public ICollection<Reservation> Reservations { get; set; }
+        public ICollection<Room> Rooms { get; set; }
         public ICollection<WeeklyOpening> WeeklyOpenings { get; set; } = [];
         public ICollection<FieldException> Exceptions { get; set; } = [];
 

@@ -14,7 +14,11 @@ namespace HalisahaOtomasyon.AutoMap
 
         public MappingProfile()
         {
-            // Service/MappingProfile.cs
+
+
+            CreateMap<Room, RoomDto>()
+                .ForMember(d => d.RoomId, opt => opt.MapFrom(src => src.Id));
+
 
             // Mevcut mapping’lerinize ekleyin:
             CreateMap<FacilityRating, FacilityRatingDto>();
@@ -60,6 +64,7 @@ namespace HalisahaOtomasyon.AutoMap
 
 
             CreateMap<Facility, FacilityDto>()
+                .ForMember(dest => dest.OwnerId, opt => opt.MapFrom(src => src.OwnerId))
                 .ForMember(d => d.Fields,
                            opt => opt.MapFrom(src => src.Fields))
                 .ForMember(d => d.Equipments,
@@ -92,18 +97,12 @@ namespace HalisahaOtomasyon.AutoMap
             CreateMap<FacilityForCreationDto, Facility>();
             CreateMap<FacilityForUpdateDto, Facility>().ReverseMap();
 
-            CreateMap<Reservation, ReservationDto>()
-                .ForMember(d => d.SlotEnd,
-                           opt => opt.MapFrom(s => s.SlotEnd));
-
-            CreateMap<ReservationForCreationDto, Reservation>()
-                .ForMember(d => d.Status, opt => opt.Ignore())   // varsayılan PendingOpponent
-                .ForMember(d => d.CreatedAt, opt => opt.Ignore());
 
 
 
-            CreateMap<ReservationParticipant, ReservationParticipantDto>();
-            CreateMap<ReservationParticipantForCreationDto, ReservationParticipant>();
+
+
+
 
             CreateMap<MonthlyMembership, MonthlyMembershipDto>();
             CreateMap<MonthlyMembershipForCreationDto, MonthlyMembership>();
@@ -112,21 +111,12 @@ namespace HalisahaOtomasyon.AutoMap
             CreateMap<Friendship, FriendshipDto>();
 
 
-
-
-
             CreateMap<FacilityRating, FacilityRatingDto>();
             CreateMap<FacilityRatingForCreationDto, FacilityRating>();
 
 
 
             CreateMap<Match, MatchDto>().ReverseMap();
-            CreateMap<MatchForCreationDto, Match>();
-
-            CreateMap<MatchRequestForCreationDto, MatchRequest>();
-            CreateMap<MatchRequest, MatchRequestDto>();
-
-
 
 
             CreateMap<Team, TeamDto>().ReverseMap();
@@ -151,32 +141,18 @@ namespace HalisahaOtomasyon.AutoMap
             // -----------------------------------------------------
 
 
-
-
-
-
-
-
             CreateMap<Notification, NotificationDto>().ReverseMap();
             CreateMap<NotificationForCreationDto, Notification>();
 
 
-            CreateMap<Reservation, ReservationDto>();
-            CreateMap<ReservationForCreationDto, Reservation>();
-
-
-
-
             CreateMap<FacilityForCreationDto, Facility>();
-
-
             CreateMap<FacilityForUpdateDto, Facility>();
 
 
             CreateMap<Field, FieldDto>()
             .ForMember(
                 dest => dest.Reservations,
-                opt => opt.MapFrom(src => src.Reservations));
+                opt => opt.MapFrom(src => src.Rooms));
 
             CreateMap<FieldForCreationDto, Field>();
             CreateMap<FieldForUpdateDto, Field>();
@@ -196,20 +172,6 @@ namespace HalisahaOtomasyon.AutoMap
             CreateMap<AnnouncementForCreationDto, Announcement>();
             CreateMap<AnnouncementForUpdateDto, Announcement>();
             CreateMap<AnnouncementForUpdateDto, Announcement>().ReverseMap();
-
-
-
-            CreateMap<MatchForCreationDto, Match>()
-                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow))
-                .ForMember(dest => dest.HomeScore, opt => opt.MapFrom(_ => 0))
-                .ForMember(dest => dest.AwayScore, opt => opt.MapFrom(_ => 0));
-
-
-            CreateMap<MatchForUpdateDto, Match>();
-
-
-
-
 
         }
     }

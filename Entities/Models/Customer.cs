@@ -49,7 +49,7 @@ public class Customer : ApplicationUser
             .Distinct();
 
 
-        public ICollection<Reservation> Reservations { get; set; } = [];
+        public ICollection<Room> Rooms { get; set; } = [];
         public ICollection<MonthlyMembership> MonthlyMemberships { get; set; } = [];
         public ICollection<Notification> Notifications { get; set; } = [];
 }

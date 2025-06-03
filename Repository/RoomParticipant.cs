@@ -1,0 +1,41 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Contracts;
+using Entities.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace Repository
+{
+    public class RoomParticipantRepository
+        : RepositoryBase<RoomParticipant>, IRoomParticipantRepository
+    {
+        public RoomParticipantRepository(RepositoryContext ctx) : base(ctx) { }
+
+        /* -------- Command -------- */
+        public void CreateParticipant(RoomParticipant p) => Create(p);
+        public void DeleteParticipant(RoomParticipant p) => Delete(p);
+
+        /* -------- Tek kayıt -------- */
+        public async Task<RoomParticipant?> GetParticipantAsync(
+            int roomId, int teamId, bool trackChanges) =>
+            await FindByCondition(p => p.RoomId == roomId && p.TeamId == teamId, trackChanges)
+                  .Include(p => p.Team)
+                  .Include(p => p.Room)
+                  .SingleOrDefaultAsync();
+
+        /* -------- Rezervasyona göre liste -------- */
+        public async Task<IEnumerable<RoomParticipant>> GetParticipantsByReservationIdAsync(int roomId, bool trackChanges) =>
+            await FindByCondition(p => p.RoomId == roomId, trackChanges)
+                  .Include(p => p.Team)
+                  .OrderByDescending(p => p.IsHome)
+                  .ToListAsync();
+
+        /* -------- Takıma göre liste -------- */
+        public async Task<IEnumerable<RoomParticipant>> GetParticipantsByTeamIdAsync(int teamId, bool trackChanges) =>
+            await FindByCondition(p => p.TeamId == teamId, trackChanges)
+                  .Include(p => p.Room)
+                      .ThenInclude(r => r.Field)
+                  .ToListAsync();
+    }
+}

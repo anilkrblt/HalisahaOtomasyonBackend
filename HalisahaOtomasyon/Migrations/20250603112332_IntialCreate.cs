@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HalisahaOtomasyon.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class IntialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -89,26 +89,6 @@ namespace HalisahaOtomasyon.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "Photos",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Url = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    EntityType = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    EntityId = table.Column<int>(type: "int", nullable: false),
-                    Description = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Photos", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -275,8 +255,7 @@ namespace HalisahaOtomasyon.Migrations
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    CustomerId = table.Column<int>(type: "int", nullable: true)
+                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -285,12 +264,8 @@ namespace HalisahaOtomasyon.Migrations
                         name: "FK_Comments_AspNetUsers_AuthorId",
                         column: x => x.AuthorId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Comments_AspNetUsers_CustomerId",
-                        column: x => x.CustomerId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -316,11 +291,15 @@ namespace HalisahaOtomasyon.Migrations
                     Description = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     HasCafeteria = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    HasLockerRoom = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    HasFirstAid = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    HasSecurityCameras = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    HasRefereeService = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    HasParking = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     HasShower = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     HasToilet = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     HasTransportService = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    ParkingLot = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    Email = table.Column<string>(type: "longtext", nullable: true)
+                    Email = table.Column<string>(type: "varchar(255)", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Phone = table.Column<string>(type: "varchar(32)", maxLength: 32, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -357,12 +336,14 @@ namespace HalisahaOtomasyon.Migrations
                         name: "FK_Friendships_AspNetUsers_UserId1",
                         column: x => x.UserId1,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Friendships_AspNetUsers_UserId2",
                         column: x => x.UserId2,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -395,45 +376,6 @@ namespace HalisahaOtomasyon.Migrations
                         column: x => x.ToUserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "MatchRequests",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    RequestedDateTimeStart = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    RequestedDateTimeEnd = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    RespondedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    FromUserId = table.Column<int>(type: "int", nullable: false),
-                    FromTeamId = table.Column<int>(type: "int", nullable: false),
-                    ToUserId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_MatchRequests", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_MatchRequests_AspNetUsers_FromUserId",
-                        column: x => x.FromUserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_MatchRequests_AspNetUsers_ToUserId",
-                        column: x => x.ToUserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_MatchRequests_Teams_FromTeamId",
-                        column: x => x.FromTeamId,
-                        principalTable: "Teams",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -624,13 +566,9 @@ namespace HalisahaOtomasyon.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     IsIndoor = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     IsAvailable = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    StartTime = table.Column<TimeSpan>(type: "time(6)", nullable: false),
-                    EndTime = table.Column<TimeSpan>(type: "time(6)", nullable: false),
                     HasCamera = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     FloorType = table.Column<int>(type: "int", nullable: false),
                     Capacity = table.Column<int>(type: "int", nullable: false),
-                    OpeningDays = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
                     PricePerHour = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
                     LightingAvailable = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
@@ -683,6 +621,32 @@ namespace HalisahaOtomasyon.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "Photos",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Url = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    EntityType = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    EntityId = table.Column<int>(type: "int", nullable: false),
+                    Description = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    FacilityId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Photos", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Photos_Facilities_FacilityId",
+                        column: x => x.FacilityId,
+                        principalTable: "Facilities",
+                        principalColumn: "Id");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "FieldComments",
                 columns: table => new
                 {
@@ -723,44 +687,24 @@ namespace HalisahaOtomasyon.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Matches",
+                name: "FieldExceptions",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    HomeTeamId = table.Column<int>(type: "int", nullable: false),
-                    AwayTeamId = table.Column<int>(type: "int", nullable: false),
-                    HomeScore = table.Column<int>(type: "int", nullable: false),
-                    AwayScore = table.Column<int>(type: "int", nullable: false),
-                    DateTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     FieldId = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    FacilityId = table.Column<int>(type: "int", nullable: true)
+                    Date = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    IsOpen = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Matches", x => x.Id);
+                    table.PrimaryKey("PK_FieldExceptions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Matches_Facilities_FacilityId",
-                        column: x => x.FacilityId,
-                        principalTable: "Facilities",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Matches_Fields_FieldId",
+                        name: "FK_FieldExceptions_Fields_FieldId",
                         column: x => x.FieldId,
                         principalTable: "Fields",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Matches_Teams_AwayTeamId",
-                        column: x => x.AwayTeamId,
-                        principalTable: "Teams",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Matches_Teams_HomeTeamId",
-                        column: x => x.HomeTeamId,
-                        principalTable: "Teams",
-                        principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -795,27 +739,32 @@ namespace HalisahaOtomasyon.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Reservations",
+                name: "Rooms",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     FieldId = table.Column<int>(type: "int", nullable: false),
                     SlotStart = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    AccessType = table.Column<int>(type: "int", nullable: false),
+                    JoinCode = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    MaxPlayers = table.Column<int>(type: "int", nullable: false),
+                    PricePerPlayer = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     CustomerId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Reservations", x => x.Id);
+                    table.PrimaryKey("PK_Rooms", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Reservations_AspNetUsers_CustomerId",
+                        name: "FK_Rooms_AspNetUsers_CustomerId",
                         column: x => x.CustomerId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_Reservations_Fields_FieldId",
+                        name: "FK_Rooms_Fields_FieldId",
                         column: x => x.FieldId,
                         principalTable: "Fields",
                         principalColumn: "Id",
@@ -824,26 +773,93 @@ namespace HalisahaOtomasyon.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "ReservationParticipants",
+                name: "WeeklyOpenings",
                 columns: table => new
                 {
-                    ReservationId = table.Column<int>(type: "int", nullable: false),
-                    TeamId = table.Column<int>(type: "int", nullable: false),
-                    IsHome = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false),
-                    RespondedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    FieldId = table.Column<int>(type: "int", nullable: false),
+                    DayOfWeek = table.Column<int>(type: "int", nullable: false),
+                    StartTime = table.Column<TimeSpan>(type: "time(6)", nullable: false),
+                    EndTime = table.Column<TimeSpan>(type: "time(6)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ReservationParticipants", x => new { x.ReservationId, x.TeamId });
+                    table.PrimaryKey("PK_WeeklyOpenings", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ReservationParticipants_Reservations_ReservationId",
-                        column: x => x.ReservationId,
-                        principalTable: "Reservations",
+                        name: "FK_WeeklyOpenings_Fields_FieldId",
+                        column: x => x.FieldId,
+                        principalTable: "Fields",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Matches",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    RoomId = table.Column<int>(type: "int", nullable: false),
+                    HomeTeamId = table.Column<int>(type: "int", nullable: true),
+                    AwayTeamId = table.Column<int>(type: "int", nullable: true),
+                    HomeScore = table.Column<int>(type: "int", nullable: false),
+                    AwayScore = table.Column<int>(type: "int", nullable: false),
+                    StartTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    FieldId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    FacilityId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Matches", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Matches_Facilities_FacilityId",
+                        column: x => x.FacilityId,
+                        principalTable: "Facilities",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Matches_Rooms_RoomId",
+                        column: x => x.RoomId,
+                        principalTable: "Rooms",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_ReservationParticipants_Teams_TeamId",
+                        name: "FK_Matches_Teams_AwayTeamId",
+                        column: x => x.AwayTeamId,
+                        principalTable: "Teams",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Matches_Teams_HomeTeamId",
+                        column: x => x.HomeTeamId,
+                        principalTable: "Teams",
+                        principalColumn: "Id");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "RoomParticipants",
+                columns: table => new
+                {
+                    RoomId = table.Column<int>(type: "int", nullable: false),
+                    TeamId = table.Column<int>(type: "int", nullable: false),
+                    IsHome = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    HasPaid = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    PaidAmount = table.Column<decimal>(type: "decimal(65,30)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RoomParticipants", x => new { x.RoomId, x.TeamId });
+                    table.ForeignKey(
+                        name: "FK_RoomParticipants_Rooms_RoomId",
+                        column: x => x.RoomId,
+                        principalTable: "Rooms",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_RoomParticipants_Teams_TeamId",
                         column: x => x.TeamId,
                         principalTable: "Teams",
                         principalColumn: "Id",
@@ -899,14 +915,15 @@ namespace HalisahaOtomasyon.Migrations
                 column: "AuthorId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Comments_CustomerId",
-                table: "Comments",
-                column: "CustomerId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Equipments_FacilityId",
                 table: "Equipments",
                 column: "FacilityId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Facilities_Email",
+                table: "Facilities",
+                column: "Email",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Facilities_OwnerId",
@@ -934,14 +951,24 @@ namespace HalisahaOtomasyon.Migrations
                 column: "FromUserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_FieldExceptions_FieldId",
+                table: "FieldExceptions",
+                column: "FieldId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Fields_FacilityId",
                 table: "Fields",
                 column: "FacilityId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Friendships_UserId2",
+                name: "IX_Friendships_UserId1_Status",
                 table: "Friendships",
-                column: "UserId2");
+                columns: new[] { "UserId1", "Status" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Friendships_UserId2_Status",
+                table: "Friendships",
+                columns: new[] { "UserId2", "Status" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Matches_AwayTeamId",
@@ -954,29 +981,15 @@ namespace HalisahaOtomasyon.Migrations
                 column: "FacilityId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Matches_FieldId",
-                table: "Matches",
-                column: "FieldId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Matches_HomeTeamId",
                 table: "Matches",
                 column: "HomeTeamId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_MatchRequests_FromTeamId",
-                table: "MatchRequests",
-                column: "FromTeamId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_MatchRequests_FromUserId",
-                table: "MatchRequests",
-                column: "FromUserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_MatchRequests_ToUserId",
-                table: "MatchRequests",
-                column: "ToUserId");
+                name: "IX_Matches_RoomId",
+                table: "Matches",
+                column: "RoomId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_MonthlyMemberships_FieldId",
@@ -999,19 +1012,31 @@ namespace HalisahaOtomasyon.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ReservationParticipants_TeamId",
-                table: "ReservationParticipants",
+                name: "IX_Photos_FacilityId",
+                table: "Photos",
+                column: "FacilityId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RoomParticipants_TeamId",
+                table: "RoomParticipants",
                 column: "TeamId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Reservations_CustomerId",
-                table: "Reservations",
+                name: "IX_Rooms_CustomerId",
+                table: "Rooms",
                 column: "CustomerId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Reservations_FieldId",
-                table: "Reservations",
+                name: "IX_Rooms_FieldId",
+                table: "Rooms",
                 column: "FieldId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Rooms_JoinCode",
+                table: "Rooms",
+                column: "JoinCode",
+                unique: true,
+                filter: "[JoinCode] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TeamComments_FromUserId",
@@ -1024,20 +1049,15 @@ namespace HalisahaOtomasyon.Migrations
                 column: "ToTeamId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TeamJoinRequests_TeamId",
+                name: "IX_TeamJoinRequests_TeamId_UserId",
                 table: "TeamJoinRequests",
-                column: "TeamId");
+                columns: new[] { "TeamId", "UserId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_TeamJoinRequests_UserId",
                 table: "TeamJoinRequests",
                 column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "UX_TeamJoinRequests_TeamId_UserId",
-                table: "TeamJoinRequests",
-                columns: new[] { "TeamId", "UserId" },
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_TeamMembers_UserId",
@@ -1053,6 +1073,11 @@ namespace HalisahaOtomasyon.Migrations
                 name: "IX_UserComments_ToUserId",
                 table: "UserComments",
                 column: "ToUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WeeklyOpenings_FieldId",
+                table: "WeeklyOpenings",
+                column: "FieldId");
         }
 
         /// <inheritdoc />
@@ -1089,13 +1114,13 @@ namespace HalisahaOtomasyon.Migrations
                 name: "FieldComments");
 
             migrationBuilder.DropTable(
+                name: "FieldExceptions");
+
+            migrationBuilder.DropTable(
                 name: "Friendships");
 
             migrationBuilder.DropTable(
                 name: "Matches");
-
-            migrationBuilder.DropTable(
-                name: "MatchRequests");
 
             migrationBuilder.DropTable(
                 name: "MonthlyMemberships");
@@ -1107,7 +1132,7 @@ namespace HalisahaOtomasyon.Migrations
                 name: "Photos");
 
             migrationBuilder.DropTable(
-                name: "ReservationParticipants");
+                name: "RoomParticipants");
 
             migrationBuilder.DropTable(
                 name: "TeamComments");
@@ -1122,10 +1147,13 @@ namespace HalisahaOtomasyon.Migrations
                 name: "UserComments");
 
             migrationBuilder.DropTable(
+                name: "WeeklyOpenings");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "Reservations");
+                name: "Rooms");
 
             migrationBuilder.DropTable(
                 name: "Teams");

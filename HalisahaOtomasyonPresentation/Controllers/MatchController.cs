@@ -8,82 +8,47 @@ namespace HalisahaOtomasyonPresentation.Controllers;
 [Route("api/matches")]
 public class MatchesController : ControllerBase
 {
-    private readonly IMatchService _svc;           // DOĞRUDAN servis
+    private readonly IMatchService _service;
 
-    public MatchesController(IMatchService svc)    // ① sadece ihtiyacımız olan servisi enjekte ediyoruz
+    public MatchesController(IMatchService service)
     {
-        _svc = svc;
+        _service = service;
     }
 
-    /*────────────── MATCH CRUD ──────────────*/
+    /*────────  GET  ─────────────────────────────────*/
 
-    // GET api/matches
-    [HttpGet]
-    public async Task<IActionResult> GetMatches() =>
-        Ok(await _svc.GetAllMatchesAsync(trackChanges: false));
-
-    // GET api/matches/5
+    // GET api/matches/55
     [HttpGet("{id:int}", Name = "GetMatchById")]
-    public async Task<IActionResult> GetMatch(int id) =>
-        Ok(await _svc.GetMatchAsync(id, trackChanges: false));
-
-    // POST api/matches
-    [HttpPost]
-    public async Task<IActionResult> CreateMatch([FromBody] MatchForCreationDto dto)
+    public async Task<IActionResult> GetMatch(int id)
     {
-        var created = await _svc.CreateMatchAsync(dto);
-        return CreatedAtRoute("GetMatchById", new { id = created.Id }, created);
+        var match = await _service.GetMatchAsync(id, trackChanges: false);
+        return Ok(match);
     }
 
-    // PUT api/matches/5
-    [HttpPut("{id:int}")]
-    public async Task<IActionResult> UpdateMatch(int id, [FromBody] MatchForUpdateDto dto)
+    // GET api/matches/field/7
+    [HttpGet("field/{fieldId:int}")]
+    public async Task<IActionResult> GetMatchesByField(int fieldId)
     {
-        await _svc.UpdateMatchAsync(id, dto);
-        return NoContent();
+        var matches = await _service.GetMatchesByFieldIdAsync(fieldId, trackChanges: false);
+        return Ok(matches);
     }
 
-    // DELETE api/matches/5
-    [HttpDelete("{id:int}")]
-    public async Task<IActionResult> DeleteMatch(int id)
+    // GET api/matches/team/12
+    [HttpGet("team/{teamId:int}")]
+    public async Task<IActionResult> GetMatchesByTeam(int teamId)
     {
-        await _svc.DeleteMatchAsync(id);
-        return NoContent();
+        var matches = await _service.GetMatchesByTeamIdAsync(teamId, trackChanges: false);
+        return Ok(matches);
     }
 
-    /*────────────── MATCH REQUESTS ──────────────*/
+    /*────────  SCORE UPDATE  ───────────────────────*/
 
-    // POST api/matches/requests
-    [HttpPost("requests")]
-    public async Task<IActionResult> CreateMatchRequest([FromBody] MatchRequestForCreationDto dto)
+    // POST api/matches/55/score
+    [HttpPost("{id:int}/score")]
+    public async Task<IActionResult> UpdateScore(int id,
+                                                 [FromBody] ScoreUpdateDto dto)
     {
-        var created = await _svc.CreateMatchRequestAsync(dto);
-        return CreatedAtAction(nameof(GetRequestsSentByUser), new { userId = created.FromUserId }, created);
-    }
-
-    // PUT api/match-requests/7   body: { "status": "Accepted" }
-    [HttpPut("/api/match-requests/{requestId:int}")]
-    public async Task<IActionResult> RespondMatchRequest(int requestId, [FromBody] MatchRequestRespondDto dto)
-    {
-        await _svc.RespondMatchRequestAsync(requestId, dto.Status);
-        return NoContent();
-    }
-
-    // GET api/users/10/match-requests/sent
-    [HttpGet("/api/users/{userId:int}/match-requests/sent")]
-    public async Task<IActionResult> GetRequestsSentByUser(int userId) =>
-        Ok(await _svc.GetRequestsSentByUserAsync(userId, trackChanges: false));
-
-    // GET api/users/10/match-requests/received
-    [HttpGet("/api/users/{userId:int}/match-requests/received")]
-    public async Task<IActionResult> GetRequestsReceivedByUser(int userId) =>
-        Ok(await _svc.GetRequestsReceivedByUserAsync(userId, trackChanges: false));
-
-    // DELETE api/match-requests/7
-    [HttpDelete("/api/match-requests/{requestId:int}")]
-    public async Task<IActionResult> DeleteMatchRequest(int requestId)
-    {
-        await _svc.DeleteMatchRequestAsync(requestId);
+        await _service.UpdateScoreAsync(id, dto);
         return NoContent();
     }
 }

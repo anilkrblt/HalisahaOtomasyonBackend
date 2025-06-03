@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using Repository;
 using Service;
 using Service.Contracts;
+using Service.Utilities;
 using StackExchange.Redis;
 
 namespace HalisahaOtomasyon.Extensions
@@ -39,6 +40,9 @@ namespace HalisahaOtomasyon.Extensions
 
         public static void ConfigureServiceManager(this IServiceCollection services) =>
             services.AddScoped<IServiceManager, ServiceManager>();
+
+        public static void ConfigureCodeGenerator(this IServiceCollection services) =>
+            services.AddScoped<ICodeGenerator, RandomCodeGenerator>();
 
         public static void ConfigureSqlContext(this IServiceCollection services, IConfiguration configuration) =>
                     services.AddDbContext<RepositoryContext>(opts =>

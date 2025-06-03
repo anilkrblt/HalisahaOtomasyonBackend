@@ -12,8 +12,8 @@ using Repository;
 namespace HalisahaOtomasyon.Migrations
 {
     [DbContext(typeof(RepositoryContext))]
-    [Migration("20250520123355_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250603112332_IntialCreate")]
+    partial class IntialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -173,9 +173,6 @@ namespace HalisahaOtomasyon.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int?>("CustomerId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("datetime(6)");
 
@@ -200,8 +197,6 @@ namespace HalisahaOtomasyon.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorId");
-
-                    b.HasIndex("CustomerId");
 
                     b.ToTable("Comments");
                 });
@@ -261,9 +256,24 @@ namespace HalisahaOtomasyon.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("Email")
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<bool>("HasCafeteria")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("HasFirstAid")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("HasLockerRoom")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("HasParking")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("HasRefereeService")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("HasSecurityCameras")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<bool>("HasShower")
@@ -292,9 +302,6 @@ namespace HalisahaOtomasyon.Migrations
                     b.Property<int>("OwnerId")
                         .HasColumnType("int");
 
-                    b.Property<bool>("ParkingLot")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<string>("Phone")
                         .IsRequired()
                         .HasMaxLength(32)
@@ -307,6 +314,9 @@ namespace HalisahaOtomasyon.Migrations
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
 
                     b.HasIndex("OwnerId");
 
@@ -351,9 +361,6 @@ namespace HalisahaOtomasyon.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<TimeSpan>("EndTime")
-                        .HasColumnType("time(6)");
-
                     b.Property<int>("FacilityId")
                         .HasColumnType("int");
 
@@ -379,15 +386,8 @@ namespace HalisahaOtomasyon.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("OpeningDays")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<decimal>("PricePerHour")
                         .HasColumnType("decimal(65,30)");
-
-                    b.Property<TimeSpan>("StartTime")
-                        .HasColumnType("time(6)");
 
                     b.Property<int>("Width")
                         .HasColumnType("int");
@@ -446,6 +446,30 @@ namespace HalisahaOtomasyon.Migrations
                     b.ToTable("FieldComments");
                 });
 
+            modelBuilder.Entity("Entities.Models.FieldException", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("FieldId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsOpen")
+                        .HasColumnType("tinyint(1)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FieldId");
+
+                    b.ToTable("FieldExceptions");
+                });
+
             modelBuilder.Entity("Entities.Models.Friendship", b =>
                 {
                     b.Property<int>("UserId1")
@@ -465,7 +489,9 @@ namespace HalisahaOtomasyon.Migrations
 
                     b.HasKey("UserId1", "UserId2");
 
-                    b.HasIndex("UserId2");
+                    b.HasIndex("UserId1", "Status");
+
+                    b.HasIndex("UserId2", "Status");
 
                     b.ToTable("Friendships");
                 });
@@ -481,13 +507,10 @@ namespace HalisahaOtomasyon.Migrations
                     b.Property<int>("AwayScore")
                         .HasColumnType("int");
 
-                    b.Property<int>("AwayTeamId")
+                    b.Property<int?>("AwayTeamId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime>("DateTime")
                         .HasColumnType("datetime(6)");
 
                     b.Property<int?>("FacilityId")
@@ -499,8 +522,14 @@ namespace HalisahaOtomasyon.Migrations
                     b.Property<int>("HomeScore")
                         .HasColumnType("int");
 
-                    b.Property<int>("HomeTeamId")
+                    b.Property<int?>("HomeTeamId")
                         .HasColumnType("int");
+
+                    b.Property<int>("RoomId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
 
@@ -508,54 +537,12 @@ namespace HalisahaOtomasyon.Migrations
 
                     b.HasIndex("FacilityId");
 
-                    b.HasIndex("FieldId");
-
                     b.HasIndex("HomeTeamId");
 
+                    b.HasIndex("RoomId")
+                        .IsUnique();
+
                     b.ToTable("Matches");
-                });
-
-            modelBuilder.Entity("Entities.Models.MatchRequest", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("FromTeamId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("FromUserId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("RequestedDateTimeEnd")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime>("RequestedDateTimeStart")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime?>("RespondedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ToUserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FromTeamId");
-
-                    b.HasIndex("FromUserId");
-
-                    b.HasIndex("ToUserId");
-
-                    b.ToTable("MatchRequests");
                 });
 
             modelBuilder.Entity("Entities.Models.MonthlyMembership", b =>
@@ -652,22 +639,30 @@ namespace HalisahaOtomasyon.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<int?>("FacilityId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Url")
                         .IsRequired()
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("FacilityId");
+
                     b.ToTable("Photos");
                 });
 
-            modelBuilder.Entity("Entities.Models.Reservation", b =>
+            modelBuilder.Entity("Entities.Models.Room", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AccessType")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
@@ -677,6 +672,16 @@ namespace HalisahaOtomasyon.Migrations
 
                     b.Property<int>("FieldId")
                         .HasColumnType("int");
+
+                    b.Property<string>("JoinCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<int>("MaxPlayers")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("PricePerPlayer")
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<DateTime>("SlotStart")
                         .HasColumnType("datetime(6)");
@@ -690,31 +695,38 @@ namespace HalisahaOtomasyon.Migrations
 
                     b.HasIndex("FieldId");
 
-                    b.ToTable("Reservations");
+                    b.HasIndex("JoinCode")
+                        .IsUnique()
+                        .HasFilter("[JoinCode] IS NOT NULL");
+
+                    b.ToTable("Rooms");
                 });
 
-            modelBuilder.Entity("Entities.Models.ReservationParticipant", b =>
+            modelBuilder.Entity("Entities.Models.RoomParticipant", b =>
                 {
-                    b.Property<int>("ReservationId")
+                    b.Property<int>("RoomId")
                         .HasColumnType("int");
 
                     b.Property<int>("TeamId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("HasPaid")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<bool>("IsHome")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<DateTime?>("RespondedAt")
-                        .HasColumnType("datetime(6)");
+                    b.Property<decimal?>("PaidAmount")
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.HasKey("ReservationId", "TeamId");
+                    b.HasKey("RoomId", "TeamId");
 
                     b.HasIndex("TeamId");
 
-                    b.ToTable("ReservationParticipants");
+                    b.ToTable("RoomParticipants");
                 });
 
             modelBuilder.Entity("Entities.Models.Team", b =>
@@ -832,14 +844,10 @@ namespace HalisahaOtomasyon.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TeamId")
-                        .HasDatabaseName("IX_TeamJoinRequests_TeamId");
-
                     b.HasIndex("UserId");
 
                     b.HasIndex("TeamId", "UserId")
-                        .IsUnique()
-                        .HasDatabaseName("UX_TeamJoinRequests_TeamId_UserId");
+                        .IsUnique();
 
                     b.ToTable("TeamJoinRequests");
                 });
@@ -908,6 +916,33 @@ namespace HalisahaOtomasyon.Migrations
                     b.HasIndex("ToUserId");
 
                     b.ToTable("UserComments");
+                });
+
+            modelBuilder.Entity("Entities.Models.WeeklyOpening", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("int");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("time(6)");
+
+                    b.Property<int>("FieldId")
+                        .HasColumnType("int");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("time(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FieldId");
+
+                    b.ToTable("WeeklyOpenings");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>
@@ -1089,14 +1124,10 @@ namespace HalisahaOtomasyon.Migrations
             modelBuilder.Entity("Entities.Models.Comment", b =>
                 {
                     b.HasOne("Entities.Models.Customer", "Author")
-                        .WithMany()
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Entities.Models.Customer", null)
                         .WithMany("AuthoredComments")
-                        .HasForeignKey("CustomerId");
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Author");
                 });
@@ -1176,18 +1207,29 @@ namespace HalisahaOtomasyon.Migrations
                     b.Navigation("FromUser");
                 });
 
+            modelBuilder.Entity("Entities.Models.FieldException", b =>
+                {
+                    b.HasOne("Entities.Models.Field", "Field")
+                        .WithMany("Exceptions")
+                        .HasForeignKey("FieldId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Field");
+                });
+
             modelBuilder.Entity("Entities.Models.Friendship", b =>
                 {
                     b.HasOne("Entities.Models.Customer", "User1")
                         .WithMany("Friends1")
                         .HasForeignKey("UserId1")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Entities.Models.Customer", "User2")
                         .WithMany("Friends2")
                         .HasForeignKey("UserId2")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("User1");
@@ -1200,57 +1242,28 @@ namespace HalisahaOtomasyon.Migrations
                     b.HasOne("Entities.Models.Team", "AwayTeam")
                         .WithMany("AwayMatches")
                         .HasForeignKey("AwayTeamId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Entities.Models.Facility", null)
                         .WithMany("Matches")
                         .HasForeignKey("FacilityId");
 
-                    b.HasOne("Entities.Models.Field", "Field")
-                        .WithMany()
-                        .HasForeignKey("FieldId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Entities.Models.Team", "HomeTeam")
                         .WithMany("HomeMatches")
                         .HasForeignKey("HomeTeamId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Entities.Models.Room", "Room")
+                        .WithOne("Match")
+                        .HasForeignKey("Entities.Models.Match", "RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("AwayTeam");
 
-                    b.Navigation("Field");
-
                     b.Navigation("HomeTeam");
-                });
 
-            modelBuilder.Entity("Entities.Models.MatchRequest", b =>
-                {
-                    b.HasOne("Entities.Models.Team", "FromTeam")
-                        .WithMany()
-                        .HasForeignKey("FromTeamId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Entities.Models.Customer", "FromUser")
-                        .WithMany()
-                        .HasForeignKey("FromUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Entities.Models.Customer", "ToUser")
-                        .WithMany()
-                        .HasForeignKey("ToUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("FromTeam");
-
-                    b.Navigation("FromUser");
-
-                    b.Navigation("ToUser");
+                    b.Navigation("Room");
                 });
 
             modelBuilder.Entity("Entities.Models.MonthlyMembership", b =>
@@ -1287,14 +1300,21 @@ namespace HalisahaOtomasyon.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Entities.Models.Reservation", b =>
+            modelBuilder.Entity("Entities.Models.Photo", b =>
+                {
+                    b.HasOne("Entities.Models.Facility", null)
+                        .WithMany("Photos")
+                        .HasForeignKey("FacilityId");
+                });
+
+            modelBuilder.Entity("Entities.Models.Room", b =>
                 {
                     b.HasOne("Entities.Models.Customer", null)
-                        .WithMany("Reservations")
+                        .WithMany("Rooms")
                         .HasForeignKey("CustomerId");
 
                     b.HasOne("Entities.Models.Field", "Field")
-                        .WithMany("Reservations")
+                        .WithMany("Rooms")
                         .HasForeignKey("FieldId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1302,11 +1322,11 @@ namespace HalisahaOtomasyon.Migrations
                     b.Navigation("Field");
                 });
 
-            modelBuilder.Entity("Entities.Models.ReservationParticipant", b =>
+            modelBuilder.Entity("Entities.Models.RoomParticipant", b =>
                 {
-                    b.HasOne("Entities.Models.Reservation", "Reservation")
+                    b.HasOne("Entities.Models.Room", "Room")
                         .WithMany("Participants")
-                        .HasForeignKey("ReservationId")
+                        .HasForeignKey("RoomId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1316,7 +1336,7 @@ namespace HalisahaOtomasyon.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Reservation");
+                    b.Navigation("Room");
 
                     b.Navigation("Team");
                 });
@@ -1397,6 +1417,17 @@ namespace HalisahaOtomasyon.Migrations
                     b.Navigation("ToUser");
                 });
 
+            modelBuilder.Entity("Entities.Models.WeeklyOpening", b =>
+                {
+                    b.HasOne("Entities.Models.Field", "Field")
+                        .WithMany("WeeklyOpenings")
+                        .HasForeignKey("FieldId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Field");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<int>", null)
@@ -1462,18 +1493,26 @@ namespace HalisahaOtomasyon.Migrations
 
                     b.Navigation("Notifications");
 
+                    b.Navigation("Photos");
+
                     b.Navigation("Ratings");
                 });
 
             modelBuilder.Entity("Entities.Models.Field", b =>
                 {
+                    b.Navigation("Exceptions");
+
                     b.Navigation("MonthlyMemberships");
 
-                    b.Navigation("Reservations");
+                    b.Navigation("Rooms");
+
+                    b.Navigation("WeeklyOpenings");
                 });
 
-            modelBuilder.Entity("Entities.Models.Reservation", b =>
+            modelBuilder.Entity("Entities.Models.Room", b =>
                 {
+                    b.Navigation("Match");
+
                     b.Navigation("Participants");
                 });
 
@@ -1506,7 +1545,7 @@ namespace HalisahaOtomasyon.Migrations
 
                     b.Navigation("ReceivedComments");
 
-                    b.Navigation("Reservations");
+                    b.Navigation("Rooms");
 
                     b.Navigation("SentComments");
 
