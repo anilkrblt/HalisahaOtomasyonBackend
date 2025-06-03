@@ -33,21 +33,6 @@ namespace HalisahaOtomasyonPresentation.Controllers
             return Ok(fields);
         }
 
-        /*
-                [HttpPatch("{id:int}")]
-                public async Task<IActionResult> PatchFacility(int id, [FromBody] FacilityPatchDto patch)
-                {
-                    if (patch == null)
-                        return BadRequest("Gönderilen veri boş olamaz.");
-                    await _serviceManager.FacilityService.PatchFacilityAsync(id, patch);
-                    return NoContent();
-                }
-        */
-
-
-
-
-
         [HttpGet("{id:int}", Name = "FieldById")]
         public async Task<IActionResult> GetField(int id)
         {

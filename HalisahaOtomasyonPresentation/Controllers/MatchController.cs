@@ -8,9 +8,9 @@ namespace HalisahaOtomasyonPresentation.Controllers;
 [Route("api/matches")]
 public class MatchesController : ControllerBase
 {
-    private readonly IMatchService _service;
+    private readonly IServiceManager _service;
 
-    public MatchesController(IMatchService service)
+    public MatchesController(IServiceManager service)
     {
         _service = service;
     }
@@ -21,7 +21,7 @@ public class MatchesController : ControllerBase
     [HttpGet("{id:int}", Name = "GetMatchById")]
     public async Task<IActionResult> GetMatch(int id)
     {
-        var match = await _service.GetMatchAsync(id, trackChanges: false);
+        var match = await _service.MatchService.GetMatchAsync(id, trackChanges: false);
         return Ok(match);
     }
 
@@ -29,7 +29,7 @@ public class MatchesController : ControllerBase
     [HttpGet("field/{fieldId:int}")]
     public async Task<IActionResult> GetMatchesByField(int fieldId)
     {
-        var matches = await _service.GetMatchesByFieldIdAsync(fieldId, trackChanges: false);
+        var matches = await _service.MatchService.GetMatchesByFieldIdAsync(fieldId, trackChanges: false);
         return Ok(matches);
     }
 
@@ -37,7 +37,7 @@ public class MatchesController : ControllerBase
     [HttpGet("team/{teamId:int}")]
     public async Task<IActionResult> GetMatchesByTeam(int teamId)
     {
-        var matches = await _service.GetMatchesByTeamIdAsync(teamId, trackChanges: false);
+        var matches = await _service.MatchService.GetMatchesByTeamIdAsync(teamId, trackChanges: false);
         return Ok(matches);
     }
 
@@ -45,10 +45,9 @@ public class MatchesController : ControllerBase
 
     // POST api/matches/55/score
     [HttpPost("{id:int}/score")]
-    public async Task<IActionResult> UpdateScore(int id,
-                                                 [FromBody] ScoreUpdateDto dto)
+    public async Task<IActionResult> UpdateScore(int id, [FromBody] ScoreUpdateDto dto)
     {
-        await _service.UpdateScoreAsync(id, dto);
+        await _service.MatchService.UpdateScoreAsync(id, dto);
         return NoContent();
     }
 }
