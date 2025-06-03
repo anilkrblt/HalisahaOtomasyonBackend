@@ -4,13 +4,7 @@ using Contracts;
 using Entities.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Service.Contracts;
 using Shared.DataTransferObjects;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Service
 {
@@ -21,7 +15,7 @@ namespace Service
         private readonly IWebHostEnvironment _env;
 
         private static readonly string[] _allowed = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
-        private const int _maxSize = 5 * 1024 * 1024; // 5 MB
+        private const int _maxSize = 5 * 1024 * 1024; 
 
         public PhotoService(
             IRepositoryManager repo,
@@ -46,8 +40,13 @@ namespace Service
             ValidateFile(file);
 
             var ext = Path.GetExtension(file.FileName).ToLower();
-            // Fiziksel yol: wwwroot/images/{entityFolder}
-            var folderAbs = Path.Combine(_env.WebRootPath, "images", entityFolder);
+
+            // 1) Web root’i garantiye al
+            var webRoot = _env.WebRootPath ??
+                          Path.Combine(_env.ContentRootPath, "wwwroot");
+
+            // 2) images/{entityFolder}
+            var folderAbs = Path.Combine(webRoot, "images", entityFolder);
             Directory.CreateDirectory(folderAbs);
 
             var logoName = $"logo{ext}";
@@ -55,9 +54,9 @@ namespace Service
             await using var fs = new FileStream(absPath, FileMode.Create);
             await file.CopyToAsync(fs);
 
-            // Tarayıcıdan erişim için görece URL
             return $"/images/{entityFolder}/{logoName}";
         }
+
 
         /// <summary>
         /// 2) Çoklu fotoğraf
@@ -129,8 +128,6 @@ namespace Service
 
             await _repo.SaveAsync();
         }
-
-        /*────────────────── Yardımcılar ──────────────────*/
 
         private static void ValidateFile(IFormFile f)
         {

@@ -133,10 +133,8 @@ namespace HalisahaOtomasyonPresentation.Controllers
             if (dto.PhotoFiles.Count > 3)
                 return BadRequest("En fazla 3 fotoğraf yükleyebilirsiniz.");
 
-            // Önce eski fotoğrafları sil
             await _service.PhotoService.DeletePhotosByEntityAsync("facility", id, trackChanges: true);
 
-            // Yeni fotoğrafları yükle
             await _service.PhotoService.UploadPhotosAsync(dto.PhotoFiles, "facility", id);
 
             return NoContent();
