@@ -15,6 +15,7 @@ COPY ["Entities/Entities.csproj", "Entities/"]
 COPY ["Contracts/Contracts.csproj", "Contracts/"]
 COPY ["HalisahaOtomasyon/HalisahaOtomasyon.csproj", "HalisahaOtomasyon/"]
 COPY ["HalisahaOtomasyonPresentation/HalisahaOtomasyonPresentation.csproj", "HalisahaOtomasyonPresentation/"]
+COPY ["HalisahaOtomasyonBackend.Tests/HalisahaOtomasyonBackend.Tests.csproj","HalisahaOtomasyonBackend.Tests/"]
 
 # NuGet bağımlılıklarını geri yükle
 RUN dotnet restore "HalisahaOtomasyonBackend.sln"
