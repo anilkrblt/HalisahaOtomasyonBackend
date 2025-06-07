@@ -22,16 +22,31 @@ namespace HalisahaOtomasyonPresentation.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllFields()
+        public async Task<IActionResult> GetFields([FromQuery] int? facilityId)
         {
-            var fields = await _serviceManager.FieldService.GetAllFieldsAsync(trackChanges: false);
+            // 1) Tüm sahaları çek (facilityId filtreli de olabilir)
+            var allFields = await _serviceManager
+                                     .FieldService
+                                     .GetAllFieldsAsync(trackChanges: false);
+
+            // 2) Eğer facilityId verilmişse, sadece o tesise ait sahaları al
+            var fields = facilityId.HasValue
+                ? allFields.Where(f => f.FacilityId == facilityId.Value).ToList()
+                : allFields.ToList();
+
+            // 3) Her bir saha için foto URL’lerini ekle
             foreach (var field in fields)
             {
-                var photoDtos = await _serviceManager.PhotoService.GetPhotosAsync("field", field.Id, false);
+                var photoDtos = await _serviceManager
+                                      .PhotoService
+                                      .GetPhotosAsync("field", field.Id, trackChanges: false);
                 field.PhotoUrls = photoDtos.Select(p => p.Url).ToList();
             }
+
             return Ok(fields);
         }
+
+
 
         [HttpGet("{id:int}", Name = "FieldById")]
         public async Task<IActionResult> GetField(int id)

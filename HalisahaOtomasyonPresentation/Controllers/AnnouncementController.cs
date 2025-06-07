@@ -18,11 +18,21 @@ namespace HalisahaOtomasyonPresentation.Controllers
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAnnouncements()
+        public async Task<IActionResult> GetAnnouncements([FromQuery] int? facilityId)
         {
-            var anns = await _service.AnnouncementService.GetAllAnnouncementsAsync(trackChanges: false);
+            // Tüm duyuruları al
+            var anns = await _service.AnnouncementService
+                                     .GetAllAnnouncementsAsync(trackChanges: false);
+
+            // Query parametre geldiyse filtrele
+            if (facilityId.HasValue)
+                anns = anns
+                    .Where(a => a.FacilityId == facilityId.Value)
+                    .ToList();
+
             return Ok(anns);
         }
+
 
         [HttpGet("{announcementId:int}", Name = "GetAnnouncement")]
         public async Task<IActionResult> GetAnnouncement(int announcementId)
@@ -33,7 +43,7 @@ namespace HalisahaOtomasyonPresentation.Controllers
 
 
         [HttpPost]
-        [Route("/api/facilities/{facilityId:int}/announcements")]
+        [Route("/api/announcements/{facilityId:int}")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreateAnnouncement([FromRoute] int facilityId, [FromForm] AnnouncementForCreationDto dto)
         {

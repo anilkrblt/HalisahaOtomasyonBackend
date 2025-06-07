@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
 using Shared;
@@ -22,6 +23,75 @@ namespace HalisahaOtomasyonPresentation.Controllers
         {
             _serviceManager = serviceManager;
         }
+
+
+
+        /*──── 1. PROFİL GET ─────────────────────────*/
+        [HttpGet("{id:int?}")]
+        public async Task<IActionResult> GetUser(int? id)
+        {
+            int caller = int.Parse(User.FindFirst("id")!.Value);
+            bool isAdmin = User.IsInRole("Admin");
+            int target = id ?? caller;
+            if (!isAdmin && caller != target) return Forbid();
+
+            var dto = await _serviceManager.AuthService.GetUserAsync(target);
+            if (dto is null) return NotFound();
+            return Ok(dto);
+        }
+
+        /*──── 2. CUSTOMER PUT & PATCH ───────────────*/
+        [Authorize(Roles = "Customer")]
+        [HttpPut("customer")]
+        public async Task<IActionResult> UpdateCustomer([FromBody] CustomerUpdateDto dto)
+        {
+            int id = int.Parse(User.FindFirst("id")!.Value);
+            var res = await _serviceManager.AuthService.UpdateCustomerAsync(id, dto);
+            return res.Succeeded ? NoContent() : UnprocessableEntity(res.Errors);
+        }
+
+        [Authorize(Roles = "Customer")]
+        [HttpPatch("customer")]
+        public async Task<IActionResult> PatchCustomer([FromBody] JsonPatchDocument<CustomerPatchDto> patch)
+        {
+            if (patch is null) return BadRequest();
+            int id = int.Parse(User.FindFirst("id")!.Value);
+            var res = await _serviceManager.AuthService.PatchCustomerAsync(id, patch);
+            return res.Succeeded ? NoContent() : UnprocessableEntity(res.Errors);
+        }
+
+        /*──── 3. OWNER PUT & PATCH ──────────────────*/
+        [Authorize(Roles = "Owner")]
+        [HttpPut("owner")]
+        public async Task<IActionResult> UpdateOwner([FromBody] OwnerUpdateDto dto)
+        {
+            int id = int.Parse(User.FindFirst("id")!.Value);
+            var res = await _serviceManager.AuthService.UpdateOwnerAsync(id, dto);
+            return res.Succeeded ? NoContent() : UnprocessableEntity(res.Errors);
+        }
+
+        [Authorize(Roles = "Owner")]
+        [HttpPatch("owner")]
+        public async Task<IActionResult> PatchOwner([FromBody] JsonPatchDocument<OwnerPatchDto> patch)
+        {
+            if (patch is null) return BadRequest();
+            int id = int.Parse(User.FindFirst("id")!.Value);
+            var res = await _serviceManager.AuthService.PatchOwnerAsync(id, patch);
+            return res.Succeeded ? NoContent() : UnprocessableEntity(res.Errors);
+        }
+
+        [HttpDelete("{id:int?}")]
+        public async Task<IActionResult> DeleteUser(int? id)
+        {
+            var userId = int.Parse(User.FindFirst("id")!.Value);
+
+            if (userId != id)
+                return Forbid();
+
+            var res = await _serviceManager.AuthService.DeleteUserAsync(userId);
+            return res.Succeeded ? NoContent() : UnprocessableEntity(res.Errors);
+        }
+
 
 
         [HttpPost("register-owner")]

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.JsonPatch;
 using Shared;
 using Shared.DataTransferObjects;
 
@@ -27,6 +28,12 @@ namespace Service.Contracts
 
 
 
+        Task<object?> GetUserAsync(int id);
+        Task<IdentityResult> PatchCustomerAsync(int userId, JsonPatchDocument<CustomerPatchDto> patchDoc);
+        Task<IdentityResult> UpdateCustomerAsync(int userId, CustomerUpdateDto dto);
+        Task<IdentityResult> UpdateOwnerAsync(int userId, OwnerUpdateDto dto);
+        Task<IdentityResult> PatchOwnerAsync(int userId, JsonPatchDocument<OwnerPatchDto> patchDoc);
+        Task<IdentityResult> DeleteUserAsync(int userId);
 
     }
 }

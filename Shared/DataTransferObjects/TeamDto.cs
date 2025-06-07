@@ -27,7 +27,8 @@ public record TeamDto(
 public record TeamForCreationDto(
     string Name,
     string City,
-    string Town);
+    string Town,
+    IFormFile LogoFile);
 
 public record TeamForUpdateDto(
     string Name,

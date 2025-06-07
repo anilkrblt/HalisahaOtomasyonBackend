@@ -20,6 +20,7 @@ namespace Repository
 
         public async Task<IEnumerable<Field>> GetAllFieldsAsync(bool trackChanges) =>
             await FindAll(trackChanges)
+                  .Include(f => f.Facility)
                   .Include(f => f.Rooms)
                   .Include(f => f.WeeklyOpenings)
                   .Include(f => f.Exceptions)
@@ -34,6 +35,7 @@ namespace Repository
 
         public async Task<Field?> GetFieldAsync(int fieldId, bool trackChanges) =>
              await FindByCondition(f => f.Id == fieldId, trackChanges)
+                  .Include(f => f.Facility)
                   .Include(f => f.Rooms)
                   .Include(f => f.WeeklyOpenings)
                   .Include(f => f.Exceptions)

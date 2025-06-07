@@ -15,6 +15,9 @@ namespace HalisahaOtomasyon.AutoMap
         public MappingProfile()
         {
 
+       
+
+
 
             CreateMap<Room, RoomDto>()
                 .ForMember(d => d.RoomId, opt => opt.MapFrom(src => src.Id));

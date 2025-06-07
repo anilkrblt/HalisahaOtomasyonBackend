@@ -10,29 +10,31 @@ using Shared.DataTransferObjects;
 using StackExchange.Redis;
 using MimeKit;
 using MailKit.Security;
+using Microsoft.AspNetCore.JsonPatch;
+
 
 namespace Service;
 
 public class AuthService : IAuthService
 {
     /* ───── DI alanları ───── */
-    private readonly UserManager<ApplicationUser>      _userMgr;
-    private readonly SignInManager<ApplicationUser>    _signInMgr;
-    private readonly RoleManager<IdentityRole<int>>    _roleMgr;
-    private readonly IConfiguration                    _cfg;
-    private readonly IConnectionMultiplexer            _redis;
+    private readonly UserManager<ApplicationUser> _userMgr;
+    private readonly SignInManager<ApplicationUser> _signInMgr;
+    private readonly RoleManager<IdentityRole<int>> _roleMgr;
+    private readonly IConfiguration _cfg;
+    private readonly IConnectionMultiplexer _redis;
 
-    public AuthService(UserManager<ApplicationUser>   userMgr,
+    public AuthService(UserManager<ApplicationUser> userMgr,
                        SignInManager<ApplicationUser> signInMgr,
-                       IConfiguration                 cfg,
+                       IConfiguration cfg,
                        RoleManager<IdentityRole<int>> roleMgr,
-                       IConnectionMultiplexer         redis)
+                       IConnectionMultiplexer redis)
     {
-        _userMgr  = userMgr;
-        _signInMgr= signInMgr;
-        _cfg      = cfg;
-        _roleMgr  = roleMgr;
-        _redis    = redis;
+        _userMgr = userMgr;
+        _signInMgr = signInMgr;
+        _cfg = cfg;
+        _roleMgr = roleMgr;
+        _redis = redis;
     }
 
     /*────────────────────────  ŞİFRE SIFIRLAMA  ───────────────────────*/
@@ -56,14 +58,14 @@ public class AuthService : IAuthService
         if (user is null)
             return IdentityResult.Failed(new IdentityError { Description = "User not found." });
 
-        var db  = _redis.GetDatabase();
+        var db = _redis.GetDatabase();
         var val = await db.StringGetAsync($"resetcode:{email}");
-        if (val.IsNullOrEmpty)   return IdentityResult.Failed(
+        if (val.IsNullOrEmpty) return IdentityResult.Failed(
                                     new IdentityError { Description = "Code expired." });
-        if (val != code)         return IdentityResult.Failed(
+        if (val != code) return IdentityResult.Failed(
                                     new IdentityError { Description = "Invalid code." });
 
-        var token  = await _userMgr.GeneratePasswordResetTokenAsync(user);
+        var token = await _userMgr.GeneratePasswordResetTokenAsync(user);
         var result = await _userMgr.ResetPasswordAsync(user, token, newPassword);
         if (result.Succeeded) await db.KeyDeleteAsync($"resetcode:{email}");
         return result;
@@ -78,13 +80,13 @@ public class AuthService : IAuthService
 
         var owner = new Owner
         {
-            UserName   = dto.UserName,
-            Email      = dto.Email,
-            FirstName  = dto.FirstName,
-            LastName   = dto.LastName,
-            Town       = dto.Town,
-            City       = dto.City,
-            Birthday   = dto.Birthday.Date
+            UserName = dto.UserName,
+            Email = dto.Email,
+            FirstName = dto.FirstName,
+            LastName = dto.LastName,
+            Town = dto.Town,
+            City = dto.City,
+            Birthday = dto.Birthday.Date
         };
 
         var result = await _userMgr.CreateAsync(owner, dto.Password);
@@ -101,18 +103,18 @@ public class AuthService : IAuthService
 
         var customer = new Customer
         {
-            UserName       = dto.UserName,
-            Email          = dto.Email,
-            FirstName      = dto.FirstName,
-            LastName       = dto.LastName,
-            Town           = dto.Town,
-            City           = dto.City,
-            Birthday       = dto.Birthday.Date,
+            UserName = dto.UserName,
+            Email = dto.Email,
+            FirstName = dto.FirstName,
+            LastName = dto.LastName,
+            Town = dto.Town,
+            City = dto.City,
+            Birthday = dto.Birthday.Date,
             FootPreference = (Entities.Models.FootPreference)dto.FootPreference,
-            Height         = dto.Height,
-            Weight         = dto.Weight,
-            Gender         = dto.Gender,
-            Positions      = dto.PlayingPosition ?? string.Empty
+            Height = dto.Height,
+            Weight = dto.Weight,
+            Gender = dto.Gender,
+            Positions = dto.PlayingPosition ?? string.Empty
         };
 
         var result = await _userMgr.CreateAsync(customer, dto.Password);
@@ -145,7 +147,7 @@ public class AuthService : IAuthService
     /*────────────────────────────  JWT  ──────────────────────────────*/
     private async Task<string> CreateTokenAsync(ApplicationUser user)
     {
-        var creds  = new SigningCredentials(
+        var creds = new SigningCredentials(
             new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("SECRET")!)),
             SecurityAlgorithms.HmacSha256);
@@ -161,9 +163,9 @@ public class AuthService : IAuthService
 
         var jwtOpt = _cfg.GetSection("JwtSettings");
         var token = new JwtSecurityToken(
-            issuer:  jwtOpt["validIssuer"],
-            audience:jwtOpt["validAudience"],
-            claims:  claims,
+            issuer: jwtOpt["validIssuer"],
+            audience: jwtOpt["validAudience"],
+            claims: claims,
             expires: DateTime.Now.AddMinutes(double.Parse(jwtOpt["expires"]!)),
             signingCredentials: creds);
 
@@ -185,4 +187,198 @@ public class AuthService : IAuthService
         await smtp.SendAsync(msg);
         await smtp.DisconnectAsync(true);
     }
+
+    public async Task<object?> GetUserAsync(int userId)
+    {
+        // 1. User'ı getir
+        var user = await _userMgr.FindByIdAsync(userId.ToString());
+        if (user is null)
+            return null;   // Controller’da NotFound olarak işleyin
+
+        // 2. Rolleri al
+        var roles = await _userMgr.GetRolesAsync(user);
+
+        // 3. Role göre DTO’ya manuel map
+        if (roles.Contains("Owner"))
+        {
+            // ApplicationUser’dan OwnerDto’ya map
+            var owner = user as Owner;
+            return new OwnerDto
+            {
+                FirstName = owner!.FirstName,
+                LastName = owner.LastName,
+                UserName = owner.UserName!,
+                Email = owner.Email!,
+                Role = Shared.DataTransferObjects.Role.Owner,
+                City = owner.City!,
+                Town = owner.Town!,
+                Birthday = (DateTime)owner.Birthday,
+                // Parola kesinlikle dönülmemeli; DTO’da kalmışsa boş geç:
+                Password = string.Empty
+            };
+        }
+
+        if (roles.Contains("Customer"))
+        {
+            // ApplicationUser’dan CustomerDto’ya map
+            var cust = user as Customer;
+            return new CustomerDto
+            {
+                FirstName = cust!.FirstName,
+                LastName = cust.LastName,
+                UserName = cust.UserName!,
+                Email = cust.Email!,
+                Role = Shared.DataTransferObjects.Role.Customer,
+                City = cust.City!,
+                Town = cust.Town!,
+                Birthday = (DateTime)cust.Birthday,
+                Password = string.Empty,
+                FootPreference = (Shared.DataTransferObjects.FootPreference)cust.FootPreference,
+                Height = cust.Height,
+                Weight = cust.Weight,
+                PlayingPosition = string.IsNullOrWhiteSpace(cust.Positions)
+                                  ? null
+                                  : cust.Positions,
+                Gender = cust.Gender
+            };
+        }
+
+        return null;
+    }
+
+    public async Task<IdentityResult> UpdateCustomerAsync(int userId, CustomerUpdateDto dto)
+    {
+        // 1) Kullanıcıyı getir
+        var user = await _userMgr.FindByIdAsync(userId.ToString()) as Customer;
+        if (user is null)
+            return IdentityResult.Failed(new IdentityError { Description = "Customer not found." });
+
+        // 2) Alanları manuel map et
+        user.FirstName = dto.FirstName;
+        user.LastName = dto.LastName;
+        user.UserName = dto.UserName;
+        user.Email = dto.Email;
+        user.City = dto.City;
+        user.Town = dto.Town;
+        user.Birthday = dto.Birthday;
+        user.FootPreference = (Entities.Models.FootPreference)dto.FootPreference;
+        user.Height = dto.Height;
+        user.Weight = dto.Weight;
+        user.Gender = dto.Gender;
+        user.Positions = dto.PlayingPosition ?? string.Empty;
+        // Password güncelleme gerekiyorsa ayrı metotla yapın, burada atlıyoruz.
+
+        // 3) Kaydet
+        return await _userMgr.UpdateAsync(user);
+    }
+
+    public async Task<IdentityResult> PatchCustomerAsync(int userId, JsonPatchDocument<CustomerPatchDto> patchDoc)
+    {
+        var user = await _userMgr.FindByIdAsync(userId.ToString()) as Customer;
+        if (user is null)
+            return IdentityResult.Failed(new IdentityError { Description = "Customer not found." });
+
+        // 1) Entity → DTO
+        var dto = new CustomerPatchDto
+        {
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            UserName = user.UserName!,
+            Email = user.Email!,
+            Role = Shared.DataTransferObjects.Role.Customer,
+            City = user.City!,
+            Town = user.Town!,
+            Birthday = (DateTime)user.Birthday,
+            Password = string.Empty,               // gönderilmeyecek
+            FootPreference = (Shared.DataTransferObjects.FootPreference)user.FootPreference,
+            Height = user.Height,
+            Weight = user.Weight,
+            PlayingPosition = string.IsNullOrWhiteSpace(user.Positions) ? null : user.Positions,
+            Gender = user.Gender
+        };
+
+        patchDoc.ApplyTo(dto);
+
+        // 3) DTO → Entity
+        user.FirstName = dto.FirstName;
+        user.LastName = dto.LastName;
+        user.UserName = dto.UserName;
+        user.Email = dto.Email;
+        user.City = dto.City;
+        user.Town = dto.Town;
+        user.Birthday = dto.Birthday;
+        user.FootPreference = (Entities.Models.FootPreference)dto.FootPreference;
+        user.Height = dto.Height;
+        user.Weight = dto.Weight;
+        user.Gender = dto.Gender;
+        user.Positions = dto.PlayingPosition ?? string.Empty;
+
+        // 4) Kaydet
+        return await _userMgr.UpdateAsync(user);
+    }
+
+    public async Task<IdentityResult> UpdateOwnerAsync(int userId, OwnerUpdateDto dto)
+    {
+        var user = await _userMgr.FindByIdAsync(userId.ToString()) as Owner;
+        if (user is null)
+            return IdentityResult.Failed(new IdentityError { Description = "Owner not found." });
+
+        user.FirstName = dto.FirstName;
+        user.LastName = dto.LastName;
+        user.UserName = dto.UserName;
+        user.Email = dto.Email;
+        user.City = dto.City;
+        user.Town = dto.Town;
+        user.Birthday = dto.Birthday;
+
+        return await _userMgr.UpdateAsync(user);
+    }
+
+    public async Task<IdentityResult> PatchOwnerAsync(
+        int userId, JsonPatchDocument<OwnerPatchDto> patchDoc)
+    {
+        var user = await _userMgr.FindByIdAsync(userId.ToString()) as Owner;
+        if (user is null)
+            return IdentityResult.Failed(new IdentityError { Description = "Owner not found." });
+
+        var dto = new OwnerPatchDto
+        {
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            UserName = user.UserName!,
+            Email = user.Email!,
+            Role = Shared.DataTransferObjects.Role.Owner,
+            City = user.City!,
+            Town = user.Town!,
+            Birthday = (DateTime)user.Birthday,
+            Password = string.Empty
+        };
+
+        patchDoc.ApplyTo(dto);
+
+        user.FirstName = dto.FirstName;
+        user.LastName = dto.LastName;
+        user.UserName = dto.UserName;
+        user.Email = dto.Email;
+        user.City = dto.City;
+        user.Town = dto.Town;
+        user.Birthday = dto.Birthday;
+
+        return await _userMgr.UpdateAsync(user);
+    }
+
+    public async Task<IdentityResult> DeleteUserAsync(int userId)
+    {
+        // 1) Kullanıcıyı bul
+        var user = await _userMgr.FindByIdAsync(userId.ToString());
+        if (user is null)
+            return IdentityResult.Failed(new IdentityError { Description = "User not found." });
+
+        // 2) Sil
+        var result = await _userMgr.DeleteAsync(user);
+
+        // 3) Sonuç
+        return result;
+    }
+
 }

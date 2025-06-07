@@ -44,6 +44,9 @@ namespace Shared.DataTransferObjects
 
     public record FieldDto
     {
+
+        public int FacilityId { get; set; }
+        
         public int Id { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }

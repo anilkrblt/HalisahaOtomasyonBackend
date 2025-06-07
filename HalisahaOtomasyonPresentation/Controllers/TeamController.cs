@@ -59,12 +59,15 @@ public class TeamsController : ControllerBase
 
         // 2) Servisi çağır
         var created = await _serviceManager.TeamService.CreateTeamAsync(dto, creatorUserId);
+        if (dto.LogoFile == null) return BadRequest("LogoFile is required.");
+        await _serviceManager.TeamService.SetTeamLogoAsync(created.Id, dto.LogoFile);
 
         // 3) 201 ve Location header
         return CreatedAtRoute("GetTeam", new { id = created.Id }, created);
     }
 
-
+/*
+// update yaz
     // Yeni logo yükleme endpoint
     [HttpPost("{id:int}/logo")]
     [Consumes("multipart/form-data")]
@@ -75,7 +78,7 @@ public class TeamsController : ControllerBase
         return NoContent();
     }
 
-
+*/
     // PUT api/teams/5
     [HttpPut("{id:int}")]
     public async Task<IActionResult> UpdateTeam(int id, [FromBody] TeamForUpdateDto dto)

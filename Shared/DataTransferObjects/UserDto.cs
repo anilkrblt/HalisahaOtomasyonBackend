@@ -68,4 +68,128 @@ namespace Shared.DataTransferObjects
     public record UserPhotosUpdateDto(List<IFormFile> PhotoFiles);
 
 
+
+
+
+
+
+
+
+
+    public class OwnerDto
+    {
+        public string FirstName { get; set; } = null!;
+        public string LastName { get; set; } = null!;
+        public string UserName { get; set; } = null!;
+        public string Email { get; set; } = null!;
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public Role Role { get; set; }
+        public string City { get; set; } = null!;
+        public string Town { get; set; } = null!;
+        public DateTime Birthday { get; set; }
+        public string Password { get; set; } = null!;
+    }
+
+
+    public class CustomerDto
+    {
+        public string FirstName { get; set; } = null!;
+        public string LastName { get; set; } = null!;
+        public string UserName { get; set; } = null!;
+        public string Email { get; set; } = null!;
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public Role Role { get; set; }
+        public string City { get; set; } = null!;
+        public string Town { get; set; } = null!;
+        public DateTime Birthday { get; set; }
+        public string Password { get; set; } = null!;
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public FootPreference FootPreference { get; set; }
+        public decimal Height { get; set; }
+        public decimal Weight { get; set; }
+        public string? PlayingPosition { get; set; }
+        public bool Gender { get; set; }
+    }
+
+
+
+
+    public class OwnerUpdateDto
+    {
+        public string FirstName { get; set; } = null!;
+        public string LastName { get; set; } = null!;
+        public string UserName { get; set; } = null!;
+        public string Email { get; set; } = null!;
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public Role Role { get; set; }
+        public string City { get; set; } = null!;
+        public string Town { get; set; } = null!;
+        public DateTime Birthday { get; set; }
+        public string Password { get; set; } = null!;
+    }
+
+
+    public class CustomerUpdateDto
+    {
+        public string FirstName { get; set; } = null!;
+        public string LastName { get; set; } = null!;
+        public string UserName { get; set; } = null!;
+        public string Email { get; set; } = null!;
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public Role Role { get; set; }
+        public string City { get; set; } = null!;
+        public string Town { get; set; } = null!;
+        public DateTime Birthday { get; set; }
+        public string Password { get; set; } = null!;
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public FootPreference FootPreference { get; set; }
+        public decimal Height { get; set; }
+        public decimal Weight { get; set; }
+        public string? PlayingPosition { get; set; }
+        public bool Gender { get; set; }
+    }
+
+
+    public class OwnerPatchDto
+    {
+        public string FirstName { get; set; } = null!;
+        public string LastName { get; set; } = null!;
+        public string UserName { get; set; } = null!;
+        public string Email { get; set; } = null!;
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public Role Role { get; set; }
+        public string City { get; set; } = null!;
+        public string Town { get; set; } = null!;
+        public DateTime Birthday { get; set; }
+        public string Password { get; set; } = null!;
+    }
+
+
+    public class CustomerPatchDto
+    {
+        public string FirstName { get; set; } = null!;
+        public string LastName { get; set; } = null!;
+        public string UserName { get; set; } = null!;
+        public string Email { get; set; } = null!;
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public Role Role { get; set; }
+        public string City { get; set; } = null!;
+        public string Town { get; set; } = null!;
+        public DateTime Birthday { get; set; }
+        public string Password { get; set; } = null!;
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public FootPreference FootPreference { get; set; }
+        public decimal Height { get; set; }
+        public decimal Weight { get; set; }
+        public string? PlayingPosition { get; set; }
+        public bool Gender { get; set; }
+    }
+
+
 }

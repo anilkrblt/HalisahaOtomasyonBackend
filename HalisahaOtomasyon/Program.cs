@@ -58,7 +58,8 @@ builder.Services.AddControllers(config =>
     config.InputFormatters.RemoveType<TextInputFormatter>(); // text/plain'i devre dışı bırak
     config.OutputFormatters.RemoveType<TextOutputFormatter>();
     config.OutputFormatters.RemoveType<XmlDataContractSerializerOutputFormatter>();
-}).AddApplicationPart(typeof(HalisahaOtomasyonPresentation.AssemblyReference).Assembly);
+}).AddApplicationPart(typeof(HalisahaOtomasyonPresentation.AssemblyReference).Assembly)
+.AddNewtonsoftJson();
 
 builder.Services.AddEndpointsApiExplorer();
 
