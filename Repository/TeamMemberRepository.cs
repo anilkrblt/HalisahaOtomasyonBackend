@@ -30,8 +30,9 @@ namespace Repository
         /* -------- Takıma göre liste ---- */
         public async Task<IEnumerable<TeamMember>> GetMembersByTeamIdAsync(int teamId, bool trackChanges) =>
             await IncludeAll(
-                    FindByCondition(m => m.TeamId == teamId, trackChanges))
-                 .OrderByDescending(m => m.IsCaptain)   // kaptan(lar) üstte
+                    FindByCondition(m => m.TeamId == teamId, trackChanges)
+                    .AsNoTracking())
+                 .OrderByDescending(m => m.IsCaptain)
                  .ThenBy(m => m.JoinedAt)
                  .ToListAsync();
 

@@ -33,6 +33,20 @@ public class RepositoryContext
 
     /*─ Composite Keys ─*/
     mb.Entity<TeamMember>().HasKey(tm => new { tm.TeamId, tm.UserId });
+
+
+    mb.Entity<TeamMember>()
+        .HasOne(tm => tm.User)
+        .WithMany()
+        .HasForeignKey(tm => tm.UserId);
+
+    mb.Entity<TeamMember>()
+        .HasOne(tm => tm.Team)
+        .WithMany(t => t.Members)
+        .HasForeignKey(tm => tm.TeamId);
+
+
+
     mb.Entity<Friendship>().HasKey(f => new { f.UserId1, f.UserId2 });
     mb.Entity<RoomParticipant>().HasKey(rp => new { rp.RoomId, rp.TeamId });
     mb.Entity<FacilityRating>().HasKey(fr => new { fr.FacilityId, fr.UserId });

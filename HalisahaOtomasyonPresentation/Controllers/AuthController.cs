@@ -34,7 +34,7 @@ namespace HalisahaOtomasyonPresentation.Controllers
             if (userId != id) return Forbid();
 
             var dto = await _serviceManager.AuthService.GetUserAsync(id);
-            
+
             if (dto is null) return NotFound();
             return Ok(dto);
         }
@@ -173,27 +173,28 @@ namespace HalisahaOtomasyonPresentation.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> UpdateUserPhoto(int id, [FromForm] UserPhotosUpdateDto dto)
         {
-
             if (dto.PhotoFiles == null || dto.PhotoFiles.Count == 0)
                 return BadRequest("Fotoğraf yüklenmedi.");
 
             if (dto.PhotoFiles.Count > 1)
                 return BadRequest("En fazla 1 fotoğraf yükleyebilirsiniz.");
 
-            var photo = _serviceManager.PhotoService.GetPhotosAsync("user", id, true);
-            if (photo is null)
+            var photos = await _serviceManager.PhotoService.GetPhotosAsync("user", id, trackChanges: true);
+
+            if (photos == null || !photos.Any())
             {
                 await _serviceManager.PhotoService.UploadPhotosAsync(dto.PhotoFiles, "user", id);
-
             }
             else
             {
+                // 🔒 DbContext aynı anda kullanma! Sırayla await et
                 await _serviceManager.PhotoService.DeletePhotosByEntityAsync("user", id, trackChanges: true);
-
                 await _serviceManager.PhotoService.UploadPhotosAsync(dto.PhotoFiles, "user", id);
             }
+
             return NoContent();
         }
+
 
     }
 }

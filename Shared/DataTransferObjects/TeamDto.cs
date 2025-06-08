@@ -51,6 +51,9 @@ public class TeamLogoUploadDto
 public record TeamMemberDto
 {
     public int UserId { get; set; }
+    public string UserName { get; set; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
     public bool IsCaptain { get; set; }
     public bool IsAdmin { get; set; }
     public PlayerPosition Position { get; set; }

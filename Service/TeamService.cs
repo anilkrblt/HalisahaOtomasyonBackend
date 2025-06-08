@@ -71,37 +71,85 @@ public class TeamService : ITeamService
         var teamEntity = await _repo.Team.GetTeamAsync(teamId, track)
                          ?? throw new TeamNotFoundException(teamId);
 
+        // TeamMember + User bilgileriyle beraber geliyor olmalı
+        var members = await _repo.TeamMember.GetMembersByTeamIdAsync(teamId, trackChanges: false);
+
+        // Takım DTO’sunu mapleyelim
         var teamDto = _mapper.Map<TeamDto>(teamEntity);
 
-        if (teamDto.Members != null)
+        // 🔧 TeamMemberDto'ları manuel olarak oluşturalım
+        var memberDtos = new List<TeamMemberDto>();
+
+        Console.WriteLine($"Team ID: {teamId} için {members.Count()} adet member bulundu.");
+
+        foreach (var member in members)
         {
-            foreach (var player in teamDto.Members)
+            var user = member.User; // Include ile gelmeli
+            var photoDto = await _photoService.GetPhotosAsync("user", member.UserId, false);
+
+            var memberDto = new TeamMemberDto
             {
-                var photoDto = await _photoService.GetPhotosAsync("user", player.UserId, false);
-                player.UserPhotoUrl = photoDto?.FirstOrDefault()?.Url;
-            }
+                UserId = member.UserId,
+                UserName = user?.UserName ?? "",
+                FirstName = user?.FirstName ?? "",
+                LastName = user?.LastName ?? "",
+                IsCaptain = member.IsCaptain,
+                IsAdmin = member.IsAdmin,
+                Position = member.Position,
+                JoinedAt = member.JoinedAt,
+                UserPhotoUrl = photoDto?.FirstOrDefault()?.Url ?? ""
+            };
+
+            memberDtos.Add(memberDto);
         }
+
+        // DTO’ya ata
+        teamDto = teamDto with { Members = memberDtos };
 
         return teamDto;
     }
 
     public async Task<IEnumerable<TeamDto>> GetAllTeamsAsync(bool track)
     {
+        // 1. Tüm takımları al
         var teamEntities = await _repo.Team.GetAllTeamsAsync(track);
-        var teamsDto = _mapper.Map<IEnumerable<TeamDto>>(teamEntities);
+        var teamDtos = new List<TeamDto>();
 
-        foreach (var team in teamsDto ?? Enumerable.Empty<TeamDto>())
+        // 2. Her takım için üyeleri çek ve manuel olarak TeamDto oluştur
+        foreach (var team in teamEntities)
         {
-            if (team.Members == null) continue;
+            var members = await _repo.TeamMember.GetMembersByTeamIdAsync(team.Id, trackChanges: false);
 
-            foreach (var player in team.Members)
+            var memberDtos = new List<TeamMemberDto>();
+
+            foreach (var member in members)
             {
-                var photoDto = await _photoService.GetPhotosAsync("user", player.UserId, false);
-                player.UserPhotoUrl = photoDto?.FirstOrDefault()?.Url;
+                var user = member.User; // Include ile gelmiş olmalı
+                var photoDto = await _photoService.GetPhotosAsync("user", member.UserId, false);
+
+                var memberDto = new TeamMemberDto
+                {
+                    UserId = member.UserId,
+                    UserName = user?.UserName ?? "",
+                    FirstName = user?.FirstName ?? "",
+                    LastName = user?.LastName ?? "",
+                    IsCaptain = member.IsCaptain,
+                    IsAdmin = member.IsAdmin,
+                    Position = member.Position,
+                    JoinedAt = member.JoinedAt,
+                    UserPhotoUrl = photoDto?.FirstOrDefault()?.Url ?? ""
+                };
+
+                memberDtos.Add(memberDto);
             }
+
+            var teamDto = _mapper.Map<TeamDto>(team);
+            teamDto = teamDto with { Members = memberDtos };
+
+            teamDtos.Add(teamDto);
         }
 
-        return teamsDto;
+        return teamDtos;
     }
 
 
