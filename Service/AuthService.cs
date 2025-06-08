@@ -17,6 +17,7 @@ namespace Service;
 
 public class AuthService : IAuthService
 {
+
     /* ───── DI alanları ───── */
     private readonly UserManager<ApplicationUser> _userMgr;
     private readonly SignInManager<ApplicationUser> _signInMgr;
@@ -203,6 +204,7 @@ public class AuthService : IAuthService
         {
             // ApplicationUser’dan OwnerDto’ya map
             var owner = user as Owner;
+            
             return new OwnerDto
             {
                 FirstName = owner!.FirstName,
@@ -213,8 +215,6 @@ public class AuthService : IAuthService
                 City = owner.City!,
                 Town = owner.Town!,
                 Birthday = (DateTime)owner.Birthday,
-                // Parola kesinlikle dönülmemeli; DTO’da kalmışsa boş geç:
-                Password = string.Empty
             };
         }
 
@@ -232,7 +232,6 @@ public class AuthService : IAuthService
                 City = cust.City!,
                 Town = cust.Town!,
                 Birthday = (DateTime)cust.Birthday,
-                Password = string.Empty,
                 FootPreference = (Shared.DataTransferObjects.FootPreference)cust.FootPreference,
                 Height = cust.Height,
                 Weight = cust.Weight,
@@ -241,6 +240,7 @@ public class AuthService : IAuthService
                                   : cust.Positions,
                 Gender = cust.Gender
             };
+       
         }
 
         return null;
@@ -289,7 +289,6 @@ public class AuthService : IAuthService
             City = user.City!,
             Town = user.Town!,
             Birthday = (DateTime)user.Birthday,
-            Password = string.Empty,               // gönderilmeyecek
             FootPreference = (Shared.DataTransferObjects.FootPreference)user.FootPreference,
             Height = user.Height,
             Weight = user.Weight,
@@ -351,7 +350,6 @@ public class AuthService : IAuthService
             City = user.City!,
             Town = user.Town!,
             Birthday = (DateTime)user.Birthday,
-            Password = string.Empty
         };
 
         patchDoc.ApplyTo(dto);

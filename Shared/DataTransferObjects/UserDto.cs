@@ -88,7 +88,6 @@ namespace Shared.DataTransferObjects
         public string City { get; set; } = null!;
         public string Town { get; set; } = null!;
         public DateTime Birthday { get; set; }
-        public string Password { get; set; } = null!;
     }
 
 
@@ -104,7 +103,6 @@ namespace Shared.DataTransferObjects
         public string City { get; set; } = null!;
         public string Town { get; set; } = null!;
         public DateTime Birthday { get; set; }
-        public string Password { get; set; } = null!;
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public FootPreference FootPreference { get; set; }
         public decimal Height { get; set; }
@@ -128,7 +126,6 @@ namespace Shared.DataTransferObjects
         public string City { get; set; } = null!;
         public string Town { get; set; } = null!;
         public DateTime Birthday { get; set; }
-        public string Password { get; set; } = null!;
     }
 
 
@@ -144,7 +141,6 @@ namespace Shared.DataTransferObjects
         public string City { get; set; } = null!;
         public string Town { get; set; } = null!;
         public DateTime Birthday { get; set; }
-        public string Password { get; set; } = null!;
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public FootPreference FootPreference { get; set; }
         public decimal Height { get; set; }
@@ -166,7 +162,6 @@ namespace Shared.DataTransferObjects
         public string City { get; set; } = null!;
         public string Town { get; set; } = null!;
         public DateTime Birthday { get; set; }
-        public string Password { get; set; } = null!;
     }
 
 
@@ -182,7 +177,6 @@ namespace Shared.DataTransferObjects
         public string City { get; set; } = null!;
         public string Town { get; set; } = null!;
         public DateTime Birthday { get; set; }
-        public string Password { get; set; } = null!;
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public FootPreference FootPreference { get; set; }
         public decimal Height { get; set; }

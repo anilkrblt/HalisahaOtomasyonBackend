@@ -27,15 +27,14 @@ namespace HalisahaOtomasyonPresentation.Controllers
 
 
         /*──── 1. PROFİL GET ─────────────────────────*/
-        [HttpGet("{id:int?}")]
-        public async Task<IActionResult> GetUser(int? id)
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetUser(int id)
         {
-            int caller = int.Parse(User.FindFirst("id")!.Value);
-            bool isAdmin = User.IsInRole("Admin");
-            int target = id ?? caller;
-            if (!isAdmin && caller != target) return Forbid();
+            int userId = int.Parse(User.FindFirst("id")!.Value);
+            if (userId != id) return Forbid();
 
-            var dto = await _serviceManager.AuthService.GetUserAsync(target);
+            var dto = await _serviceManager.AuthService.GetUserAsync(id);
+            
             if (dto is null) return NotFound();
             return Ok(dto);
         }

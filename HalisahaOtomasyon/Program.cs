@@ -55,11 +55,15 @@ builder.Services.AddControllers(config =>
 {
     config.RespectBrowserAcceptHeader = false;
     config.ReturnHttpNotAcceptable = true;
-    config.InputFormatters.RemoveType<TextInputFormatter>(); // text/plain'i devre dışı bırak
+    config.InputFormatters.RemoveType<TextInputFormatter>(); 
     config.OutputFormatters.RemoveType<TextOutputFormatter>();
     config.OutputFormatters.RemoveType<XmlDataContractSerializerOutputFormatter>();
 }).AddApplicationPart(typeof(HalisahaOtomasyonPresentation.AssemblyReference).Assembly)
-.AddNewtonsoftJson();
+.AddNewtonsoftJson(options =>
+{
+    options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
+});
+
 
 builder.Services.AddEndpointsApiExplorer();
 
