@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Entities.Models;
 
 public enum FootPreference { Left, Right }
-public enum PlayingPosition { GK, DF, MF, FW, Utility }
+public enum PlayingPosition { Kaleci, Defans, OrtaSaha, SağKanat, SolKanat, Forvet }
 
 public class Customer : ApplicationUser
 {

@@ -266,7 +266,6 @@ public class AuthService : IAuthService
         user.Weight = dto.Weight;
         user.Gender = dto.Gender;
         user.Positions = dto.PlayingPosition ?? string.Empty;
-        // Password güncelleme gerekiyorsa ayrı metotla yapın, burada atlıyoruz.
 
         // 3) Kaydet
         return await _userMgr.UpdateAsync(user);

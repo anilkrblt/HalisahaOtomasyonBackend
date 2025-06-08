@@ -20,6 +20,7 @@ public class Team
     public string Town { get; set; } = string.Empty;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public string Content { get; set; }
 
     /* ---------- İstatistik ---------- */
     public int MatchPlayed { get; set; }

@@ -42,6 +42,7 @@ public class TeamService : ITeamService
             TeamId = entity.Id,
             UserId = creatorUserId,
             IsCaptain = true,
+            IsAdmin = true,
             Position = PlayerPosition.Utility,  // istersen DTO’ya default pozisyon ekleyebilirsin
             JoinedAt = DateTime.UtcNow
         };
@@ -54,7 +55,6 @@ public class TeamService : ITeamService
     }
 
 
-    // Service/TeamService.cs
     public async Task SetTeamLogoAsync(int teamId, IFormFile logoFile)
     {
         var team = await _repo.Team.GetTeamAsync(teamId, trackChanges: true)
@@ -66,14 +66,39 @@ public class TeamService : ITeamService
         await _repo.SaveAsync();
     }
 
-    public async Task<TeamDto> GetTeamAsync(int teamId, bool track) =>
-        _mapper.Map<TeamDto>(
-            await _repo.Team.GetTeamAsync(teamId, track)
-            ?? throw new TeamNotFoundException(teamId));
+    public async Task<TeamDto> GetTeamAsync(int teamId, bool track)
+    {
+        var teamEntity = await _repo.Team.GetTeamAsync(teamId, track)
+                         ?? throw new TeamNotFoundException(teamId);
 
-    public async Task<IEnumerable<TeamDto>> GetAllTeamsAsync(bool track) =>
-        _mapper.Map<IEnumerable<TeamDto>>(
-            await _repo.Team.GetAllTeamsAsync(track));
+        var teamDto = _mapper.Map<TeamDto>(teamEntity);
+
+        foreach (var player in teamDto.Members)
+        {
+            var photoDto = await _photoService.GetPhotosAsync("user", player.UserId, false);
+            player.UserPhotoUrl = photoDto.FirstOrDefault().Url; // patlayabilir
+        }
+
+        return teamDto;
+    }
+
+    public async Task<IEnumerable<TeamDto>> GetAllTeamsAsync(bool track)
+    {
+        var teamEntities = await _repo.Team.GetAllTeamsAsync(track);
+        var teamsDto = _mapper.Map<IEnumerable<TeamDto>>(teamEntities);
+
+        foreach (var team in teamsDto)
+        {
+            foreach (var player in team.Members)
+            {
+                var photoDto = await _photoService.GetPhotosAsync("user", player.UserId, false);
+                player.UserPhotoUrl = photoDto.FirstOrDefault().Url; // patlayabilir
+            }
+        }
+
+        return teamsDto;
+    }
+
 
     public async Task<IEnumerable<TeamDto>> GetTeamsByCityAsync(string city, bool track) =>
         _mapper.Map<IEnumerable<TeamDto>>(

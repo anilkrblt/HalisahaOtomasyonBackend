@@ -21,6 +21,7 @@ public class TeamMember
 
     /* --------- Özellikler --------- */
     public bool IsCaptain { get; set; }
+    public bool IsAdmin { get; set; }
     public PlayerPosition Position { get; set; } = PlayerPosition.Utility;
     public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
 }
