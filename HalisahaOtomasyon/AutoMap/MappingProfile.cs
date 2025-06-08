@@ -15,15 +15,11 @@ namespace HalisahaOtomasyon.AutoMap
         public MappingProfile()
         {
 
-       
-
-
 
             CreateMap<Room, RoomDto>()
                 .ForMember(d => d.RoomId, opt => opt.MapFrom(src => src.Id));
 
 
-            // Mevcut mapping’lerinize ekleyin:
             CreateMap<FacilityRating, FacilityRatingDto>();
             CreateMap<FacilityRatingForCreationDto, FacilityRating>()
                 .ForMember(dest => dest.Stars, opt => opt.MapFrom(src => src.Stars))
@@ -33,17 +29,13 @@ namespace HalisahaOtomasyon.AutoMap
                 .ForMember(dest => dest.Comment, opt => opt.MapFrom(src => src.Comment));
 
 
-            // AutoMap/MappingProfile.cs  (ilgili kısım)
             CreateMap<Team, TeamDto>()
-                .ForMember(dest => dest.Members,
-                             opt => opt.MapFrom(src => src.Members));
+             .ForMember(dest => dest.Members, opt => opt.MapFrom(src => src.Members));
 
 
-            CreateMap<TeamMember, TeamMemberDto>();   // üye map’i
 
-            CreateMap<Team, TeamDto>()                // takım map’i
-                .ForMember(d => d.Members,
-                           opt => opt.MapFrom(s => s.Members));   // navigation dâhil
+            CreateMap<TeamMember, TeamMemberDto>();
+
 
 
 
@@ -85,8 +77,6 @@ namespace HalisahaOtomasyon.AutoMap
                                src.Fields.Any(f => f.HasCamera)));
 
 
-
-
             CreateMap<FacilityForCreationDto, Facility>();
             CreateMap<FacilityForUpdateDto, Facility>().ReverseMap();
             CreateMap<FacilityPatchDto, Facility>().ReverseMap();
@@ -99,9 +89,6 @@ namespace HalisahaOtomasyon.AutoMap
 
             CreateMap<FacilityForCreationDto, Facility>();
             CreateMap<FacilityForUpdateDto, Facility>().ReverseMap();
-
-
-
 
 
 
@@ -122,7 +109,6 @@ namespace HalisahaOtomasyon.AutoMap
             CreateMap<Match, MatchDto>().ReverseMap();
 
 
-            CreateMap<Team, TeamDto>().ReverseMap();
             CreateMap<TeamForCreationDto, Team>();
             CreateMap<TeamForUpdateDto, Team>();
 

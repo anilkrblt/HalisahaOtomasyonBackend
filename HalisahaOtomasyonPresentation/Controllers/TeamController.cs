@@ -44,9 +44,8 @@ public class TeamsController : ControllerBase
     // HalisahaOtomasyonPresentation/Controllers/TeamsController.cs
 
     [HttpPost]
-    [Consumes("multipart/form-data")]
     [Authorize]
-    public async Task<IActionResult> CreateTeam([FromForm] TeamForCreationDto dto)
+    public async Task<IActionResult> CreateTeam([FromBody] TeamForCreationDto dto)
     {
         if (dto is null)
             return BadRequest();
@@ -60,9 +59,10 @@ public class TeamsController : ControllerBase
 
         // 2) Servisi çağır
         var created = await _serviceManager.TeamService.CreateTeamAsync(dto, creatorUserId);
+        /*
         if (dto.LogoFile == null) return BadRequest("LogoFile is required.");
         await _serviceManager.TeamService.SetTeamLogoAsync(created.Id, dto.LogoFile);
-
+*/
         // 3) 201 ve Location header
         return CreatedAtRoute("GetTeam", new { id = created.Id }, created);
     }

@@ -24,18 +24,21 @@ public class AuthService : IAuthService
     private readonly RoleManager<IdentityRole<int>> _roleMgr;
     private readonly IConfiguration _cfg;
     private readonly IConnectionMultiplexer _redis;
+    private readonly IPhotoService _photoService;
 
     public AuthService(UserManager<ApplicationUser> userMgr,
                        SignInManager<ApplicationUser> signInMgr,
                        IConfiguration cfg,
                        RoleManager<IdentityRole<int>> roleMgr,
-                       IConnectionMultiplexer redis)
+                       IConnectionMultiplexer redis,
+                       IPhotoService photoService)
     {
         _userMgr = userMgr;
         _signInMgr = signInMgr;
         _cfg = cfg;
         _roleMgr = roleMgr;
         _redis = redis;
+        _photoService = photoService;
     }
 
     /*────────────────────────  ŞİFRE SIFIRLAMA  ───────────────────────*/
@@ -204,7 +207,7 @@ public class AuthService : IAuthService
         {
             // ApplicationUser’dan OwnerDto’ya map
             var owner = user as Owner;
-            
+
             return new OwnerDto
             {
                 FirstName = owner!.FirstName,
@@ -220,6 +223,8 @@ public class AuthService : IAuthService
 
         if (roles.Contains("Customer"))
         {
+            var photos = await _photoService.GetPhotosAsync("user", userId, true);
+            var photo = photos.FirstOrDefault();
             // ApplicationUser’dan CustomerDto’ya map
             var cust = user as Customer;
             return new CustomerDto
@@ -229,6 +234,7 @@ public class AuthService : IAuthService
                 UserName = cust.UserName!,
                 Email = cust.Email!,
                 Role = Shared.DataTransferObjects.Role.Customer,
+                PhotoUrl = photo.Url,
                 City = cust.City!,
                 Town = cust.Town!,
                 Birthday = (DateTime)cust.Birthday,
@@ -240,7 +246,7 @@ public class AuthService : IAuthService
                                   : cust.Positions,
                 Gender = cust.Gender
             };
-       
+
         }
 
         return null;

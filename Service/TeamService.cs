@@ -73,10 +73,13 @@ public class TeamService : ITeamService
 
         var teamDto = _mapper.Map<TeamDto>(teamEntity);
 
-        foreach (var player in teamDto.Members)
+        if (teamDto.Members != null)
         {
-            var photoDto = await _photoService.GetPhotosAsync("user", player.UserId, false);
-            player.UserPhotoUrl = photoDto.FirstOrDefault().Url; // patlayabilir
+            foreach (var player in teamDto.Members)
+            {
+                var photoDto = await _photoService.GetPhotosAsync("user", player.UserId, false);
+                player.UserPhotoUrl = photoDto?.FirstOrDefault()?.Url;
+            }
         }
 
         return teamDto;
@@ -87,17 +90,20 @@ public class TeamService : ITeamService
         var teamEntities = await _repo.Team.GetAllTeamsAsync(track);
         var teamsDto = _mapper.Map<IEnumerable<TeamDto>>(teamEntities);
 
-        foreach (var team in teamsDto)
+        foreach (var team in teamsDto ?? Enumerable.Empty<TeamDto>())
         {
+            if (team.Members == null) continue;
+
             foreach (var player in team.Members)
             {
                 var photoDto = await _photoService.GetPhotosAsync("user", player.UserId, false);
-                player.UserPhotoUrl = photoDto.FirstOrDefault().Url; // patlayabilir
+                player.UserPhotoUrl = photoDto?.FirstOrDefault()?.Url;
             }
         }
 
         return teamsDto;
     }
+
 
 
     public async Task<IEnumerable<TeamDto>> GetTeamsByCityAsync(string city, bool track) =>
@@ -113,7 +119,7 @@ public class TeamService : ITeamService
         var entity = await _repo.Team.GetTeamAsync(id, true)
                      ?? throw new TeamNotFoundException(id);
 
-        _mapper.Map(dto, entity);          // sadece değişen alanlar
+        _mapper.Map(dto, entity);
         await _repo.SaveAsync();
         return _mapper.Map<TeamDto>(entity);
     }

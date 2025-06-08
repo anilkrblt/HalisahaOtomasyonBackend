@@ -29,7 +29,7 @@ public record TeamForCreationDto(
     string City,
     string Town,
     string Content,
-    IFormFile LogoFile);
+    string LogoUrl);
 
 public record TeamForUpdateDto(
     string Name,

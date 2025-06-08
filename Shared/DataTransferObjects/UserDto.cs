@@ -100,6 +100,7 @@ namespace Shared.DataTransferObjects
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public Role Role { get; set; }
+        public string PhotoUrl { get; set; }
         public string City { get; set; } = null!;
         public string Town { get; set; } = null!;
         public DateTime Birthday { get; set; }
