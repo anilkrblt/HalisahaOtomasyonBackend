@@ -44,15 +44,16 @@ public class TeamsController : ControllerBase
     // HalisahaOtomasyonPresentation/Controllers/TeamsController.cs
 
     [HttpPost]
+    [Consumes("multipart/form-data")]
     [Authorize]
-    public async Task<IActionResult> CreateTeam([FromBody] TeamForCreationDto dto)
+    public async Task<IActionResult> CreateTeam([FromForm] TeamForCreationDto dto)
     {
         if (dto is null)
             return BadRequest();
 
         // 1) Token’dan userId al
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                       ?? User.FindFirst("id")?.Value;
+                    ?? User.FindFirst("id")?.Value;
         if (userIdClaim is null)
             return Unauthorized();
         var creatorUserId = int.Parse(userIdClaim);
