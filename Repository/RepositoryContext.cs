@@ -31,19 +31,19 @@ public class RepositoryContext
     mb.Entity<RoomParticipant>().Property(p => p.Status).HasConversion<int>();
     mb.Entity<TeamJoinRequest>().Property(r => r.Status).HasConversion<int>();
 
-    /*─ Composite Keys ─*/
-    mb.Entity<TeamMember>().HasKey(tm => new { tm.TeamId, tm.UserId });
-
+    mb.Entity<TeamMember>()
+        .HasKey(tm => new { tm.TeamId, tm.UserId });
 
     mb.Entity<TeamMember>()
         .HasOne(tm => tm.User)
-        .WithMany()
+        .WithMany(c => c.TeamMemberships) // ✅ Navigation property tanımlandı
         .HasForeignKey(tm => tm.UserId);
 
     mb.Entity<TeamMember>()
         .HasOne(tm => tm.Team)
         .WithMany(t => t.Members)
         .HasForeignKey(tm => tm.TeamId);
+
 
 
 
