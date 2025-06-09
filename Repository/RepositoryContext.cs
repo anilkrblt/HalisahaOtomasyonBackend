@@ -36,7 +36,7 @@ public class RepositoryContext
 
     mb.Entity<TeamMember>()
         .HasOne(tm => tm.User)
-        .WithMany(c => c.TeamMemberships) // ✅ Navigation property tanımlandı
+        .WithMany(c => c.TeamMemberships)
         .HasForeignKey(tm => tm.UserId);
 
     mb.Entity<TeamMember>()
@@ -48,7 +48,29 @@ public class RepositoryContext
 
 
     mb.Entity<Friendship>().HasKey(f => new { f.UserId1, f.UserId2 });
+
+
+
     mb.Entity<RoomParticipant>().HasKey(rp => new { rp.RoomId, rp.TeamId });
+    mb.Entity<RoomParticipant>().HasKey(rp => new { rp.RoomId, rp.TeamId });
+
+    mb.Entity<RoomParticipant>()
+        .HasOne(rp => rp.Room)
+        .WithMany(r => r.Participants)
+        .HasForeignKey(rp => rp.RoomId);
+
+    mb.Entity<RoomParticipant>()
+        .HasOne(rp => rp.Team)
+        .WithMany(t => t.TeamReservations)
+        .HasForeignKey(rp => rp.TeamId);
+
+    mb.Entity<RoomParticipant>()
+        .HasIndex(rp => new { rp.RoomId, rp.IsHome })
+        .IsUnique();
+
+
+
+
     mb.Entity<FacilityRating>().HasKey(fr => new { fr.FacilityId, fr.UserId });
 
     /*──────── Room ⇄ Match (1-1) ─────────────────────────────*/
@@ -62,7 +84,7 @@ public class RepositoryContext
     mb.Entity<Room>()
       .HasIndex(r => r.JoinCode)
       .IsUnique()
-      .HasFilter("[JoinCode] IS NOT NULL");   // SQL Server; diğer motorlarda filtre gerekmez
+      .HasFilter("[JoinCode] IS NOT NULL");
 
     /*──────── TeamJoinRequest unique & FK ────────────────────*/
     mb.Entity<TeamJoinRequest>(b =>

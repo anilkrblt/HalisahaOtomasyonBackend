@@ -40,13 +40,34 @@ namespace Shared.DataTransferObjects
     }
 
     // Var olan Field DTO’ları aşağı gibi güncellendi:
-    public enum FloorType { Dogal, Sentetik, Parke }
+    public enum FloorType { Dogal, Yapay, Parke, Kum }
 
     public record FieldDto
     {
 
         public int FacilityId { get; set; }
-        
+        public decimal? Latitude { get; set; }
+        public decimal? Longitude { get; set; }
+        public string Phone { get; set; } = string.Empty;
+        public string? Email { get; set; }
+
+        public string? City { get; set; }
+        public string? Town { get; set; }
+        public string? AddressDetails { get; set; }
+
+        public bool HasCafeteria { get; set; }
+        public bool HasShower { get; set; }
+        public bool HasToilet { get; set; }
+        public bool HasTransportService { get; set; }
+        public bool HasLockerRoom { get; set; }
+        public bool HasFirstAid { get; set; }
+        public bool HasSecurityCameras { get; set; }
+        public bool HasShoeRental { get; set; }
+        public bool HasGlove { get; set; }
+        public bool HasParking { get; set; }
+        public bool HasRefereeService { get; set; }
+
+
         public int Id { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
@@ -54,6 +75,7 @@ namespace Shared.DataTransferObjects
         public bool IsIndoor { get; set; }
         public bool IsAvailable { get; set; } = true;
         public bool HasCamera { get; set; }
+        public bool HasScoreBoard { get; set; }
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public FloorType FloorType { get; set; }
@@ -79,6 +101,7 @@ namespace Shared.DataTransferObjects
         public int Height { get; set; }
         public string Name { get; set; } = null!;
         public bool IsIndoor { get; set; }
+        public bool HasScoreBoard { get; set; }
         public bool HasCamera { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public FloorType FloorType { get; set; }
@@ -102,6 +125,7 @@ namespace Shared.DataTransferObjects
         public string Name { get; set; } = null!;
         public bool IsIndoor { get; set; }
         public bool IsAvailable { get; set; }
+        public bool HasScoreBoard { get; set; }
         public bool HasCamera { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public FloorType FloorType { get; set; }
@@ -122,6 +146,7 @@ namespace Shared.DataTransferObjects
         public string? Name { get; set; }
         public bool? IsIndoor { get; set; }
         public bool? IsAvailable { get; set; }
+        public bool HasScoreBoard { get; set; }
         public bool? HasCamera { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public FloorType? FloorType { get; set; }

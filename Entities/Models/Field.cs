@@ -2,9 +2,10 @@
 {
     public enum FloorType
     {
-        Dogal = 0,   // Doğal çim
-        Sentetik = 1,   // Sentetik çim
-        Parke = 2    // Kapalı parke zemin
+        Dogal = 0,
+        Yapay = 1,
+        Parke = 2,
+        Kum = 3
     }
     public class Field
     {
@@ -16,7 +17,7 @@
         public string Name { get; set; }
         public bool IsIndoor { get; set; }
         public bool IsAvailable { get; set; } = true;
-       
+        public bool HasScoreBoard { get; set; }
         public bool HasCamera { get; set; }
         public FloorType FloorType { get; set; }
         public int Capacity { get; set; }

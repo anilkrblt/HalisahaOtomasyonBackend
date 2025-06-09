@@ -14,19 +14,19 @@ namespace Entities.Models
     {
         public int Id { get; set; }
 
-        [MaxLength(128)] public string Name { get; set; } = null!;
+        [MaxLength(128)]
+        public string Name { get; set; } = null!;
         public string? LogoUrl { get; set; }
 
         /* Sahibi */
         public int OwnerId { get; set; }
         public Owner? Owner { get; set; }
 
-        /* Konum — Google Maps lat/lng */
-        [Column(TypeName = "decimal(9,6)")]
+        [Column(TypeName = "decimal(18,15)")]
         public decimal? Latitude { get; set; }
-        [Column(TypeName = "decimal(9,6)")]
-        public decimal? Longitude { get; set; }
 
+        [Column(TypeName = "decimal(18,15)")]
+        public decimal? Longitude { get; set; }
 
 
         /* Adres */

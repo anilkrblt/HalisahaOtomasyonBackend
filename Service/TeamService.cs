@@ -103,7 +103,6 @@ public class TeamService : ITeamService
             memberDtos.Add(memberDto);
         }
 
-        // DTO’ya ata
         teamDto = teamDto with { Members = memberDtos };
 
         return teamDto;

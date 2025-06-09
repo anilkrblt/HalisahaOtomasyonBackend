@@ -11,9 +11,7 @@ public class RoomsController : ControllerBase
     private readonly IServiceManager _svc;
     public RoomsController(IServiceManager svc) => _svc = svc;
 
-    /*──────── ROOM CRUD ────────*/
 
-    // POST api/rooms      (oda oluştur)
     [HttpPost]
     public async Task<IActionResult> CreateRoom([FromBody] RoomCreateDto dto,
                                                 [FromQuery] int creatorTeamId)

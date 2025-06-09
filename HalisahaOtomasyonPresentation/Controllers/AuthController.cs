@@ -104,11 +104,13 @@ namespace HalisahaOtomasyonPresentation.Controllers
         }
 
         [HttpPost("register-customer")]
-        public async Task<IActionResult> RegisterCustomer([FromBody] CustomerRegisterDto model)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> RegisterCustomer([FromForm] CustomerRegisterDto model)
         {
             var result = await _serviceManager.AuthService.RegisterCustomerAsync(model);
             if (!result.Succeeded)
                 return BadRequest(result.Errors);
+
 
             return Ok("Customer registered successfully.");
         }
@@ -187,7 +189,6 @@ namespace HalisahaOtomasyonPresentation.Controllers
             }
             else
             {
-                // 🔒 DbContext aynı anda kullanma! Sırayla await et
                 await _serviceManager.PhotoService.DeletePhotosByEntityAsync("user", id, trackChanges: true);
                 await _serviceManager.PhotoService.UploadPhotosAsync(dto.PhotoFiles, "user", id);
             }

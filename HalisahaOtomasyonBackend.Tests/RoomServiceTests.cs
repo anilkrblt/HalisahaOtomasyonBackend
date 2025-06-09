@@ -109,7 +109,7 @@ namespace HalisahaOtomasyonBackend.Tests
                 IsIndoor = false,
                 IsAvailable = true,
                 HasCamera = false,
-                FloorType = Entities.Models.FloorType.Sentetik,
+                FloorType = Entities.Models.FloorType.Yapay,
                 Capacity = 20,
                 PricePerHour = 100m,
                 LightingAvailable = true,
@@ -232,8 +232,7 @@ namespace HalisahaOtomasyonBackend.Tests
                 RoomId = room.Id,
                 TeamId = 10,
                 IsHome = true,
-                Status = ParticipantStatus.Accepted,
-                HasPaid = false
+                Status = ParticipantStatus.Accepted
             });
             await ctx.SaveChangesAsync();
 

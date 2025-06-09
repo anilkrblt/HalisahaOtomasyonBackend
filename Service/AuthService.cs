@@ -125,6 +125,13 @@ public class AuthService : IAuthService
         if (result.Succeeded)
             await _userMgr.AddToRoleAsync(customer, "Customer");
 
+        var photos = await _photoService.GetPhotosAsync("user", customer.Id, trackChanges: true);
+
+        if (photos == null || !photos.Any())
+        {
+            await _photoService.UploadPhotosAsync(dto.PhotoFiles, "user", customer.Id);
+        }
+
         return result;
     }
 

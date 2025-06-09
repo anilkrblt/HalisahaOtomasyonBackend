@@ -118,9 +118,9 @@ public class RoomService : IRoomService
         var part = await _repo.RoomParticipant.GetParticipantAsync(roomId, teamId, true)
                    ?? throw new ParticipantNotFoundException(roomId, teamId);
 
-        if (part.HasPaid) throw new InvalidOperationException("Zaten ödenmiş.");
+       // if (part.Status.Unpaid) throw new InvalidOperationException("Zaten ödenmiş.");
 
-        part.HasPaid = true;
+        part.IsReady = true;
         part.PaidAmount = amount;
         await _repo.SaveAsync();
     }
