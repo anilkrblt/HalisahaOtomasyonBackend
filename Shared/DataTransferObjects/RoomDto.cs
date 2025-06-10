@@ -34,7 +34,6 @@ public record RoomCreateDto
     public int MaxPlayers { get; set; }
 }
 
-
 /*──────────────── PARTICIPANT ─────────────────────*/
 
 public record RoomParticipantDto(

@@ -95,6 +95,11 @@ public class RoomService : IRoomService
 
     private async Task<RoomParticipantDto> InternalAddParticipant(Room room, int teamId)
     {
+        // 1. Aynı anahtara sahip bir RoomParticipant zaten var mı? Kontrol et:
+        var existing = await _repo.RoomParticipant.GetParticipantAsync(room.Id, teamId, true);
+        if (existing != null)
+            throw new InvalidOperationException("Bu takım zaten bu odada.");
+
         if (room.Participants.Count >= room.MaxPlayers)
             throw new InvalidOperationException("Kapasite dolu.");
 
@@ -111,6 +116,7 @@ public class RoomService : IRoomService
         await NotifyTeamAsync(teamId, "Odaya katıldınız.", room.Id);
         return _map.Map<RoomParticipantDto>(participant);
     }
+
 
     /*──────────────── PAYMENT ────────────────────────────────*/
 
