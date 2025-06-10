@@ -7,18 +7,22 @@ namespace Shared.DataTransferObjects;
 /*──────────────── ROOM ─────────────────────────────*/
 
 /* — API’den dönen — */
-public record RoomDto(
-    int RoomId,          // <— 1) isim değişti
-    int FieldId,
-    DateTime SlotStart,
-    DateTime SlotEnd,
-    RoomAccessType AccessType,
-    string? JoinCode,
-    int MaxPlayers,
-    decimal PricePerPlayer,
-    RoomStatus Status,
-    DateTime CreatedAt,
-    MatchDto Match);
+
+public record RoomDto
+{
+    public int RoomId { get; set; }
+    public int FieldId { get; set; }
+    public DateTime SlotStart { get; set; }
+    public DateTime SlotEnd { get; set; }
+    public RoomAccessType AccessType { get; set; }
+    public string? JoinCode { get; set; }
+    public int MaxPlayers { get; set; }
+    public decimal PricePerPlayer { get; set; }
+    public RoomStatus Status { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public MatchDto? Match { get; set; }
+}
+
 
 /* — Oluştururken gönderilen — */
 public record RoomCreateDto
