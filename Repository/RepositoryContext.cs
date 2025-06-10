@@ -70,6 +70,11 @@ public class RepositoryContext
 
 
 
+    mb.Entity<Reservation>()
+        .HasIndex(r => new { r.FieldId, r.SlotStart })
+        .IsUnique();
+
+
 
     mb.Entity<FacilityRating>().HasKey(fr => new { fr.FacilityId, fr.UserId });
 
@@ -182,4 +187,8 @@ public class RepositoryContext
   public DbSet<Photo> Photos => Set<Photo>();
   public DbSet<FacilityRating> FacilityRatings => Set<FacilityRating>();
   public DbSet<Friendship> Friendships => Set<Friendship>();
+  public DbSet<Reservation> Reservations => Set<Reservation>();
+  public DbSet<ReservationPayment> ReservationPayments => Set<ReservationPayment>();
+
+
 }

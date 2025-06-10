@@ -25,6 +25,8 @@ public interface IRepositoryManager
     ITeamMemberRepository TeamMember { get; }
     ITeamRepository Team { get; }
     IUserCommentRepository UserComment { get; }
+    IReservationPaymentRepository ReservationPayment { get; }
+    IReservationRepository Reservation { get; }
     Task SaveAsync();
 
 }

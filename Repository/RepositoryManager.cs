@@ -29,7 +29,8 @@ public class RepositoryManager : IRepositoryManager
     private readonly Lazy<IUserCommentRepository> _userComment;
     private readonly Lazy<IWeeklyOpeningRepository> _weeklyOpening;
     private readonly Lazy<IFieldExceptionRepository> _fieldException;
-
+    private readonly Lazy<IReservationPaymentRepository> _reservationPayment;
+    private readonly Lazy<IReservationRepository> _reservation;
     /* -------- ctor -------- */
     public RepositoryManager(RepositoryContext ctx)
     {
@@ -56,6 +57,8 @@ public class RepositoryManager : IRepositoryManager
         _userComment = new(() => new UserCommentRepository(ctx));
         _weeklyOpening = new(() => new WeeklyOpeningRepository(ctx));
         _fieldException = new(() => new FieldExceptionRepository(ctx));
+        _reservationPayment = new(() => new ReservationPaymentRepository(ctx));
+        _reservation = new(() => new ReservationRepository(ctx));
     }
 
     /* -------- Exposed props -------- */
@@ -80,6 +83,8 @@ public class RepositoryManager : IRepositoryManager
     public IUserCommentRepository UserComment => _userComment.Value;
     public IWeeklyOpeningRepository WeeklyOpening => _weeklyOpening.Value;
     public IFieldExceptionRepository FieldException => _fieldException.Value;
+    public IReservationPaymentRepository ReservationPayment => _reservationPayment.Value;
+    public IReservationRepository Reservation => _reservation.Value;
 
 
     public async Task SaveAsync() => await _ctx.SaveChangesAsync();

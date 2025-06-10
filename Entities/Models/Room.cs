@@ -38,6 +38,8 @@ public class Room
 
     /* 1-1 Match */
     public Match? Match { get; set; }
+    public Reservation? Reservation { get; set; }
+
 
     public ICollection<RoomParticipant> Participants { get; set; } = [];
 }

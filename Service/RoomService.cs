@@ -8,7 +8,7 @@ using Shared.DataTransferObjects;
 
 namespace Service;
 
-public class RoomService : IRoomService      
+public class RoomService : IRoomService
 {
     private readonly IRepositoryManager _repo;
     private readonly INotificationService _notifs;
@@ -36,7 +36,9 @@ public class RoomService : IRoomService
 
         bool clash = (await _repo.Room.GetRoomsByFieldIdAsync(dto.FieldId, false))
                      .Any(r => r.SlotStart < dto.SlotStart.AddHours(1) && r.SlotEnd > dto.SlotStart);
-        if (clash) throw new InvalidOperationException("Bu saat dolu.");
+        bool clash2 = (await _repo.Reservation.GetByFieldAsync(dto.FieldId, dto.SlotStart)).Any();
+        if (clash || clash2) throw new InvalidOperationException("Bu saat dolu.");
+
 
         var room = new Room
         {
@@ -46,7 +48,6 @@ public class RoomService : IRoomService
             JoinCode = dto.AccessType == RoomAccessType.Private ? _codeGen.Generate(6) : null,
             MaxPlayers = dto.MaxPlayers,
             PricePerPlayer = dto.PricePerPlayer ?? 0,
-            Match = new Match()
         };
 
         _repo.Room.CreateRoom(room);
@@ -116,33 +117,90 @@ public class RoomService : IRoomService
     public async Task PayAsync(int roomId, int teamId, decimal amount)
     {
         var part = await _repo.RoomParticipant.GetParticipantAsync(roomId, teamId, true)
-                   ?? throw new ParticipantNotFoundException(roomId, teamId);
+                    ?? throw new ParticipantNotFoundException(roomId, teamId);
 
-       // if (part.Status.Unpaid) throw new InvalidOperationException("Zaten ödenmiş.");
+        if (part.PaymentStatus == PaymentStatus.Paid)
+            throw new InvalidOperationException("Zaten ödenmiş.");
 
-        part.IsReady = true;
+        part.PaymentStatus = PaymentStatus.Paid;
         part.PaidAmount = amount;
+        part.IsReady = true;
+
+        // ReservationPayment kaydı
+        _repo.ReservationPayment.CreateReservationPayment(new ReservationPayment
+        {
+            ReservationId = part.Room!.Reservation!.Id,   // Reservation lobby onaylandığında oluşturulmuş olmalı
+            Amount = amount,
+            Status = PaymentStatus.Paid,
+            RoomParticipantRoomId = roomId,
+            RoomParticipantTeamId = teamId,
+            PaidAt = DateTime.UtcNow
+        });
+
         await _repo.SaveAsync();
+
+        // tüm katılımcılar ödedi mi?
+        var allPaid = part.Room.Participants.All(p => p.PaymentStatus == PaymentStatus.Paid);
+        if (allPaid)
+        {
+            part.Room.Reservation!.Status = ReservationStatus.Confirmed;
+            part.Room.Status = RoomStatus.Confirmed;
+            await _repo.SaveAsync();
+        }
     }
+
 
     /*──────────────── MATCH START ────────────────────────────*/
 
     public async Task<MatchDto> StartMatchAsync(int roomId, int startedByTeamId)
     {
         var room = await _repo.Room.GetOneRoomAsync(roomId, true)
-                   ?? throw new RoomNotFoundException(roomId);
+                     ?? throw new RoomNotFoundException(roomId);
 
-        if (room.Status != RoomStatus.Confirmed)
-            throw new InvalidOperationException("Oda henüz onaylı değil.");
+        if (room.Status != RoomStatus.Confirmed ||
+            room.Reservation?.Status != ReservationStatus.Confirmed)
+            throw new InvalidOperationException("Oda veya rezervasyon henüz onaylı değil.");
 
-        room.Status = RoomStatus.Played;
-        room.Match.StartTime = room.SlotStart;
-        room.Match.FieldId = room.FieldId;
+        //– başlatma yetkisi
+        var isStarterParticipant = room.Participants.Any(p => p.TeamId == startedByTeamId);
+        if (!isStarterParticipant)
+            throw new UnauthorizedAccessException("Bu takım maçı başlatamaz.");
+
+        if (room.Match is null)
+        {
+            var homeId = room.Participants.FirstOrDefault(p => p.IsHome)?.TeamId;
+            var awayId = room.Participants.FirstOrDefault(p => !p.IsHome)?.TeamId;
+            if (homeId is null || awayId is null)
+                throw new InvalidOperationException("Home/Away takımları atanamadı.");
+
+            var match = new Match
+            {
+                RoomId = room.Id,
+                StartTime = room.SlotStart,
+                FieldId = room.FieldId,
+                HomeTeamId = homeId,
+                AwayTeamId = awayId
+                // ReservationId yok, InProgress yok
+            };
+            _repo.Match.CreateMatch(match);
+            room.Match = match;
+        }
+
+        /* Durumları mevcut enum değerleriyle güncelle */
+        room.Status = RoomStatus.Played;                 // veya Confirmed→Played arası başka değer kullanmayın
+        room.Reservation!.Status = ReservationStatus.Played;
 
         await _repo.SaveAsync();
+
         return _map.Map<MatchDto>(room.Match);
     }
 
+   
+   
+   
+   
+   
+   
     /*──────────────── Helpers ───────────────────────────────*/
 
     private static void ValidateSlotAgainstField(DateTime slotStart, Field field)
@@ -221,4 +279,3 @@ public class RoomService : IRoomService
     /*──────────────── OPTIONAL eski membership / participant API ─────────*/
     // … aynı kalabilir, tip adlarını Room/RoomParticipant olarak değiştir.
 }
-    
