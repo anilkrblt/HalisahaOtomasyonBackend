@@ -36,14 +36,17 @@ public record RoomCreateDto
 
 /*──────────────── PARTICIPANT ─────────────────────*/
 
-public record RoomParticipantDto(
-    int RoomId,
-    int TeamId,
-    bool IsHome,
-    ParticipantStatus Status,
-    bool HasPaid,
-    decimal? PaidAmount,
-    DateTime? RespondedAt);
+public record RoomParticipantDto
+{
+    public int RoomId { get; set; }
+    public int TeamId { get; set; }
+    public bool IsHome { get; set; }
+    public ParticipantStatus Status { get; set; }
+    public bool HasPaid { get; set; }
+    public decimal? PaidAmount { get; set; }
+    public DateTime? RespondedAt { get; set; }
+}
+
 
 public record RoomParticipantForCreationDto(
     int RoomId,
