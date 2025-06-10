@@ -82,6 +82,7 @@ public class FacilityService : IFacilityService
         if (patch.AddressDetails is not null) fac.AddressDetails = patch.AddressDetails;
         if (patch.HasCafeteria is not null) fac.HasCafeteria = patch.HasCafeteria.Value;
         if (patch.HasShower is not null) fac.HasShower = patch.HasShower.Value;
+        if (patch.HasLockableCabinet is not null) fac.HasLockableCabinet = patch.HasLockableCabinet.Value;
         if (patch.HasToilet is not null) fac.HasToilet = patch.HasToilet.Value;
         if (patch.HasTransportService is not null) fac.HasTransportService = patch.HasTransportService.Value;
         if (patch.HasParking is not null) fac.HasParking = patch.HasParking.Value;

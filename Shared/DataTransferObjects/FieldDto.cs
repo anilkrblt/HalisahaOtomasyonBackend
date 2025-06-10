@@ -75,6 +75,7 @@ namespace Shared.DataTransferObjects
         public bool IsIndoor { get; set; }
         public bool IsAvailable { get; set; } = true;
         public bool HasCamera { get; set; }
+        public bool HasTribune { get; set; }
         public bool HasScoreBoard { get; set; }
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
@@ -101,6 +102,7 @@ namespace Shared.DataTransferObjects
         public int Height { get; set; }
         public string Name { get; set; } = null!;
         public bool IsIndoor { get; set; }
+        public bool HasTribune { get; set; }
         public bool HasScoreBoard { get; set; }
         public bool HasCamera { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
@@ -125,6 +127,7 @@ namespace Shared.DataTransferObjects
         public string Name { get; set; } = null!;
         public bool IsIndoor { get; set; }
         public bool IsAvailable { get; set; }
+        public bool HasTribune { get; set; }
         public bool HasScoreBoard { get; set; }
         public bool HasCamera { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
@@ -146,6 +149,7 @@ namespace Shared.DataTransferObjects
         public string? Name { get; set; }
         public bool? IsIndoor { get; set; }
         public bool? IsAvailable { get; set; }
+        public bool HasTribune { get; set; }
         public bool HasScoreBoard { get; set; }
         public bool? HasCamera { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]

@@ -28,7 +28,7 @@ public record FacilityDto
     public bool HasToilet { get; set; }
     public bool HasTransportService { get; set; }
 
-
+    public bool HasLockableCabinet { get; set; }
     public bool HasCamera { get; set; }
     public bool HasLockerRoom { get; set; }
     public bool HasFirstAid { get; set; }
@@ -73,6 +73,7 @@ public record FacilityForCreationDto
     public string? AddressDetails { get; set; }
 
     /* Özellikler */
+    public bool HasLockableCabinet { get; set; }
     public bool HasLockerRoom { get; set; }
     public bool HasFirstAid { get; set; }
     public bool HasSecurityCameras { get; set; }
@@ -104,6 +105,7 @@ public record FacilityForUpdateDto
     public string? Town { get; set; }
     public string? AddressDetails { get; set; }
 
+    public bool? HasLockableCabinet { get; set; }
     public bool? HasLockerRoom { get; set; }
     public bool? HasFirstAid { get; set; }
     public bool? HasSecurityCameras { get; set; }
@@ -127,6 +129,7 @@ public class FacilityPatchDto
     public string? Description { get; set; }
     public string? BankAccountInfo { get; set; }
 
+    public bool? HasLockableCabinet { get; set; }
     public decimal? Latitude { get; set; }
     public decimal? Longitude { get; set; }
     public string? City { get; set; }

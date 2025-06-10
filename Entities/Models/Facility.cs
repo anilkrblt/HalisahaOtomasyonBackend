@@ -36,6 +36,7 @@ namespace Entities.Models
         public string? Description { get; set; }
 
         /* Özellikler */
+        public bool HasLockableCabinet { get; set; }
         public bool HasCafeteria { get; set; }
         // yeni
         public bool HasLockerRoom { get; set; }
