@@ -18,6 +18,7 @@ namespace HalisahaOtomasyon.AutoMap
 
         public static string? GetAwayTeamName(Room room)
         {
+        
             var away = room.Participants.FirstOrDefault(p => !p.IsHome);
             return away?.Team?.Name;
         }

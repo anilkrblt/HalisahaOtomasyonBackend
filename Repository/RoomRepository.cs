@@ -63,6 +63,7 @@ namespace Repository
                 .AsNoTracking()
                 .Where(r => r.AccessType == accessType)
                 .Include(r => r.Participants)
+                    .ThenInclude(rp => rp.Team)
                 .Include(r => r.Match)
                 .ToListAsync();
         }

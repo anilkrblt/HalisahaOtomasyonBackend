@@ -113,6 +113,7 @@ public class RoomService : IRoomService
         _repo.RoomParticipant.CreateParticipant(participant);
         await _repo.SaveAsync();
 
+
         if (room.Participants.Count + 1 >= 2)
         {
             room.Status = RoomStatus.WaitingConfirm;
