@@ -10,6 +10,18 @@ namespace HalisahaOtomasyon.AutoMap
 {
     public class MappingProfile : Profile
     {
+        public static string? GetHomeTeamName(Room room)
+        {
+            var home = room.Participants.FirstOrDefault(p => p.IsHome);
+            return home?.Team?.Name;
+        }
+
+        public static string? GetAwayTeamName(Room room)
+        {
+            var away = room.Participants.FirstOrDefault(p => !p.IsHome);
+            return away?.Team?.Name;
+        }
+
 
 
         public MappingProfile()
@@ -20,7 +32,11 @@ namespace HalisahaOtomasyon.AutoMap
 
 
             CreateMap<Room, RoomDto>()
-                .ForMember(d => d.RoomId, opt => opt.MapFrom(src => src.Id));
+            .ForMember(d => d.RoomId, opt => opt.MapFrom(src => src.Id))
+            .ForMember(d => d.HomeTeamName, opt => opt.MapFrom(src => GetHomeTeamName(src)))
+            .ForMember(d => d.AwayTeamName, opt => opt.MapFrom(src => GetAwayTeamName(src)));
+
+
 
 
             CreateMap<FacilityRating, FacilityRatingDto>();

@@ -243,6 +243,11 @@ public class RoomService : IRoomService
             });
     }
 
+
+
+
+
+
     public Task<IEnumerable<RoomParticipantDto>> GetParticipantsByRoomAsync(int roomId, bool trackChanges)
     {
         throw new NotImplementedException();
@@ -288,6 +293,5 @@ public class RoomService : IRoomService
         throw new NotImplementedException();
     }
 
-    /*──────────────── OPTIONAL eski membership / participant API ─────────*/
-    // … aynı kalabilir, tip adlarını Room/RoomParticipant olarak değiştir.
+  
 }

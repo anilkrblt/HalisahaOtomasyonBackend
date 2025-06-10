@@ -11,6 +11,8 @@ namespace Shared.DataTransferObjects;
 public record RoomDto
 {
     public int RoomId { get; set; }
+    public string? HomeTeamName { get; set; }
+    public string? AwayTeamName { get; set; }
     public int FieldId { get; set; }
     public DateTime SlotStart { get; set; }
     public DateTime SlotEnd { get; set; }
