@@ -24,8 +24,7 @@ public record RoomCreateDto(
     int FieldId,
     DateTime SlotStart,
     RoomAccessType AccessType,
-    int MaxPlayers,
-    decimal? PricePerPlayer);
+    int MaxPlayers);
 
 /*──────────────── PARTICIPANT ─────────────────────*/
 

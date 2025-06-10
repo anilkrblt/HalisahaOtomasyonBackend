@@ -47,7 +47,7 @@ public class RoomService : IRoomService
             AccessType = dto.AccessType,
             JoinCode = dto.AccessType == RoomAccessType.Private ? _codeGen.Generate(6) : null,
             MaxPlayers = dto.MaxPlayers,
-            PricePerPlayer = dto.PricePerPlayer ?? 0,
+            PricePerPlayer = field.PricePerHour / (dto.MaxPlayers == 0 ? 1 : dto.MaxPlayers)
         };
 
         _repo.Room.CreateRoom(room);
@@ -195,12 +195,12 @@ public class RoomService : IRoomService
         return _map.Map<MatchDto>(room.Match);
     }
 
-   
-   
-   
-   
-   
-   
+
+
+
+
+
+
     /*──────────────── Helpers ───────────────────────────────*/
 
     private static void ValidateSlotAgainstField(DateTime slotStart, Field field)
