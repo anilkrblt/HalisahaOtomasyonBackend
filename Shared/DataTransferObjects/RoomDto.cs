@@ -1,4 +1,5 @@
 // Shared.DataTransferObjects/RoomDtos.cs
+using System.Text.Json.Serialization;
 using Entities.Models;
 
 namespace Shared.DataTransferObjects;
@@ -20,15 +21,19 @@ public record RoomDto(
     MatchDto Match);
 
 /* — Oluştururken gönderilen — */
-public record RoomCreateDto(
-    int FieldId,
-    DateTime SlotStart,
-    RoomAccessType AccessType,
-    int MaxPlayers);
+public record RoomCreateDto
+{
+    public int FieldId { get; set; }
+    public DateTime SlotStart { get; set; }
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public RoomAccessType AccessType { get; set; }
+    public int MaxPlayers { get; set; }
+}
+
 
 /*──────────────── PARTICIPANT ─────────────────────*/
 
-public record RoomParticipantDto(        // <— 2) sınıf adı değişti
+public record RoomParticipantDto(
     int RoomId,
     int TeamId,
     bool IsHome,
