@@ -30,14 +30,26 @@ namespace HalisahaOtomasyonPresentation.Controllers
                     .Where(a => a.FacilityId == facilityId.Value)
                     .ToList();
 
+            // Fotoğraf URL'lerini ekle
+            foreach (var ann in anns)
+            {
+                var photos = await _service.PhotoService.GetPhotosAsync("announcement", ann.Id, false);
+                var photo = photos.FirstOrDefault();
+                ann.BannerUrl = photo?.Url;
+            }
+
             return Ok(anns);
         }
+
 
 
         [HttpGet("{announcementId:int}", Name = "GetAnnouncement")]
         public async Task<IActionResult> GetAnnouncement(int announcementId)
         {
             var ann = await _service.AnnouncementService.GetAnnouncementAsync(announcementId, trackChanges: false);
+            var photos = await _service.PhotoService.GetPhotosAsync("announcement", announcementId, false);
+            var photo = photos.FirstOrDefault();
+            ann.BannerUrl = photo?.Url;
             return Ok(ann);
         }
 
