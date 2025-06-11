@@ -149,20 +149,19 @@ namespace Shared.DataTransferObjects
         public string? Name { get; set; }
         public bool? IsIndoor { get; set; }
         public bool? IsAvailable { get; set; }
-        public bool HasTribune { get; set; }
-        public bool HasScoreBoard { get; set; }
         public bool? HasCamera { get; set; }
+        public bool? HasTribune { get; set; }
+        public bool? HasScoreBoard { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public FloorType? FloorType { get; set; }
         public int? Capacity { get; set; }
-
         public decimal? PricePerHour { get; set; }
         public bool? LightingAvailable { get; set; }
-
-        // Opsiyonel: hafta programını veya istisnaları patch’leyebilmek için
-        public List<WeeklyOpeningForCreationDto>? WeeklyOpenings { get; set; }
-        public List<FieldExceptionForCreationDto>? Exceptions { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public List<WeeklyOpeningDto>? WeeklyOpenings { get; set; }
+        public List<FieldExceptionDto>? Exceptions { get; set; }
     }
+
 
     public record FieldPhotosUpdateDto
     {

@@ -111,6 +111,15 @@ namespace HalisahaOtomasyonPresentation.Controllers
             await _serviceManager.FieldService.UpdateFieldAsync(id, field, true);
             return NoContent();
         }
+        
+        [HttpPatch("{id:int}")]
+        public async Task<IActionResult> PatchField(int id, [FromBody] FieldPatchDto patch)
+        {
+            if (patch == null)
+                return BadRequest("Gönderilen veri boş olamaz.");
+            await _serviceManager.FieldService.PatchFieldAsync(id, patch);
+            return NoContent();
+        }
 
 
         [HttpPut("{id:int}/photos")]

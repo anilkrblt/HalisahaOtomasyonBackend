@@ -119,6 +119,35 @@ namespace Service
             await _repositoryManager.SaveAsync();
         }
 
+        public async Task PatchFieldAsync(int id, FieldPatchDto patch)
+        {
+            var field = await _repositoryManager.Field.GetFieldAsync(id, true)
+                        ?? throw new FieldNotFoundException(id);
+
+            if (patch.Name is not null) field.Name = patch.Name;
+            if (patch.Width is not null) field.Width = patch.Width.Value;
+            if (patch.Height is not null) field.Height = patch.Height.Value;
+            if (patch.IsIndoor is not null) field.IsIndoor = patch.IsIndoor.Value;
+            if (patch.IsAvailable is not null) field.IsAvailable = patch.IsAvailable.Value;
+            if (patch.HasCamera is not null) field.HasCamera = patch.HasCamera.Value;
+            if (patch.HasTribune is not null) field.HasTribune = patch.HasTribune.Value;
+            if (patch.HasScoreBoard is not null) field.HasScoreBoard = patch.HasScoreBoard.Value;
+            if (patch.FloorType is not null) field.FloorType = (Entities.Models.FloorType)patch.FloorType.Value;
+            if (patch.Capacity is not null) field.Capacity = patch.Capacity.Value;
+            if (patch.PricePerHour is not null) field.PricePerHour = patch.PricePerHour.Value;
+            if (patch.LightingAvailable is not null) field.LightingAvailable = patch.LightingAvailable.Value;
+            if (patch.CreatedAt is not null) field.CreatedAt = patch.CreatedAt.Value;
+
+            if (patch.WeeklyOpenings is not null)
+                field.WeeklyOpenings = (ICollection<WeeklyOpening>)patch.WeeklyOpenings;
+
+            if (patch.Exceptions is not null)
+                field.Exceptions = (ICollection<FieldException>)patch.Exceptions;
+
+            await _repositoryManager.SaveAsync();
+        }
+
+
         public async Task DeleteFieldAsync(int fieldId)
         {
             var entity = await _repositoryManager.Field.GetFieldAsync(fieldId, true)
@@ -149,5 +178,6 @@ namespace Service
             return currentTime >= todayOpening.StartTime
                 && currentTime <= todayOpening.EndTime;
         }
+        
     }
 }

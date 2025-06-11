@@ -15,6 +15,8 @@ namespace Service.Contracts
         Task<IEnumerable<FieldDto>> GetFieldsByFacilityIdAsync(int facilityId, bool trackChanges);
         Task<FieldDto> CreateFieldAsync(FieldForCreationDto field);
         Task UpdateFieldAsync(int fieldId, FieldForUpdateDto field, bool trackChanges);
+        Task PatchFieldAsync(int id, FieldPatchDto patch);
+
         Task DeleteFieldAsync(int fieldId);
 
         Task<bool> IsFieldOpenAsync(int fieldId, DateTime dateTime);

@@ -113,6 +113,9 @@ public class RoomService : IRoomService
         _repo.RoomParticipant.CreateParticipant(participant);
         await _repo.SaveAsync();
 
+        await NotifyTeamInviteAsync(teamId, room.Id);
+
+
 
         if (room.Participants.Count + 1 >= 2)
         {
@@ -174,7 +177,6 @@ public class RoomService : IRoomService
             room.Reservation?.Status != ReservationStatus.Confirmed)
             throw new InvalidOperationException("Oda veya rezervasyon henüz onaylı değil.");
 
-        //– başlatma yetkisi
         var isStarterParticipant = room.Participants.Any(p => p.TeamId == startedByTeamId);
         if (!isStarterParticipant)
             throw new UnauthorizedAccessException("Bu takım maçı başlatamaz.");
@@ -193,14 +195,12 @@ public class RoomService : IRoomService
                 FieldId = room.FieldId,
                 HomeTeamId = homeId,
                 AwayTeamId = awayId
-                // ReservationId yok, InProgress yok
             };
             _repo.Match.CreateMatch(match);
             room.Match = match;
         }
 
-        /* Durumları mevcut enum değerleriyle güncelle */
-        room.Status = RoomStatus.Played;                 // veya Confirmed→Played arası başka değer kullanmayın
+        room.Status = RoomStatus.Played;
         room.Reservation!.Status = ReservationStatus.Played;
 
         await _repo.SaveAsync();
@@ -245,6 +245,19 @@ public class RoomService : IRoomService
     }
 
 
+    private async Task NotifyTeamInviteAsync(int teamId, int roomId)
+    {
+        var members = await _repo.TeamMember.GetMembersByTeamIdAsync(teamId, false);
+        foreach (var m in members)
+            await _notifs.CreateNotificationAsync(new NotificationForCreationDto
+            {
+                UserId = m.UserId,
+                Title = "Maç Daveti",
+                Content = $"Takımın şu odaya katıldı: #{roomId}. Katılımını onayla!",
+                RelatedId = roomId,
+                RelatedType = "room"
+            });
+    }
 
 
 
@@ -294,5 +307,5 @@ public class RoomService : IRoomService
         throw new NotImplementedException();
     }
 
-  
+
 }
