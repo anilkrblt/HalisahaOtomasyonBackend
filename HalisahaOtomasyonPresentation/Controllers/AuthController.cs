@@ -26,6 +26,19 @@ namespace HalisahaOtomasyonPresentation.Controllers
 
 
 
+        // TODO id girince kullanıcıların bilglerini getiren get isteği
+        /*──── 1. PROFİL GET ─────────────────────────*/
+        [HttpGet("/user/info/{id:int}")]
+        public async Task<IActionResult> GetUserInformation(int id)
+        {
+           
+            var dto = await _serviceManager.AuthService.GetUserAsync(id);
+
+            if (dto is null) return NotFound();
+            return Ok(dto);
+        }
+
+
         /*──── 1. PROFİL GET ─────────────────────────*/
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetUser(int id)

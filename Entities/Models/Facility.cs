@@ -53,7 +53,8 @@ namespace Entities.Models
         /* İletişim */
         [EmailAddress]
         public string? Email { get; set; }
-        [MaxLength(32)] public string Phone { get; set; } = string.Empty;
+        [MaxLength(32)]
+        public string Phone { get; set; } = string.Empty;
 
         /* Finans */
         public string? BankAccountInfo { get; set; }
