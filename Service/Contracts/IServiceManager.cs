@@ -22,5 +22,6 @@ namespace Service.Contracts
         IPhotoService PhotoService { get; }
         IRoomService RoomService { get; }
         ITeamService TeamService { get; }
+        IReservationService ReservationService { get; }
     }
 }

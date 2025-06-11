@@ -29,6 +29,7 @@ public class ServiceManager : IServiceManager
     private readonly Lazy<IMatchService> _match;
     private readonly Lazy<IRoomService> _room;
     private readonly Lazy<ITeamService> _team;
+    private readonly Lazy<IReservationService> _reservation;
 
     public ServiceManager(
         /* ①  User türü => ApplicationUser (üst sınıf) */
@@ -64,6 +65,7 @@ public class ServiceManager : IServiceManager
         _facilityRating = new(() => new FacilityRatingService(repo, map));
         _friendship = new(() => new FriendshipService(repo, map));
         _team = new(() => new TeamService(repo, map, log, _photo.Value));
+        _reservation = new(() => new ReservationService(repo, map));
     }
 
     /*───────── Arabirim üyeleri ─────────*/
@@ -81,4 +83,6 @@ public class ServiceManager : IServiceManager
     public INotificationService NotificationService => _notification.Value;
     public IRoomService RoomService => _room.Value;
     public ITeamService TeamService => _team.Value;
+    public IReservationService ReservationService => _reservation.Value;
+
 }

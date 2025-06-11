@@ -31,8 +31,7 @@ namespace HalisahaOtomasyonBackend.Tests
                 //
                 cfg.CreateMap<RoomCreateDto, Room>()
                    .ForMember(dest => dest.AccessType, opt => opt.MapFrom(src => src.AccessType))
-                   .ForMember(dest => dest.MaxPlayers, opt => opt.MapFrom(src => src.MaxPlayers))
-                   .ForMember(dest => dest.PricePerPlayer, opt => opt.MapFrom(src => src.PricePerPlayer));
+                   .ForMember(dest => dest.MaxPlayers, opt => opt.MapFrom(src => src.MaxPlayers));
 
                 //
                 // 2) RoomParticipant Entity → RoomParticipantDto
@@ -131,13 +130,7 @@ namespace HalisahaOtomasyonBackend.Tests
             // 5) RoomCreateDto tanımla
             //
             var slotDate = DateTime.UtcNow.AddDays(1).Date.AddHours(18);
-            var dto = new RoomCreateDto(
-                FieldId: field.Id,
-                SlotStart: slotDate,
-                AccessType: RoomAccessType.Public,
-                MaxPlayers: 4,
-                PricePerPlayer: 50m
-            );
+            var dto = new RoomCreateDto();
 
             // 6) CreateRoomAsync metodunu çağır
             var result = await roomService.CreateRoomAsync(dto, creatorTeamId: 1);

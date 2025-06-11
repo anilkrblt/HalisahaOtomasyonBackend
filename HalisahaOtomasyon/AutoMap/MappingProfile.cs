@@ -18,7 +18,7 @@ namespace HalisahaOtomasyon.AutoMap
 
         public static string? GetAwayTeamName(Room room)
         {
-        
+
             var away = room.Participants.FirstOrDefault(p => !p.IsHome);
             return away?.Team?.Name;
         }
@@ -27,6 +27,19 @@ namespace HalisahaOtomasyon.AutoMap
 
         public MappingProfile()
         {
+
+
+            // Reservation ↔ ReservationDto
+            CreateMap<Reservation, ReservationDto>().ReverseMap();
+
+            // ReservationForCreationDto → Reservation
+            CreateMap<ReservationForCreationDto, Reservation>();
+
+            // ReservationPayment ↔ ReservationPaymentDto
+            CreateMap<ReservationPayment, ReservationPaymentDto>().ReverseMap();
+
+            // ReservationPaymentForCreationDto → ReservationPayment
+            CreateMap<ReservationPaymentForCreationDto, ReservationPayment>();
 
 
             CreateMap<RoomParticipant, RoomParticipantDto>();

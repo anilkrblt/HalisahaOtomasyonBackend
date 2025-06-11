@@ -2,10 +2,10 @@
 {
     public enum FloorType
     {
-        DogalZemin = 0,
-        YapayZemin = 1,
-        ParkeZemin = 2,
-        KumZemin = 3
+        Dogal = 0,
+        Yapay = 1,
+        Parke = 2,
+        Kum = 3
     }
     public class Field
     {
