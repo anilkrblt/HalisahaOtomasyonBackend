@@ -111,7 +111,6 @@ namespace Shared.DataTransferObjects
 
         public decimal PricePerHour { get; set; }
         public bool LightingAvailable { get; set; }
-        public List<IFormFile>? PhotoFiles { get; set; }
 
 
         // Yeni alanlar:

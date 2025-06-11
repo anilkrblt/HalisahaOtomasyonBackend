@@ -88,14 +88,28 @@ namespace HalisahaOtomasyonPresentation.Controllers
             var createdField = await _serviceManager.FieldService.CreateFieldAsync(dto);
             createdField.PhotoUrls ??= [];
 
-            if (dto.PhotoFiles != null && dto.PhotoFiles.Count > 3)
+            return CreatedAtRoute("FieldById", new { id = createdField.Id }, createdField);
+        }
+
+        [HttpPost("mobil")]
+        [Consumes("multipart/form-data")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
+        public async Task<IActionResult> CreateFieldMobil([FromForm] FieldForCreationDto dto, List<IFormFile> PhotoFiles)
+        {
+            if (dto == null)
+                return BadRequest("Field DTO is null.");
+
+            var createdField = await _serviceManager.FieldService.CreateFieldAsync(dto);
+            createdField.PhotoUrls ??= [];
+
+            if (PhotoFiles != null && PhotoFiles.Count > 3)
                 return BadRequest("En fazla 3 fotoğraf yükleyebilirsiniz.");
 
 
-            if (dto.PhotoFiles is not null && dto.PhotoFiles.Count > 0)
+            if (PhotoFiles is not null && PhotoFiles.Count > 0)
             {
 
-                await _serviceManager.PhotoService.UploadPhotosAsync(dto.PhotoFiles, "field", createdField.Id);
+                await _serviceManager.PhotoService.UploadPhotosAsync(PhotoFiles, "field", createdField.Id);
             }
 
 
