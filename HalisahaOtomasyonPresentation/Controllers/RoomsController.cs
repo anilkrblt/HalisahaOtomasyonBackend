@@ -75,9 +75,7 @@ public class RoomsController : ControllerBase
 
     // POST api/rooms/42/pay
     [HttpPost("{id:int}/pay")]
-    public async Task<IActionResult> Pay(int id,
-                                         [FromQuery] int teamId,
-                                         [FromBody] PaymentDto dto)
+    public async Task<IActionResult> Pay(int id, [FromQuery] int teamId, [FromBody] PaymentDto dto)
     {
         await _svc.RoomService.PayAsync(id, teamId, dto.Amount);
         return NoContent();

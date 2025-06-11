@@ -88,6 +88,16 @@ namespace HalisahaOtomasyonPresentation.Controllers
             var createdField = await _serviceManager.FieldService.CreateFieldAsync(dto);
             createdField.PhotoUrls ??= [];
 
+            if (dto.PhotoFiles != null && dto.PhotoFiles.Count > 3)
+                return BadRequest("En fazla 3 fotoğraf yükleyebilirsiniz.");
+
+
+            if (dto.PhotoFiles is not null && dto.PhotoFiles.Count > 0)
+            {
+
+                await _serviceManager.PhotoService.UploadPhotosAsync(dto.PhotoFiles, "field", createdField.Id);
+            }
+
 
 
             return CreatedAtRoute("FieldById", new { id = createdField.Id }, createdField);
@@ -111,7 +121,7 @@ namespace HalisahaOtomasyonPresentation.Controllers
             await _serviceManager.FieldService.UpdateFieldAsync(id, field, true);
             return NoContent();
         }
-        
+
         [HttpPatch("{id:int}")]
         public async Task<IActionResult> PatchField(int id, [FromBody] FieldPatchDto patch)
         {
@@ -124,9 +134,6 @@ namespace HalisahaOtomasyonPresentation.Controllers
 
         [HttpPut("{id:int}/photos")]
         [Consumes("multipart/form-data")]
-        // [SwaggerOperation(Summary = "Tesisin fotoğraflarını günceller", Description = "Önceki fotoğrafları siler, yerine yenilerini yükler (en fazla 3 adet).")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateFieldPhotos(int id, [FromForm] FieldPhotosUpdateDto dto)
         {
             if (dto.PhotoFiles == null || dto.PhotoFiles.Count == 0)
@@ -137,7 +144,6 @@ namespace HalisahaOtomasyonPresentation.Controllers
 
             await _serviceManager.PhotoService.DeletePhotosByEntityAsync("field", id, trackChanges: true);
 
-            // Yeni fotoğrafları yükle
             await _serviceManager.PhotoService.UploadPhotosAsync(dto.PhotoFiles, "field", id);
 
             return NoContent();
