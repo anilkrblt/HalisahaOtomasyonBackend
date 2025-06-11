@@ -307,5 +307,29 @@ public class RoomService : IRoomService
         throw new NotImplementedException();
     }
 
+    public async Task SetReadyAsync(int roomId, int teamId)
+    {
+        var part = await _repo.RoomParticipant.GetParticipantAsync(roomId, teamId, true)
+                  ?? throw new Exception("Katılımcı bulunamadı.");
+
+        part.IsReady = true;
+        await _repo.SaveAsync();
+    }
+    public async Task RespondInviteAsync(int roomId, int teamId, int userId, bool accept)
+    {
+        // Takımın oyuncusu katılımı kabul/ret ediyor
+        // RoomPlayer gibi bir tablon varsa ona göre işle
+        // Eğer sadece takım düzeyindeyse, katılımcının durumunu güncelle
+
+        var participant = await _repo.RoomParticipant.GetParticipantAsync(roomId, teamId, true)
+                          ?? throw new Exception("Katılımcı bulunamadı.");
+
+        // Varsayım: RoomParticipant, bireysel oyuncu için CustomerId veya UserId tutuyor
+        // Eğer takım üyeleriyle ayrı tablon varsa, onu güncellemelisin.
+        // Aksi halde team-level katılım güncellenir
+
+        participant.Status = accept ? ParticipantStatus.Accepted : ParticipantStatus.Rejected;
+        await _repo.SaveAsync();
+    }
 
 }

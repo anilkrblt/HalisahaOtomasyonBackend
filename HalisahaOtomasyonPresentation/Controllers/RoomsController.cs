@@ -13,8 +13,7 @@ public class RoomsController : ControllerBase
 
 
     [HttpPost]
-    public async Task<IActionResult> CreateRoom([FromBody] RoomCreateDto dto,
-                                                [FromQuery] int creatorTeamId)
+    public async Task<IActionResult> CreateRoom([FromBody] RoomCreateDto dto, [FromQuery] int creatorTeamId)
     {
         var room = await _svc.RoomService.CreateRoomAsync(dto, creatorTeamId);
         return CreatedAtRoute("GetRoomById", new { id = room.RoomId }, room);
@@ -24,6 +23,35 @@ public class RoomsController : ControllerBase
     [HttpGet("{id:int}", Name = "GetRoomById")]
     public async Task<IActionResult> GetRoom(int id) =>
         Ok(await _svc.RoomService.GetRoomAsync(id));
+
+    // POST api/rooms/42/ready?teamId=5
+    [HttpPost("{id:int}/ready")]
+    public async Task<IActionResult> SetReady(int id, [FromQuery] int teamId)
+    {
+        await _svc.RoomService.SetReadyAsync(id, teamId);
+        return NoContent();
+    }
+
+    // POST api/rooms/42/invite/respond?teamId=5&userId=17&accept=true
+    [HttpPost("{id:int}/invite/respond")]
+    public async Task<IActionResult> RespondInvite(int id, [FromQuery] int teamId, [FromQuery] int userId, [FromQuery] bool accept)
+    {
+        await _svc.RoomService.RespondInviteAsync(id, teamId, userId, accept);
+        return NoContent();
+    }
+    // GET api/rooms/42/participants
+    [HttpGet("{id:int}/participants")]
+    public async Task<IActionResult> GetParticipants(int id)
+        => Ok(await _svc.RoomService.GetParticipantsByRoomAsync(id, false));
+    // DELETE api/rooms/42/leave?teamId=5
+    [HttpDelete("{id:int}/leave")]
+    public async Task<IActionResult> LeaveRoom(int id, [FromQuery] int teamId)
+    {
+        await _svc.RoomService.RemoveParticipantAsync(id, teamId);
+        return NoContent();
+    }
+
+
 
     // GET api/rooms   (public lobby)
     [HttpGet]
