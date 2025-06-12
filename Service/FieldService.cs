@@ -58,63 +58,31 @@ namespace Service
             _repositoryManager.Field.CreateField(entity);
             await _repositoryManager.SaveAsync();
 
-            try
+            var existingExceptions = await _repositoryManager.FieldException
+                                                 .GetExceptionsByFieldIdAsync(entity.Id, true);
+
+            if (existingExceptions.Any())
             {
-                if (dto.WeeklyOpenings?.Any() == true)
-                {
-                    var distinctOpenings = dto.WeeklyOpenings
-                        .GroupBy(w => w.DayOfWeek)
-                        .Select(g => g.First())
-                        .ToList();
-
-                    if (distinctOpenings.Count != dto.WeeklyOpenings.Count)
-                        throw new Exception("Aynı gün için birden fazla çalışma saati gönderilemez!");
-
-                    foreach (var newOpening in distinctOpenings)
-                    {
-                        _repositoryManager.WeeklyOpening.CreateWeeklyOpening(new WeeklyOpening
-                        {
-                            FieldId = entity.Id,
-                            DayOfWeek = newOpening.DayOfWeek,
-                            StartTime = newOpening.StartTime,
-                            EndTime = newOpening.EndTime
-                        });
-                    }
-                }
-
-                // Add exceptions
-                if (dto.Exceptions?.Any() == true)
-                {
-                    var distinctExceptions = dto.Exceptions
-                        .GroupBy(e => e.Date.Date)
-                        .Select(g => g.First())
-                        .ToList();
-
-                    if (distinctExceptions.Count != dto.Exceptions.Count)
-                        throw new Exception("Aynı gün için birden fazla exception gönderilemez!");
-
-                    foreach (var ex in distinctExceptions)
-                    {
-                        _repositoryManager.FieldException.CreateFieldException(new FieldException
-                        {
-                            FieldId = entity.Id,
-                            Date = ex.Date.Date,
-                            IsOpen = ex.IsOpen
-                        });
-                    }
-                }
-
+                _repositoryManager.FieldException.DeleteFieldExceptions(existingExceptions);
                 await _repositoryManager.SaveAsync();
+            }
 
-                var full = await _repositoryManager.Field.GetFieldAsync(entity.Id, trackChanges: false);
-                return _mapper.Map<FieldDto>(full);
-            }
-            catch (Exception ex)
+            // Sonra ekle
+            foreach (var ex in dto.Exceptions.DistinctBy(x => x.Date.Date))
             {
-                // Log the error
-                Console.WriteLine("hata oldu la ", ex);
-                throw;
+                _repositoryManager.FieldException.CreateFieldException(
+                    new FieldException
+                    {
+                        FieldId = entity.Id,
+                        Date = ex.Date.Date,
+                        IsOpen = ex.IsOpen
+                    });
             }
+
+            await _repositoryManager.SaveAsync();
+
+            var full = await _repositoryManager.Field.GetFieldAsync(entity.Id, trackChanges: false);
+            return _mapper.Map<FieldDto>(full);
         }
 
 
@@ -126,7 +94,7 @@ namespace Service
 
             _mapper.Map(dto, entity);
             await _repositoryManager.SaveAsync();
-            
+
             /* FIELD EXCEPTIONS - İki aşamalı */
             var existingExceptions = await _repositoryManager.FieldException
                                        .GetExceptionsByFieldIdAsync(entity.Id, true);
