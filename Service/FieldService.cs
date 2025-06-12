@@ -75,7 +75,6 @@ namespace Service
                         if (duplicate != null)
                             _repositoryManager.WeeklyOpening.DeleteWeeklyOpening(duplicate);
 
-                        // Yeniyi ekle
                         _repositoryManager.WeeklyOpening.CreateWeeklyOpening(new WeeklyOpening
                         {
                             FieldId = entity.Id,
@@ -90,17 +89,28 @@ namespace Service
                 // Add exceptions
                 if (dto.Exceptions?.Any() == true)
                 {
+                    var existingExceptions = await _repositoryManager.FieldException
+                        .GetExceptionsByFieldIdAsync(entity.Id, true);
+
                     foreach (var ex in dto.Exceptions)
                     {
-                        _repositoryManager.FieldException.CreateFieldException(
-                            new FieldException
-                            {
-                                FieldId = entity.Id,
-                                Date = ex.Date.Date,
-                                IsOpen = ex.IsOpen
-                            });
+                        // Aynı güne ait varsa sil
+                        var duplicate = existingExceptions
+                            .FirstOrDefault(e => e.Date.Date == ex.Date.Date);
+
+                        if (duplicate != null)
+                            _repositoryManager.FieldException.DeleteFieldException(duplicate);
+
+                        // Yeniyi ekle
+                        _repositoryManager.FieldException.CreateFieldException(new FieldException
+                        {
+                            FieldId = entity.Id,
+                            Date = ex.Date.Date,
+                            IsOpen = ex.IsOpen
+                        });
                     }
                 }
+
 
                 // Save all changes at once
                 await _repositoryManager.SaveAsync();
