@@ -66,9 +66,14 @@ namespace Service
                     var existingOpenings = await _repositoryManager.WeeklyOpening
                         .GetWeeklyOpeningsByFieldIdAsync(entity.Id, true);
 
-                    foreach (var newOpening in dto.WeeklyOpenings)
+                    // TEKİLLEŞTİR — aynı gün birden fazla varsa sadece ilkini al
+                    var distinctOpenings = dto.WeeklyOpenings
+                        .GroupBy(w => w.DayOfWeek)
+                        .Select(g => g.First())
+                        .ToList();
+
+                    foreach (var newOpening in distinctOpenings)
                     {
-                        // Mevcut varsa sil
                         var duplicate = existingOpenings
                             .FirstOrDefault(o => o.DayOfWeek == newOpening.DayOfWeek);
 
@@ -113,12 +118,8 @@ namespace Service
                     }
                 }
 
-
-
-                // Save all changes at once
                 await _repositoryManager.SaveAsync();
 
-                // Reload with relationships
                 var full = await _repositoryManager.Field.GetFieldAsync(entity.Id, trackChanges: false);
                 return _mapper.Map<FieldDto>(full);
             }
@@ -126,7 +127,7 @@ namespace Service
             {
                 // Log the error
                 Console.WriteLine("hata oldu la ", ex);
-                throw; // Re-throw the exception after logging
+                throw;
             }
         }
 
@@ -144,7 +145,13 @@ namespace Service
                 var existingOpenings = await _repositoryManager.WeeklyOpening
                     .GetWeeklyOpeningsByFieldIdAsync(entity.Id, true);
 
-                foreach (var newOpening in dto.WeeklyOpenings)
+                // Tekilleştir (aynı gün birden fazla olmasın)
+                var distinctOpenings = dto.WeeklyOpenings
+                    .GroupBy(w => w.DayOfWeek)
+                    .Select(g => g.First())
+                    .ToList();
+
+                foreach (var newOpening in distinctOpenings)
                 {
                     var duplicate = existingOpenings.FirstOrDefault(o => o.DayOfWeek == newOpening.DayOfWeek);
                     if (duplicate != null)
@@ -166,7 +173,13 @@ namespace Service
                 var existingExceptions = await _repositoryManager.FieldException
                     .GetExceptionsByFieldIdAsync(entity.Id, true);
 
-                foreach (var ex in dto.Exceptions)
+                // Tekilleştir (aynı gün birden fazla olmasın)
+                var distinctExceptions = dto.Exceptions
+                    .GroupBy(e => e.Date.Date)
+                    .Select(g => g.First())
+                    .ToList();
+
+                foreach (var ex in distinctExceptions)
                 {
                     var duplicate = existingExceptions.FirstOrDefault(e => e.Date.Date == ex.Date.Date);
                     if (duplicate != null)
@@ -183,7 +196,6 @@ namespace Service
 
             await _repositoryManager.SaveAsync();
         }
-
 
         public async Task PatchFieldAsync(int id, FieldPatchDto patch)
         {
@@ -210,7 +222,13 @@ namespace Service
                 var existingOpenings = await _repositoryManager.WeeklyOpening
                     .GetWeeklyOpeningsByFieldIdAsync(id, true);
 
-                foreach (var w in patch.WeeklyOpenings)
+                // Tekilleştir (aynı gün birden fazla olmasın)
+                var distinctOpenings = patch.WeeklyOpenings
+                    .GroupBy(w => w.DayOfWeek)
+                    .Select(g => g.First())
+                    .ToList();
+
+                foreach (var w in distinctOpenings)
                 {
                     var duplicate = existingOpenings.FirstOrDefault(o => o.DayOfWeek == w.DayOfWeek);
                     if (duplicate != null)
@@ -232,7 +250,13 @@ namespace Service
                 var existingExceptions = await _repositoryManager.FieldException
                     .GetExceptionsByFieldIdAsync(id, true);
 
-                foreach (var ex in patch.Exceptions)
+                // Tekilleştir (aynı gün birden fazla olmasın)
+                var distinctExceptions = patch.Exceptions
+                    .GroupBy(e => e.Date.Date)
+                    .Select(g => g.First())
+                    .ToList();
+
+                foreach (var ex in distinctExceptions)
                 {
                     var duplicate = existingExceptions.FirstOrDefault(e => e.Date.Date == ex.Date.Date);
                     if (duplicate != null)
@@ -249,7 +273,6 @@ namespace Service
 
             await _repositoryManager.SaveAsync();
         }
-
 
         public async Task DeleteFieldAsync(int fieldId)
         {
