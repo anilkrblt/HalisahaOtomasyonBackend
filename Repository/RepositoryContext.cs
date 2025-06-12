@@ -74,6 +74,11 @@ public class RepositoryContext
         .HasIndex(r => new { r.FieldId, r.SlotStart })
         .IsUnique();
 
+    mb.Entity<Reservation>()
+        .HasOne(r => r.Room)
+        .WithOne(room => room.Reservation)
+        .HasForeignKey<Reservation>(r => r.RoomId)
+        .IsRequired(false);
 
 
     mb.Entity<FacilityRating>().HasKey(fr => new { fr.FacilityId, fr.UserId });

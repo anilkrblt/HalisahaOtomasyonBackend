@@ -24,8 +24,7 @@ namespace Shared.DataTransferObjects
         public int FieldId { get; set; }
         public DateTime SlotStart { get; set; }
         public DateTime SlotEnd { get; set; }
-        public decimal PriceTotal { get; set; }
-        public int RoomId { get; set; }
+        public int? RoomId { get; set; }
     }
     public class ReservationPaymentForCreationDto
     {

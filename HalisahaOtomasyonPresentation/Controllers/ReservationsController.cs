@@ -21,21 +21,19 @@ namespace HalisahaOtomasyonPresentation.Controllers
         // GET /api/reservations?fieldId=1&facilityId=2&date=2025-06-11&period=day
         [HttpGet]
         public async Task<IActionResult> GetAllReservations(
-     [FromQuery] int? fieldId,
-     [FromQuery] int? facilityId,
-     [FromQuery] DateTime? date,
-     [FromQuery] string period = "all"
- )
+            [FromQuery] int? fieldId,
+            [FromQuery] int? facilityId,
+            [FromQuery] DateTime? date,
+            [FromQuery] string period = "all"
+        )
         {
             var reservations = await _service.ReservationService.GetAllReservationsAsync();
 
             if (fieldId.HasValue)
                 reservations = reservations.Where(r => r.FieldId == fieldId.Value);
 
-            // Eğer ReservationDto'da FacilityId yoksa, Field üzerinden kontrol et (FieldId → Field → FacilityId)
             if (facilityId.HasValue)
             {
-                // Diyelim ki FieldId → FacilityId eşleşmesini bir servisten çekiyorsun:
                 var fieldDtos = await _service.FieldService.GetFieldsByFacilityIdAsync(facilityId.Value, false);
                 var fieldIds = fieldDtos.Select(f => f.Id).ToList(); // Sadece Id’ler
 
@@ -64,7 +62,6 @@ namespace HalisahaOtomasyonPresentation.Controllers
                         reservations = reservations.Where(r =>
                             r.SlotStart.Year == date.Value.Year && r.SlotStart.Month == date.Value.Month);
                         break;
-                        // "all" veya default: filtre yok
                 }
             }
 

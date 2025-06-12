@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Contracts;
+using Entities.Exceptions;
 using Entities.Models;
 using Service.Contracts;
 using Shared.DataTransferObjects;
@@ -24,13 +25,21 @@ namespace Service
         public async Task<ReservationDto> CreateReservationAsync(ReservationForCreationDto dto)
         {
             var entity = _map.Map<Reservation>(dto);
+
+            var field = await _repo.Field.GetFieldAsync(dto.FieldId, false)
+                ?? throw new FieldNotFoundException(dto.FieldId);
+
             entity.CreatedAt = DateTime.UtcNow;
+
+            var duration = (dto.SlotEnd - dto.SlotStart).TotalHours;
+            entity.PriceTotal = field.PricePerHour * (decimal)duration;
 
             _repo.Reservation.CreateReservation(entity);
             await _repo.SaveAsync();
 
             return _map.Map<ReservationDto>(entity);
         }
+
 
         public async Task<ReservationPaymentDto> CreateReservationPaymentAsync(ReservationPaymentForCreationDto dto)
         {

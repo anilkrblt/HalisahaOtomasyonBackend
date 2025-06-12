@@ -32,8 +32,8 @@ namespace Entities.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         /* —— İlişkiler —— */
-        public int RoomId { get; set; }           // 1-1
-        public Room Room { get; set; } = null!;
+        public int? RoomId { get; set; }           // 1-1
+        public Room? Room { get; set; } = null!;
 
         public ICollection<ReservationPayment> Payments { get; set; } = [];
     }
