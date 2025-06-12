@@ -117,7 +117,6 @@ namespace Service
             }
         }
 
-
         public async Task UpdateFieldAsync(int fieldId, FieldForUpdateDto dto, bool trackChanges)
         {
             var entity = await _repositoryManager.Field.GetFieldAsync(fieldId, true)
@@ -128,37 +127,49 @@ namespace Service
             // --- WEEKLY OPENINGS ---
             if (dto.WeeklyOpenings?.Any() == true)
             {
-                // 1. Aynı güne birden fazla gönderilmiş mi? Hata fırlat!
-                var distinctOpenings = dto.WeeklyOpenings
-                    .GroupBy(w => w.DayOfWeek)
-                    .Select(g => g.First())
-                    .ToList();
-
-                if (distinctOpenings.Count != dto.WeeklyOpenings.Count)
+                // 1. Check for duplicate days in the request
+                if (dto.WeeklyOpenings.Count != dto.WeeklyOpenings.Select(w => w.DayOfWeek).Distinct().Count())
                     throw new Exception("Aynı gün için birden fazla çalışma saati gönderilemez!");
 
-                // 2. Var olan tüm kayıtları sil
+                // 2. Get existing openings
                 var existingOpenings = await _repositoryManager.WeeklyOpening
                     .GetWeeklyOpeningsByFieldIdAsync(entity.Id, true);
 
-                foreach (var old in existingOpenings)
-                    _repositoryManager.WeeklyOpening.DeleteWeeklyOpening(old);
-                await _repositoryManager.SaveAsync();
+                // 3. Determine which days are being requested
+                var requestDays = dto.WeeklyOpenings.Select(w => w.DayOfWeek).ToHashSet();
 
-                // 3. Sadece tekil olanları ekle
-                foreach (var newOpening in distinctOpenings)
+                // 4. Delete openings for days not in the request
+                var toDelete = existingOpenings.Where(eo => !requestDays.Contains(eo.DayOfWeek)).ToList();
+                foreach (var item in toDelete)
                 {
-                    _repositoryManager.WeeklyOpening.CreateWeeklyOpening(new WeeklyOpening
+                    _repositoryManager.WeeklyOpening.DeleteWeeklyOpening(item);
+                }
+
+                // 5. Update existing or create new openings
+                foreach (var newOpening in dto.WeeklyOpenings)
+                {
+                    var existing = existingOpenings.FirstOrDefault(eo => eo.DayOfWeek == newOpening.DayOfWeek);
+                    if (existing != null)
                     {
-                        FieldId = entity.Id,
-                        DayOfWeek = newOpening.DayOfWeek,
-                        StartTime = newOpening.StartTime,
-                        EndTime = newOpening.EndTime
-                    });
+                        // Update existing record
+                        existing.StartTime = newOpening.StartTime;
+                        existing.EndTime = newOpening.EndTime;
+                    }
+                    else
+                    {
+                        // Create new record
+                        _repositoryManager.WeeklyOpening.CreateWeeklyOpening(new WeeklyOpening
+                        {
+                            FieldId = entity.Id,
+                            DayOfWeek = newOpening.DayOfWeek,
+                            StartTime = newOpening.StartTime,
+                            EndTime = newOpening.EndTime
+                        });
+                    }
                 }
             }
 
-            // --- FIELD EXCEPTIONS (ÖRNEK) ---
+            // --- FIELD EXCEPTIONS ---
             if (dto.Exceptions?.Any() == true)
             {
                 var distinctExceptions = dto.Exceptions
@@ -176,7 +187,6 @@ namespace Service
                     _repositoryManager.FieldException.DeleteFieldException(oldEx);
                 await _repositoryManager.SaveAsync();
 
-
                 foreach (var ex in distinctExceptions)
                 {
                     _repositoryManager.FieldException.CreateFieldException(new FieldException
@@ -190,7 +200,6 @@ namespace Service
 
             await _repositoryManager.SaveAsync();
         }
-
         public async Task PatchFieldAsync(int id, FieldPatchDto patch)
         {
             var field = await _repositoryManager.Field.GetFieldAsync(id, true)

@@ -132,6 +132,12 @@ namespace HalisahaOtomasyonPresentation.Controllers
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> UpdateField(int id, [FromBody] FieldForUpdateDto field)
         {
+            // Aynı isteğin çift gönderilmesini önle
+            if (HttpContext.Items["Processed"] != null)
+                return NoContent();
+
+            HttpContext.Items["Processed"] = true; // İşaret koy
+
             await _serviceManager.FieldService.UpdateFieldAsync(id, field, true);
             return NoContent();
         }
