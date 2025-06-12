@@ -32,10 +32,10 @@ namespace HalisahaOtomasyonPresentation.Controllers
         public async Task<IActionResult> GetUserInformation(int id)
         {
            
-            var dto = await _serviceManager.AuthService.GetUserAsync(id);
+            var userObject = await _serviceManager.AuthService.GetUserAsync(id);
 
-            if (dto is null) return NotFound();
-            return Ok(dto);
+            if (userObject is null) return NotFound();
+            return Ok(userObject);
         }
 
 

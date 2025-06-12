@@ -1,3 +1,4 @@
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
 using Shared.DataTransferObjects;
@@ -16,12 +17,61 @@ namespace HalisahaOtomasyonPresentation.Controllers
         }
 
         // Tüm rezervasyonları getir
+        //günlük, aylık, haftalık, facility
+        // GET /api/reservations?fieldId=1&facilityId=2&date=2025-06-11&period=day
         [HttpGet]
-        public async Task<IActionResult> GetAllReservations()
+        public async Task<IActionResult> GetAllReservations(
+     [FromQuery] int? fieldId,
+     [FromQuery] int? facilityId,
+     [FromQuery] DateTime? date,
+     [FromQuery] string period = "all"
+ )
         {
             var reservations = await _service.ReservationService.GetAllReservationsAsync();
-            return Ok(reservations);
+
+            if (fieldId.HasValue)
+                reservations = reservations.Where(r => r.FieldId == fieldId.Value);
+
+            // Eğer ReservationDto'da FacilityId yoksa, Field üzerinden kontrol et (FieldId → Field → FacilityId)
+            if (facilityId.HasValue)
+            {
+                // Diyelim ki FieldId → FacilityId eşleşmesini bir servisten çekiyorsun:
+                var fieldDtos = await _service.FieldService.GetFieldsByFacilityIdAsync(facilityId.Value, false);
+                var fieldIds = fieldDtos.Select(f => f.Id).ToList(); // Sadece Id’ler
+
+                reservations = reservations.Where(r => fieldIds.Contains(r.FieldId));
+
+            }
+
+            if (date.HasValue)
+            {
+                switch (period.ToLower())
+                {
+                    case "day":
+                        reservations = reservations.Where(r => r.SlotStart.Date == date.Value.Date);
+                        break;
+                    case "week":
+                        var dateVal = date.Value.Date;
+                        reservations = reservations.Where(r =>
+                        {
+                            var diff = (7 + (r.SlotStart.DayOfWeek - DayOfWeek.Monday)) % 7;
+                            var weekStart = dateVal.AddDays(-diff);
+                            var weekEnd = weekStart.AddDays(7);
+                            return r.SlotStart.Date >= weekStart && r.SlotStart.Date < weekEnd;
+                        });
+                        break;
+                    case "month":
+                        reservations = reservations.Where(r =>
+                            r.SlotStart.Year == date.Value.Year && r.SlotStart.Month == date.Value.Month);
+                        break;
+                        // "all" veya default: filtre yok
+                }
+            }
+
+            return Ok(reservations.ToList());
         }
+
+
 
         // Tek rezervasyon getir
         [HttpGet("{id:int}")]

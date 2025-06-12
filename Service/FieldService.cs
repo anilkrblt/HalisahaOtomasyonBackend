@@ -53,7 +53,6 @@ namespace Service
 
         public async Task<FieldDto> CreateFieldAsync(FieldForCreationDto dto)
         {
-            // Create main field entity
             var entity = _mapper.Map<Field>(dto);
             entity.CreatedAt = DateTime.UtcNow;
             _repositoryManager.Field.CreateField(entity);
@@ -61,23 +60,32 @@ namespace Service
 
             try
             {
-                // Add weekly openings
+                // WeeklyOpenings işlemi
                 if (dto.WeeklyOpenings?.Any() == true)
                 {
-                    foreach (var w in dto.WeeklyOpenings!)
-                    {
-                        Console.WriteLine(w.DayOfWeek);
+                    var existingOpenings = await _repositoryManager.WeeklyOpening
+                        .GetWeeklyOpeningsByFieldIdAsync(entity.Id, true);
 
-                        _repositoryManager.WeeklyOpening.CreateWeeklyOpening(
-                            new WeeklyOpening
-                            {
-                                FieldId = entity.Id,
-                                DayOfWeek = w.DayOfWeek,
-                                StartTime = w.StartTime,
-                                EndTime = w.EndTime
-                            });
+                    foreach (var newOpening in dto.WeeklyOpenings)
+                    {
+                        // Mevcut varsa sil
+                        var duplicate = existingOpenings
+                            .FirstOrDefault(o => o.DayOfWeek == newOpening.DayOfWeek);
+
+                        if (duplicate != null)
+                            _repositoryManager.WeeklyOpening.DeleteWeeklyOpening(duplicate);
+
+                        // Yeniyi ekle
+                        _repositoryManager.WeeklyOpening.CreateWeeklyOpening(new WeeklyOpening
+                        {
+                            FieldId = entity.Id,
+                            DayOfWeek = newOpening.DayOfWeek,
+                            StartTime = newOpening.StartTime,
+                            EndTime = newOpening.EndTime
+                        });
                     }
                 }
+
 
                 // Add exceptions
                 if (dto.Exceptions?.Any() == true)
@@ -178,6 +186,6 @@ namespace Service
             return currentTime >= todayOpening.StartTime
                 && currentTime <= todayOpening.EndTime;
         }
-        
+
     }
 }
