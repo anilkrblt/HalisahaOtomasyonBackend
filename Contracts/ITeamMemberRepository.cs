@@ -12,6 +12,7 @@ namespace Contracts
 
         /* Query : tek satır (bileşik PK) */
         Task<TeamMember?> GetMemberAsync(int teamId, int userId, bool trackChanges);
+        Task<TeamMember> GetTeamMemberAsync(int teamId, int userId, bool trackChanges);
 
         /* Query : listeler */
         Task<IEnumerable<TeamMember>> GetMembersByTeamIdAsync(int teamId, bool trackChanges);
