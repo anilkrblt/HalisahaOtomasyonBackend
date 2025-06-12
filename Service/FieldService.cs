@@ -129,7 +129,7 @@ namespace Service
 
             /* WEEKLY OPENINGS */
             var existingOpenings = await _repositoryManager.WeeklyOpening
-                                     .GetWeeklyOpeningsByFieldIdAsync(entity.Id, false);
+                                     .GetWeeklyOpeningsByFieldIdAsync(entity.Id, true);
             _repositoryManager.WeeklyOpening.DeleteWeeklyOpenings(existingOpenings);
 
             foreach (var o in dto.WeeklyOpenings.DistinctBy(x => x.DayOfWeek))
@@ -144,7 +144,7 @@ namespace Service
 
             /* FIELD EXCEPTIONS */
             var existingExceptions = await _repositoryManager.FieldException
-                                       .GetExceptionsByFieldIdAsync(entity.Id, false);
+                                       .GetExceptionsByFieldIdAsync(entity.Id, true);
             _repositoryManager.FieldException.DeleteFieldExceptions(existingExceptions);
 
             foreach (var ex in dto.Exceptions.DistinctBy(x => x.Date.Date))
