@@ -154,6 +154,15 @@ public class RepositoryContext
     });
 
     /*──────── Field ilişkileri ───────────────────────────────*/
+
+    mb.Entity<WeeklyOpening>()
+    .HasIndex(o => new { o.FieldId, o.DayOfWeek })
+    .IsUnique();
+
+    mb.Entity<FieldException>()
+        .HasIndex(e => new { e.FieldId, e.Date })
+        .IsUnique();
+
     mb.Entity<WeeklyOpening>()
       .HasOne(w => w.Field)
       .WithMany(f => f.WeeklyOpenings)

@@ -7,19 +7,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Repository
 {
-    public class WeeklyOpeningRepository 
+    public class WeeklyOpeningRepository
         : RepositoryBase<WeeklyOpening>, IWeeklyOpeningRepository
     {
-        public WeeklyOpeningRepository(RepositoryContext repositoryContext) 
+        public WeeklyOpeningRepository(RepositoryContext repositoryContext)
             : base(repositoryContext) { }
 
-        public void CreateWeeklyOpening(WeeklyOpening opening) 
+        public void CreateWeeklyOpening(WeeklyOpening opening)
             => Create(opening);
 
-        public void DeleteWeeklyOpening(WeeklyOpening opening) 
+        public void DeleteWeeklyOpening(WeeklyOpening opening)
             => Delete(opening);
 
-        public async Task<WeeklyOpening?> GetWeeklyOpeningAsync(int id, bool trackChanges) 
+        public async Task<WeeklyOpening?> GetWeeklyOpeningAsync(int id, bool trackChanges)
             => await FindByCondition(w => w.Id == id, trackChanges)
                           .SingleOrDefaultAsync();
 
@@ -27,5 +27,11 @@ namespace Repository
             int fieldId, bool trackChanges)
             => await FindByCondition(w => w.FieldId == fieldId, trackChanges)
                       .ToListAsync();
+
+        public void DeleteWeeklyOpenings(IEnumerable<WeeklyOpening> openings)
+        {
+            RepositoryContext.WeeklyOpenings.RemoveRange(openings);
+        }
+
     }
 }

@@ -12,5 +12,7 @@ namespace Contracts
         Task<FieldException?> GetFieldExceptionAsync(int id, bool trackChanges);
         Task<IEnumerable<FieldException>> GetExceptionsByFieldIdAsync(int fieldId, bool trackChanges);
         Task<FieldException?> GetExceptionByDateAsync(int fieldId, DateTime date, bool trackChanges);
+        void DeleteFieldExceptions(IEnumerable<FieldException> exceptions);
+
     }
 }

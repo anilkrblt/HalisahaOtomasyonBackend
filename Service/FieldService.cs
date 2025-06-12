@@ -117,83 +117,49 @@ namespace Service
             }
         }
 
+
+
         public async Task UpdateFieldAsync(int fieldId, FieldForUpdateDto dto, bool trackChanges)
         {
             var entity = await _repositoryManager.Field.GetFieldAsync(fieldId, true)
                           ?? throw new FieldNotFoundException(fieldId);
 
+            // Koleksiyonlar AutoMapper’da ignore edildi
             _mapper.Map(dto, entity);
 
-            // --- WEEKLY OPENINGS ---
-            if (dto.WeeklyOpenings?.Any() == true)
-            {
-                // First get all existing openings
-                var existingOpenings = await _repositoryManager.WeeklyOpening
-                    .GetWeeklyOpeningsByFieldIdAsync(entity.Id, true);
+            /* WEEKLY OPENINGS */
+            var existingOpenings = await _repositoryManager.WeeklyOpening
+                                     .GetWeeklyOpeningsByFieldIdAsync(entity.Id, false);
+            _repositoryManager.WeeklyOpening.DeleteWeeklyOpenings(existingOpenings);
 
-                // Delete ALL existing openings first (clean slate approach)
-                foreach (var existing in existingOpenings)
-                {
-                    _repositoryManager.WeeklyOpening.DeleteWeeklyOpening(existing);
-                }
-
-                // Then add only the new ones from DTO (after validating)
-                var distinctOpenings = dto.WeeklyOpenings
-                    .GroupBy(w => w.DayOfWeek)
-                    .Select(g => g.First())
-                    .ToList();
-
-                if (distinctOpenings.Count != dto.WeeklyOpenings.Count)
-                    throw new Exception("Aynı gün için birden fazla çalışma saati gönderilemez!");
-
-                foreach (var newOpening in distinctOpenings)
-                {
-                    _repositoryManager.WeeklyOpening.CreateWeeklyOpening(new WeeklyOpening
+            foreach (var o in dto.WeeklyOpenings.DistinctBy(x => x.DayOfWeek))
+                _repositoryManager.WeeklyOpening.CreateWeeklyOpening(
+                    new WeeklyOpening
                     {
                         FieldId = entity.Id,
-                        DayOfWeek = newOpening.DayOfWeek,
-                        StartTime = newOpening.StartTime,
-                        EndTime = newOpening.EndTime
+                        DayOfWeek = o.DayOfWeek,
+                        StartTime = o.StartTime,
+                        EndTime = o.EndTime
                     });
-                }
-            }
 
-            // --- FIELD EXCEPTIONS ---
-            if (dto.Exceptions?.Any() == true)
-            {
-                // First get all existing exceptions
-                var existingExceptions = await _repositoryManager.FieldException
-                    .GetExceptionsByFieldIdAsync(entity.Id, true);
+            /* FIELD EXCEPTIONS */
+            var existingExceptions = await _repositoryManager.FieldException
+                                       .GetExceptionsByFieldIdAsync(entity.Id, false);
+            _repositoryManager.FieldException.DeleteFieldExceptions(existingExceptions);
 
-                // Delete ALL existing exceptions first (clean slate approach)
-                foreach (var existing in existingExceptions)
-                {
-                    _repositoryManager.FieldException.DeleteFieldException(existing);
-                }
-
-                // Then add only the new ones from DTO (after validating)
-                var distinctExceptions = dto.Exceptions
-                    .GroupBy(e => e.Date.Date)
-                    .Select(g => g.First())
-                    .ToList();
-
-                if (distinctExceptions.Count != dto.Exceptions.Count)
-                    throw new Exception("Aynı gün için birden fazla exception gönderilemez!");
-
-                foreach (var newException in distinctExceptions)
-                {
-                    _repositoryManager.FieldException.CreateFieldException(new FieldException
+            foreach (var ex in dto.Exceptions.DistinctBy(x => x.Date.Date))
+                _repositoryManager.FieldException.CreateFieldException(
+                    new FieldException
                     {
                         FieldId = entity.Id,
-                        Date = newException.Date.Date,
-                        IsOpen = newException.IsOpen
+                        Date = ex.Date.Date,
+                        IsOpen = ex.IsOpen
                     });
-                }
-            }
 
-            // Save all changes at once
             await _repositoryManager.SaveAsync();
         }
+
+
         public async Task PatchFieldAsync(int id, FieldPatchDto patch)
         {
             var field = await _repositoryManager.Field.GetFieldAsync(id, true)

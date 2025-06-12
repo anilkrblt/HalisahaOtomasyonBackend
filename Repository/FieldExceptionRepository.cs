@@ -8,19 +8,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Repository
 {
-    public class FieldExceptionRepository 
+    public class FieldExceptionRepository
         : RepositoryBase<FieldException>, IFieldExceptionRepository
     {
-        public FieldExceptionRepository(RepositoryContext repositoryContext) 
+        public FieldExceptionRepository(RepositoryContext repositoryContext)
             : base(repositoryContext) { }
 
-        public void CreateFieldException(FieldException exception) 
+        public void CreateFieldException(FieldException exception)
             => Create(exception);
 
-        public void DeleteFieldException(FieldException exception) 
+        public void DeleteFieldException(FieldException exception)
             => Delete(exception);
 
-        public async Task<FieldException?> GetFieldExceptionAsync(int id, bool trackChanges) 
+        public async Task<FieldException?> GetFieldExceptionAsync(int id, bool trackChanges)
             => await FindByCondition(e => e.Id == id, trackChanges)
                           .SingleOrDefaultAsync();
 
@@ -31,9 +31,15 @@ namespace Repository
 
         public async Task<FieldException?> GetExceptionByDateAsync(
             int fieldId, DateTime date, bool trackChanges)
-            => await FindByCondition(e => 
-                       e.FieldId == fieldId && e.Date.Date == date.Date, 
+            => await FindByCondition(e =>
+                       e.FieldId == fieldId && e.Date.Date == date.Date,
                        trackChanges)
                       .SingleOrDefaultAsync();
+
+        public void DeleteFieldExceptions(IEnumerable<FieldException> exceptions)
+        {
+            RepositoryContext.FieldExceptions.RemoveRange(exceptions);
+        }
+
     }
 }

@@ -11,5 +11,7 @@ namespace Contracts
         void DeleteWeeklyOpening(WeeklyOpening opening);
         Task<WeeklyOpening?> GetWeeklyOpeningAsync(int id, bool trackChanges);
         Task<IEnumerable<WeeklyOpening>> GetWeeklyOpeningsByFieldIdAsync(int fieldId, bool trackChanges);
+        void DeleteWeeklyOpenings(IEnumerable<WeeklyOpening> openings);
+
     }
 }
