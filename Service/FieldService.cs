@@ -122,22 +122,36 @@ namespace Service
         public async Task UpdateFieldAsync(int fieldId, FieldForUpdateDto dto, bool trackChanges)
         {
             var entity = await _repositoryManager.Field.GetFieldAsync(fieldId, true)
-                          ?? throw new FieldNotFoundException(fieldId);
+                  ?? throw new FieldNotFoundException(fieldId);
 
             _mapper.Map(dto, entity);
 
-            /* WEEKLY OPENINGS - İki aşamalı */
+            /* WEEKLY OPENINGS - Debug eklenmiş */
             var existingOpenings = await _repositoryManager.WeeklyOpening
                                      .GetWeeklyOpeningsByFieldIdAsync(entity.Id, true);
 
             if (existingOpenings.Any())
             {
                 _repositoryManager.WeeklyOpening.DeleteWeeklyOpenings(existingOpenings);
-                await _repositoryManager.SaveAsync(); // Önce sil
+                await _repositoryManager.SaveAsync();
             }
 
-            // Sonra ekle
-            foreach (var o in dto.WeeklyOpenings.DistinctBy(x => x.DayOfWeek))
+            // Debug: Gelen veriyi kontrol et
+            Console.WriteLine($"DTO WeeklyOpenings count: {dto.WeeklyOpenings?.Count ?? 0}");
+            foreach (var o in dto.WeeklyOpenings ?? new List<WeeklyOpeningForCreationDto>())
+            {
+                Console.WriteLine($"DayOfWeek: {o.DayOfWeek} ({(int)o.DayOfWeek})");
+            }
+
+            // Distinct kontrolü
+            var distinctOpenings = dto.WeeklyOpenings?
+                .GroupBy(x => x.DayOfWeek)
+                .Select(g => g.First())
+                .ToList() ?? new List<WeeklyOpeningForCreationDto>();
+
+            Console.WriteLine($"Distinct openings count: {distinctOpenings.Count}");
+
+            foreach (var o in distinctOpenings)
             {
                 _repositoryManager.WeeklyOpening.CreateWeeklyOpening(
                     new WeeklyOpening

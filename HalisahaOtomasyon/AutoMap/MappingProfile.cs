@@ -83,8 +83,7 @@ namespace HalisahaOtomasyon.AutoMap
             CreateMap<FieldForCreationDto, Field>();
             CreateMap<FieldForUpdateDto, Field>();
 
-            CreateMap<WeeklyOpening, WeeklyOpeningDto>().ReverseMap();
-            CreateMap<WeeklyOpeningForCreationDto, WeeklyOpening>();
+            
 
             CreateMap<FieldException, FieldExceptionDto>().ReverseMap();
             CreateMap<FieldExceptionForCreationDto, FieldException>();

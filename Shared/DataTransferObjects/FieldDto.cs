@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
+using Shared.Converters;
 
 namespace Shared.DataTransferObjects
 {
@@ -19,7 +20,7 @@ namespace Shared.DataTransferObjects
 
     public record WeeklyOpeningForCreationDto
     {
-        [JsonConverter(typeof(JsonStringEnumConverter))]
+        [JsonConverter(typeof(FlexibleDayOfWeekConverter))]
         public DayOfWeek DayOfWeek { get; set; }
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
