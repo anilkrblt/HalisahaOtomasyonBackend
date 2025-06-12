@@ -168,31 +168,35 @@ namespace Service
             }
 
             // --- FIELD EXCEPTIONS ---
-            if (dto.Exceptions?.Any() == true)
+            if (dto.WeeklyOpenings?.Any() == true)
             {
-                var existingExceptions = await _repositoryManager.FieldException
-                    .GetExceptionsByFieldIdAsync(entity.Id, true);
-
-                // Tekilleştir (aynı gün birden fazla olmasın)
-                var distinctExceptions = dto.Exceptions
-                    .GroupBy(e => e.Date.Date)
+                var distinctOpenings = dto.WeeklyOpenings
+                    .GroupBy(w => w.DayOfWeek)
                     .Select(g => g.First())
                     .ToList();
 
-                foreach (var ex in distinctExceptions)
-                {
-                    var duplicate = existingExceptions.FirstOrDefault(e => e.Date.Date == ex.Date.Date);
-                    if (duplicate != null)
-                        _repositoryManager.FieldException.DeleteFieldException(duplicate);
+                if (distinctOpenings.Count != dto.WeeklyOpenings.Count)
+                    throw new Exception("Aynı gün için birden fazla çalışma saati gönderilemez!");
 
-                    _repositoryManager.FieldException.CreateFieldException(new FieldException
+                // Sonra, eski kayıtları komple sil:
+                var existingOpenings = await _repositoryManager.WeeklyOpening
+                    .GetWeeklyOpeningsByFieldIdAsync(entity.Id, true);
+                foreach (var old in existingOpenings)
+                    _repositoryManager.WeeklyOpening.DeleteWeeklyOpening(old);
+
+                // Ve sadece tekil olanları ekle:
+                foreach (var newOpening in distinctOpenings)
+                {
+                    _repositoryManager.WeeklyOpening.CreateWeeklyOpening(new WeeklyOpening
                     {
                         FieldId = entity.Id,
-                        Date = ex.Date.Date,
-                        IsOpen = ex.IsOpen
+                        DayOfWeek = newOpening.DayOfWeek,
+                        StartTime = newOpening.StartTime,
+                        EndTime = newOpening.EndTime
                     });
                 }
             }
+
 
             await _repositoryManager.SaveAsync();
         }
