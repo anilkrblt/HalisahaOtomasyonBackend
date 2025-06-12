@@ -172,32 +172,47 @@ namespace Service
             // --- FIELD EXCEPTIONS ---
             if (dto.Exceptions?.Any() == true)
             {
-                var distinctExceptions = dto.Exceptions
-                    .GroupBy(e => e.Date.Date)
-                    .Select(g => g.First())
-                    .ToList();
-
-                if (distinctExceptions.Count != dto.Exceptions.Count)
+                // 1. Check for duplicate dates in the request
+                if (dto.Exceptions.Count != dto.Exceptions.Select(e => e.Date.Date).Distinct().Count())
                     throw new Exception("Aynı gün için birden fazla exception gönderilemez!");
 
+                // 2. Get existing exceptions
                 var existingExceptions = await _repositoryManager.FieldException
                     .GetExceptionsByFieldIdAsync(entity.Id, true);
 
-                foreach (var oldEx in existingExceptions)
-                    _repositoryManager.FieldException.DeleteFieldException(oldEx);
-                await _repositoryManager.SaveAsync();
+                // 3. Determine which dates are being requested
+                var requestDates = dto.Exceptions.Select(e => e.Date.Date).ToHashSet();
 
-                foreach (var ex in distinctExceptions)
+                // 4. Delete exceptions for dates not in the request
+                var toDelete = existingExceptions.Where(e => !requestDates.Contains(e.Date.Date)).ToList();
+                foreach (var item in toDelete)
                 {
-                    _repositoryManager.FieldException.CreateFieldException(new FieldException
+                    _repositoryManager.FieldException.DeleteFieldException(item);
+                }
+
+                // 5. Update existing or create new exceptions
+                foreach (var newException in dto.Exceptions)
+                {
+                    var existing = existingExceptions.FirstOrDefault(e => e.Date.Date == newException.Date.Date);
+                    if (existing != null)
                     {
-                        FieldId = entity.Id,
-                        Date = ex.Date.Date,
-                        IsOpen = ex.IsOpen
-                    });
+                        // Update existing record
+                        existing.IsOpen = newException.IsOpen;
+                    }
+                    else
+                    {
+                        // Create new record
+                        _repositoryManager.FieldException.CreateFieldException(new FieldException
+                        {
+                            FieldId = entity.Id,
+                            Date = newException.Date.Date,
+                            IsOpen = newException.IsOpen
+                        });
+                    }
                 }
             }
 
+            // Save all changes at once
             await _repositoryManager.SaveAsync();
         }
         public async Task PatchFieldAsync(int id, FieldPatchDto patch)
