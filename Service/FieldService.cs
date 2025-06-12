@@ -124,15 +124,21 @@ namespace Service
             var entity = await _repositoryManager.Field.GetFieldAsync(fieldId, true)
                           ?? throw new FieldNotFoundException(fieldId);
 
-            // Koleksiyonlar AutoMapper’da ignore edildi
             _mapper.Map(dto, entity);
 
-            /* WEEKLY OPENINGS */
+            /* WEEKLY OPENINGS - İki aşamalı */
             var existingOpenings = await _repositoryManager.WeeklyOpening
                                      .GetWeeklyOpeningsByFieldIdAsync(entity.Id, true);
-            _repositoryManager.WeeklyOpening.DeleteWeeklyOpenings(existingOpenings);
 
+            if (existingOpenings.Any())
+            {
+                _repositoryManager.WeeklyOpening.DeleteWeeklyOpenings(existingOpenings);
+                await _repositoryManager.SaveAsync(); // Önce sil
+            }
+
+            // Sonra ekle
             foreach (var o in dto.WeeklyOpenings.DistinctBy(x => x.DayOfWeek))
+            {
                 _repositoryManager.WeeklyOpening.CreateWeeklyOpening(
                     new WeeklyOpening
                     {
@@ -141,13 +147,21 @@ namespace Service
                         StartTime = o.StartTime,
                         EndTime = o.EndTime
                     });
+            }
 
-            /* FIELD EXCEPTIONS */
+            /* FIELD EXCEPTIONS - İki aşamalı */
             var existingExceptions = await _repositoryManager.FieldException
                                        .GetExceptionsByFieldIdAsync(entity.Id, true);
-            _repositoryManager.FieldException.DeleteFieldExceptions(existingExceptions);
 
+            if (existingExceptions.Any())
+            {
+                _repositoryManager.FieldException.DeleteFieldExceptions(existingExceptions);
+                await _repositoryManager.SaveAsync(); // Önce sil
+            }
+
+            // Sonra ekle
             foreach (var ex in dto.Exceptions.DistinctBy(x => x.Date.Date))
+            {
                 _repositoryManager.FieldException.CreateFieldException(
                     new FieldException
                     {
@@ -155,8 +169,9 @@ namespace Service
                         Date = ex.Date.Date,
                         IsOpen = ex.IsOpen
                     });
+            }
 
-            await _repositoryManager.SaveAsync();
+            await _repositoryManager.SaveAsync(); // Son kaydet
         }
 
 
