@@ -132,16 +132,6 @@ namespace HalisahaOtomasyonPresentation.Controllers
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> UpdateField(int id, [FromBody] FieldForUpdateDto field)
         {
-            // Generate a unique request identifier
-            var requestKey = $"UpdateField_{id}_{DateTime.UtcNow.Ticks}";
-
-            // Check if this is a duplicate request
-            if (HttpContext.Items.ContainsKey(requestKey))
-                return NoContent();
-
-            // Mark this request as processed
-            HttpContext.Items[requestKey] = true;
-
             // Process the request
             await _serviceManager.FieldService.UpdateFieldAsync(id, field, true);
             return NoContent();
