@@ -128,14 +128,59 @@ namespace Service
         }
 
 
-        public async Task UpdateFieldAsync(int fieldId, FieldForUpdateDto fieldDto, bool trackChanges)
+        public async Task UpdateFieldAsync(int fieldId, FieldForUpdateDto dto, bool trackChanges)
         {
             var entity = await _repositoryManager.Field.GetFieldAsync(fieldId, true)
                           ?? throw new FieldNotFoundException(fieldId);
 
-            _mapper.Map(fieldDto, entity);
+            _mapper.Map(dto, entity);
+
+            // --- WEEKLY OPENINGS ---
+            if (dto.WeeklyOpenings?.Any() == true)
+            {
+                var existingOpenings = await _repositoryManager.WeeklyOpening
+                    .GetWeeklyOpeningsByFieldIdAsync(entity.Id, true);
+
+                foreach (var newOpening in dto.WeeklyOpenings)
+                {
+                    var duplicate = existingOpenings.FirstOrDefault(o => o.DayOfWeek == newOpening.DayOfWeek);
+                    if (duplicate != null)
+                        _repositoryManager.WeeklyOpening.DeleteWeeklyOpening(duplicate);
+
+                    _repositoryManager.WeeklyOpening.CreateWeeklyOpening(new WeeklyOpening
+                    {
+                        FieldId = entity.Id,
+                        DayOfWeek = newOpening.DayOfWeek,
+                        StartTime = newOpening.StartTime,
+                        EndTime = newOpening.EndTime
+                    });
+                }
+            }
+
+            // --- FIELD EXCEPTIONS ---
+            if (dto.Exceptions?.Any() == true)
+            {
+                var existingExceptions = await _repositoryManager.FieldException
+                    .GetExceptionsByFieldIdAsync(entity.Id, true);
+
+                foreach (var ex in dto.Exceptions)
+                {
+                    var duplicate = existingExceptions.FirstOrDefault(e => e.Date.Date == ex.Date.Date);
+                    if (duplicate != null)
+                        _repositoryManager.FieldException.DeleteFieldException(duplicate);
+
+                    _repositoryManager.FieldException.CreateFieldException(new FieldException
+                    {
+                        FieldId = entity.Id,
+                        Date = ex.Date.Date,
+                        IsOpen = ex.IsOpen
+                    });
+                }
+            }
+
             await _repositoryManager.SaveAsync();
         }
+
 
         public async Task PatchFieldAsync(int id, FieldPatchDto patch)
         {
@@ -156,11 +201,48 @@ namespace Service
             if (patch.LightingAvailable is not null) field.LightingAvailable = patch.LightingAvailable.Value;
             if (patch.CreatedAt is not null) field.CreatedAt = patch.CreatedAt.Value;
 
-            if (patch.WeeklyOpenings is not null)
-                field.WeeklyOpenings = (ICollection<WeeklyOpening>)patch.WeeklyOpenings;
+            // --- WEEKLY OPENINGS PATCH ---
+            if (patch.WeeklyOpenings?.Any() == true)
+            {
+                var existingOpenings = await _repositoryManager.WeeklyOpening
+                    .GetWeeklyOpeningsByFieldIdAsync(id, true);
 
-            if (patch.Exceptions is not null)
-                field.Exceptions = (ICollection<FieldException>)patch.Exceptions;
+                foreach (var w in patch.WeeklyOpenings)
+                {
+                    var duplicate = existingOpenings.FirstOrDefault(o => o.DayOfWeek == w.DayOfWeek);
+                    if (duplicate != null)
+                        _repositoryManager.WeeklyOpening.DeleteWeeklyOpening(duplicate);
+
+                    _repositoryManager.WeeklyOpening.CreateWeeklyOpening(new WeeklyOpening
+                    {
+                        FieldId = id,
+                        DayOfWeek = w.DayOfWeek,
+                        StartTime = w.StartTime,
+                        EndTime = w.EndTime
+                    });
+                }
+            }
+
+            // --- EXCEPTIONS PATCH ---
+            if (patch.Exceptions?.Any() == true)
+            {
+                var existingExceptions = await _repositoryManager.FieldException
+                    .GetExceptionsByFieldIdAsync(id, true);
+
+                foreach (var ex in patch.Exceptions)
+                {
+                    var duplicate = existingExceptions.FirstOrDefault(e => e.Date.Date == ex.Date.Date);
+                    if (duplicate != null)
+                        _repositoryManager.FieldException.DeleteFieldException(duplicate);
+
+                    _repositoryManager.FieldException.CreateFieldException(new FieldException
+                    {
+                        FieldId = id,
+                        Date = ex.Date.Date,
+                        IsOpen = ex.IsOpen
+                    });
+                }
+            }
 
             await _repositoryManager.SaveAsync();
         }
