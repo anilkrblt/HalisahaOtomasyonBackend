@@ -1,9 +1,7 @@
 using System.Security.Claims;
 using Entities.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Service;
 using Service.Contracts;
 using Shared.DataTransferObjects;
 
@@ -14,11 +12,11 @@ namespace HalisahaOtomasyonPresentation.Controllers;
 public class TeamsController : ControllerBase
 {
     public readonly IServiceManager _serviceManager;
+
     public TeamsController(IServiceManager serviceManager)
     {
         _serviceManager = serviceManager;
     }
-    /*───────────────────── TEAM CRUD ─────────────────────*/
 
     // GET api/teams?city=İzmir&search=kartal
     [HttpGet]
@@ -136,6 +134,15 @@ public class TeamsController : ControllerBase
         return NoContent();
     }
 
+    [HttpPut("{teamId:int}/members/{userId:int}")]
+    public async Task<IActionResult> UpdateTeamMember([FromRoute(Name = "teamId")] int teamId, 
+        [FromRoute(Name = "userId")] int userId, 
+        [FromBody] TeamMemberDtoForUpdateAdminAndCaptain teamMemberDto)
+    {
+        var member = await _serviceManager.TeamService.SetAdminAndCaptain(teamId, userId, teamMemberDto);
+        return Ok(member);
+    }
+
     /*───────────────────── JOIN REQUESTS ───────────────────*/
 
     // POST api/teams/5/join-requests
@@ -159,7 +166,6 @@ public class TeamsController : ControllerBase
         );
     }
 
-
     // GET api/teams/5/join-requests
     [HttpGet("{teamId:int}/join-requests", Name = "GetTeamJoinRequests")]
     public async Task<IActionResult> GetTeamJoinRequests([FromRoute] int teamId)
@@ -167,6 +173,9 @@ public class TeamsController : ControllerBase
         var list = await _serviceManager.TeamService.GetTeamJoinRequestsAsync(teamId, trackChanges: false);
         return Ok(list);
     }
+
+
+
 
     // GET api/teams/join-requests  <-- kendi isteklerini listelemek için
     [HttpGet("join-requests", Name = "GetMyJoinRequests")]

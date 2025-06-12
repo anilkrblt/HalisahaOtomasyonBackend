@@ -287,4 +287,17 @@ public class TeamService : ITeamService
         GetUserJoinRequestsAsync(int userId, bool track) =>
         _mapper.Map<IEnumerable<TeamJoinRequestDto>>(
             await _repo.TeamJoinRequest.GetRequestsByUserIdAsync(userId, track));
+
+    public async Task<TeamMemberDto> SetAdminAndCaptain(int teamId, int userId, TeamMemberDtoForUpdateAdminAndCaptain teamMemberDto)
+    {
+        var member = await _repo.
+            TeamMember
+            .GetMemberAsync(teamId, userId, true);
+
+        var updatedMember = _mapper.Map(teamMemberDto, member);
+        await _repo.SaveAsync();
+
+        var updatedMembersDto = _mapper.Map<TeamMemberDto>(updatedMember);
+        return updatedMembersDto;
+    }
 }

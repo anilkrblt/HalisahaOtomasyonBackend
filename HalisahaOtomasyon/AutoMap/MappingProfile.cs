@@ -146,6 +146,8 @@ namespace HalisahaOtomasyon.AutoMap
             CreateMap<TeamForUpdateDto, Team>();
 
             CreateMap<TeamMember, TeamMemberDto>();
+            CreateMap<TeamMemberDtoForUpdateAdminAndCaptain, TeamMember>();
+
 
             CreateMap<TeamJoinRequest, TeamJoinRequestDto>();
             CreateMap<TeamJoinRequestForCreationDto, TeamJoinRequest>();

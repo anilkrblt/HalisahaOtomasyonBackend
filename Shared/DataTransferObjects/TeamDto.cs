@@ -61,6 +61,12 @@ public record TeamMemberDto
     public string UserPhotoUrl { get; set; }
 }
 
+public record TeamMemberDtoForUpdateAdminAndCaptain
+{
+    public bool IsCaptain { get; set; }
+    public bool IsAdmin { get; set; }
+}
+
 public class TeamMemberForAddDto
 {
     public int UserId { get; set; }
