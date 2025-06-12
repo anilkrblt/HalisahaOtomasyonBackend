@@ -56,30 +56,22 @@ namespace Service
             var entity = _mapper.Map<Field>(dto);
             entity.CreatedAt = DateTime.UtcNow;
             _repositoryManager.Field.CreateField(entity);
-            await _repositoryManager.SaveAsync(); // This generates the ID
+            await _repositoryManager.SaveAsync();
 
             try
             {
-                // WeeklyOpenings işlemi
                 if (dto.WeeklyOpenings?.Any() == true)
                 {
-                    var existingOpenings = await _repositoryManager.WeeklyOpening
-                        .GetWeeklyOpeningsByFieldIdAsync(entity.Id, true);
-
-                    // TEKİLLEŞTİR — aynı gün birden fazla varsa sadece ilkini al
                     var distinctOpenings = dto.WeeklyOpenings
                         .GroupBy(w => w.DayOfWeek)
                         .Select(g => g.First())
                         .ToList();
 
+                    if (distinctOpenings.Count != dto.WeeklyOpenings.Count)
+                        throw new Exception("Aynı gün için birden fazla çalışma saati gönderilemez!");
+
                     foreach (var newOpening in distinctOpenings)
                     {
-                        var duplicate = existingOpenings
-                            .FirstOrDefault(o => o.DayOfWeek == newOpening.DayOfWeek);
-
-                        if (duplicate != null)
-                            _repositoryManager.WeeklyOpening.DeleteWeeklyOpening(duplicate);
-
                         _repositoryManager.WeeklyOpening.CreateWeeklyOpening(new WeeklyOpening
                         {
                             FieldId = entity.Id,
@@ -90,22 +82,16 @@ namespace Service
                     }
                 }
 
-
                 // Add exceptions
                 if (dto.Exceptions?.Any() == true)
                 {
-                    // Var olan tüm exceptionları sil
-                    var existingExceptions = await _repositoryManager.FieldException
-                        .GetExceptionsByFieldIdAsync(entity.Id, true);
-
-                    foreach (var oldEx in existingExceptions)
-                        _repositoryManager.FieldException.DeleteFieldException(oldEx);
-
-                    // DTO'daki exceptionları tekilleştirerek ekle
                     var distinctExceptions = dto.Exceptions
                         .GroupBy(e => e.Date.Date)
                         .Select(g => g.First())
                         .ToList();
+
+                    if (distinctExceptions.Count != dto.Exceptions.Count)
+                        throw new Exception("Aynı gün için birden fazla exception gönderilemez!");
 
                     foreach (var ex in distinctExceptions)
                     {
@@ -142,34 +128,7 @@ namespace Service
             // --- WEEKLY OPENINGS ---
             if (dto.WeeklyOpenings?.Any() == true)
             {
-                var existingOpenings = await _repositoryManager.WeeklyOpening
-                    .GetWeeklyOpeningsByFieldIdAsync(entity.Id, true);
-
-                // Tekilleştir (aynı gün birden fazla olmasın)
-                var distinctOpenings = dto.WeeklyOpenings
-                    .GroupBy(w => w.DayOfWeek)
-                    .Select(g => g.First())
-                    .ToList();
-
-                foreach (var newOpening in distinctOpenings)
-                {
-                    var duplicate = existingOpenings.FirstOrDefault(o => o.DayOfWeek == newOpening.DayOfWeek);
-                    if (duplicate != null)
-                        _repositoryManager.WeeklyOpening.DeleteWeeklyOpening(duplicate);
-
-                    _repositoryManager.WeeklyOpening.CreateWeeklyOpening(new WeeklyOpening
-                    {
-                        FieldId = entity.Id,
-                        DayOfWeek = newOpening.DayOfWeek,
-                        StartTime = newOpening.StartTime,
-                        EndTime = newOpening.EndTime
-                    });
-                }
-            }
-
-            // --- FIELD EXCEPTIONS ---
-            if (dto.WeeklyOpenings?.Any() == true)
-            {
+                // 1. Aynı güne birden fazla gönderilmiş mi? Hata fırlat!
                 var distinctOpenings = dto.WeeklyOpenings
                     .GroupBy(w => w.DayOfWeek)
                     .Select(g => g.First())
@@ -178,13 +137,14 @@ namespace Service
                 if (distinctOpenings.Count != dto.WeeklyOpenings.Count)
                     throw new Exception("Aynı gün için birden fazla çalışma saati gönderilemez!");
 
-                // Sonra, eski kayıtları komple sil:
+                // 2. Var olan tüm kayıtları sil
                 var existingOpenings = await _repositoryManager.WeeklyOpening
                     .GetWeeklyOpeningsByFieldIdAsync(entity.Id, true);
+
                 foreach (var old in existingOpenings)
                     _repositoryManager.WeeklyOpening.DeleteWeeklyOpening(old);
 
-                // Ve sadece tekil olanları ekle:
+                // 3. Sadece tekil olanları ekle
                 foreach (var newOpening in distinctOpenings)
                 {
                     _repositoryManager.WeeklyOpening.CreateWeeklyOpening(new WeeklyOpening
@@ -197,6 +157,33 @@ namespace Service
                 }
             }
 
+            // --- FIELD EXCEPTIONS (ÖRNEK) ---
+            if (dto.Exceptions?.Any() == true)
+            {
+                var distinctExceptions = dto.Exceptions
+                    .GroupBy(e => e.Date.Date)
+                    .Select(g => g.First())
+                    .ToList();
+
+                if (distinctExceptions.Count != dto.Exceptions.Count)
+                    throw new Exception("Aynı gün için birden fazla exception gönderilemez!");
+
+                var existingExceptions = await _repositoryManager.FieldException
+                    .GetExceptionsByFieldIdAsync(entity.Id, true);
+
+                foreach (var oldEx in existingExceptions)
+                    _repositoryManager.FieldException.DeleteFieldException(oldEx);
+
+                foreach (var ex in distinctExceptions)
+                {
+                    _repositoryManager.FieldException.CreateFieldException(new FieldException
+                    {
+                        FieldId = entity.Id,
+                        Date = ex.Date.Date,
+                        IsOpen = ex.IsOpen
+                    });
+                }
+            }
 
             await _repositoryManager.SaveAsync();
         }
@@ -223,21 +210,24 @@ namespace Service
             // --- WEEKLY OPENINGS PATCH ---
             if (patch.WeeklyOpenings?.Any() == true)
             {
-                var existingOpenings = await _repositoryManager.WeeklyOpening
-                    .GetWeeklyOpeningsByFieldIdAsync(id, true);
-
-                // Tekilleştir (aynı gün birden fazla olmasın)
+                // 1. Aynı güne birden fazla var mı? Hata fırlat!
                 var distinctOpenings = patch.WeeklyOpenings
                     .GroupBy(w => w.DayOfWeek)
                     .Select(g => g.First())
                     .ToList();
 
+                if (distinctOpenings.Count != patch.WeeklyOpenings.Count)
+                    throw new Exception("Aynı gün için birden fazla çalışma saati gönderilemez!");
+
+                // 2. Var olan tüm kayıtları sil
+                var existingOpenings = await _repositoryManager.WeeklyOpening
+                    .GetWeeklyOpeningsByFieldIdAsync(id, true);
+                foreach (var old in existingOpenings)
+                    _repositoryManager.WeeklyOpening.DeleteWeeklyOpening(old);
+
+                // 3. Sadece tekil olanları ekle
                 foreach (var w in distinctOpenings)
                 {
-                    var duplicate = existingOpenings.FirstOrDefault(o => o.DayOfWeek == w.DayOfWeek);
-                    if (duplicate != null)
-                        _repositoryManager.WeeklyOpening.DeleteWeeklyOpening(duplicate);
-
                     _repositoryManager.WeeklyOpening.CreateWeeklyOpening(new WeeklyOpening
                     {
                         FieldId = id,
@@ -251,21 +241,22 @@ namespace Service
             // --- EXCEPTIONS PATCH ---
             if (patch.Exceptions?.Any() == true)
             {
-                var existingExceptions = await _repositoryManager.FieldException
-                    .GetExceptionsByFieldIdAsync(id, true);
-
-                // Tekilleştir (aynı gün birden fazla olmasın)
                 var distinctExceptions = patch.Exceptions
                     .GroupBy(e => e.Date.Date)
                     .Select(g => g.First())
                     .ToList();
 
+                if (distinctExceptions.Count != patch.Exceptions.Count)
+                    throw new Exception("Aynı gün için birden fazla exception gönderilemez!");
+
+                var existingExceptions = await _repositoryManager.FieldException
+                    .GetExceptionsByFieldIdAsync(id, true);
+
+                foreach (var oldEx in existingExceptions)
+                    _repositoryManager.FieldException.DeleteFieldException(oldEx);
+
                 foreach (var ex in distinctExceptions)
                 {
-                    var duplicate = existingExceptions.FirstOrDefault(e => e.Date.Date == ex.Date.Date);
-                    if (duplicate != null)
-                        _repositoryManager.FieldException.DeleteFieldException(duplicate);
-
                     _repositoryManager.FieldException.CreateFieldException(new FieldException
                     {
                         FieldId = id,
