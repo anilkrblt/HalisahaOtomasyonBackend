@@ -34,5 +34,6 @@ namespace Service.Contracts
         Task RespondJoinRequestAsync(int requestId, RequestStatus status, int responderId);
         Task<IEnumerable<TeamJoinRequestDto>> GetTeamJoinRequestsAsync(int teamId, bool trackChanges);
         Task<IEnumerable<TeamJoinRequestDto>> GetUserJoinRequestsAsync(int userId, bool trackChanges);
+        Task<TeamMemberDto> SetAdminAndCaptain(int teamId, int userId, TeamMemberDtoForUpdateAdminAndCaptain teamMemberDto);
     }
 }
