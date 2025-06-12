@@ -20,7 +20,7 @@ namespace Shared.DataTransferObjects
 
     public record WeeklyOpeningForCreationDto
     {
-        [JsonConverter(typeof(FlexibleDayOfWeekConverter))]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public DayOfWeek DayOfWeek { get; set; }
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }

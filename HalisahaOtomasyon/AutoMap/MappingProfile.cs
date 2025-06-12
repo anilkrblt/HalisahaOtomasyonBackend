@@ -80,10 +80,14 @@ namespace HalisahaOtomasyon.AutoMap
 
 
             CreateMap<Field, FieldDto>();
-            CreateMap<FieldForCreationDto, Field>();
-            CreateMap<FieldForUpdateDto, Field>();
 
-            
+            CreateMap<FieldForCreationDto, Field>();
+
+            CreateMap<FieldForUpdateDto, Field>()
+                .ForMember(dest => dest.WeeklyOpenings, opt => opt.Ignore())
+                .ForMember(dest => dest.Exceptions, opt => opt.Ignore());
+
+
 
             CreateMap<FieldException, FieldExceptionDto>().ReverseMap();
             CreateMap<FieldExceptionForCreationDto, FieldException>();
