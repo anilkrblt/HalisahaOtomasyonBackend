@@ -127,88 +127,67 @@ namespace Service
             // --- WEEKLY OPENINGS ---
             if (dto.WeeklyOpenings?.Any() == true)
             {
-                // 1. Check for duplicate days in the request
-                if (dto.WeeklyOpenings.Count != dto.WeeklyOpenings.Select(w => w.DayOfWeek).Distinct().Count())
-                    throw new Exception("Aynı gün için birden fazla çalışma saati gönderilemez!");
-
-                // 2. Get existing openings
+                // First get all existing openings
                 var existingOpenings = await _repositoryManager.WeeklyOpening
                     .GetWeeklyOpeningsByFieldIdAsync(entity.Id, true);
 
-                // 3. Determine which days are being requested
-                var requestDays = dto.WeeklyOpenings.Select(w => w.DayOfWeek).ToHashSet();
-
-                // 4. Delete openings for days not in the request
-                var toDelete = existingOpenings.Where(eo => !requestDays.Contains(eo.DayOfWeek)).ToList();
-                foreach (var item in toDelete)
+                // Delete ALL existing openings first (clean slate approach)
+                foreach (var existing in existingOpenings)
                 {
-                    _repositoryManager.WeeklyOpening.DeleteWeeklyOpening(item);
+                    _repositoryManager.WeeklyOpening.DeleteWeeklyOpening(existing);
                 }
 
-                // 5. Update existing or create new openings
-                foreach (var newOpening in dto.WeeklyOpenings)
+                // Then add only the new ones from DTO (after validating)
+                var distinctOpenings = dto.WeeklyOpenings
+                    .GroupBy(w => w.DayOfWeek)
+                    .Select(g => g.First())
+                    .ToList();
+
+                if (distinctOpenings.Count != dto.WeeklyOpenings.Count)
+                    throw new Exception("Aynı gün için birden fazla çalışma saati gönderilemez!");
+
+                foreach (var newOpening in distinctOpenings)
                 {
-                    var existing = existingOpenings.FirstOrDefault(eo => eo.DayOfWeek == newOpening.DayOfWeek);
-                    if (existing != null)
+                    _repositoryManager.WeeklyOpening.CreateWeeklyOpening(new WeeklyOpening
                     {
-                        // Update existing record
-                        existing.StartTime = newOpening.StartTime;
-                        existing.EndTime = newOpening.EndTime;
-                    }
-                    else
-                    {
-                        // Create new record
-                        _repositoryManager.WeeklyOpening.CreateWeeklyOpening(new WeeklyOpening
-                        {
-                            FieldId = entity.Id,
-                            DayOfWeek = newOpening.DayOfWeek,
-                            StartTime = newOpening.StartTime,
-                            EndTime = newOpening.EndTime
-                        });
-                    }
+                        FieldId = entity.Id,
+                        DayOfWeek = newOpening.DayOfWeek,
+                        StartTime = newOpening.StartTime,
+                        EndTime = newOpening.EndTime
+                    });
                 }
             }
 
             // --- FIELD EXCEPTIONS ---
             if (dto.Exceptions?.Any() == true)
             {
-                // 1. Check for duplicate dates in the request
-                if (dto.Exceptions.Count != dto.Exceptions.Select(e => e.Date.Date).Distinct().Count())
-                    throw new Exception("Aynı gün için birden fazla exception gönderilemez!");
-
-                // 2. Get existing exceptions
+                // First get all existing exceptions
                 var existingExceptions = await _repositoryManager.FieldException
                     .GetExceptionsByFieldIdAsync(entity.Id, true);
 
-                // 3. Determine which dates are being requested
-                var requestDates = dto.Exceptions.Select(e => e.Date.Date).ToHashSet();
-
-                // 4. Delete exceptions for dates not in the request
-                var toDelete = existingExceptions.Where(e => !requestDates.Contains(e.Date.Date)).ToList();
-                foreach (var item in toDelete)
+                // Delete ALL existing exceptions first (clean slate approach)
+                foreach (var existing in existingExceptions)
                 {
-                    _repositoryManager.FieldException.DeleteFieldException(item);
+                    _repositoryManager.FieldException.DeleteFieldException(existing);
                 }
 
-                // 5. Update existing or create new exceptions
-                foreach (var newException in dto.Exceptions)
+                // Then add only the new ones from DTO (after validating)
+                var distinctExceptions = dto.Exceptions
+                    .GroupBy(e => e.Date.Date)
+                    .Select(g => g.First())
+                    .ToList();
+
+                if (distinctExceptions.Count != dto.Exceptions.Count)
+                    throw new Exception("Aynı gün için birden fazla exception gönderilemez!");
+
+                foreach (var newException in distinctExceptions)
                 {
-                    var existing = existingExceptions.FirstOrDefault(e => e.Date.Date == newException.Date.Date);
-                    if (existing != null)
+                    _repositoryManager.FieldException.CreateFieldException(new FieldException
                     {
-                        // Update existing record
-                        existing.IsOpen = newException.IsOpen;
-                    }
-                    else
-                    {
-                        // Create new record
-                        _repositoryManager.FieldException.CreateFieldException(new FieldException
-                        {
-                            FieldId = entity.Id,
-                            Date = newException.Date.Date,
-                            IsOpen = newException.IsOpen
-                        });
-                    }
+                        FieldId = entity.Id,
+                        Date = newException.Date.Date,
+                        IsOpen = newException.IsOpen
+                    });
                 }
             }
 
