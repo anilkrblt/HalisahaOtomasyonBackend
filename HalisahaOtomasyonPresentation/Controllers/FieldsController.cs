@@ -129,7 +129,6 @@ namespace HalisahaOtomasyonPresentation.Controllers
         }
 
         [HttpPut("{id:int}")]
-        [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> UpdateField(int id, [FromBody] FieldForUpdateDto field)
         {
             // Process the request
