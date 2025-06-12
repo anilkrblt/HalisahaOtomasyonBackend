@@ -89,19 +89,21 @@ namespace Service
                 // Add exceptions
                 if (dto.Exceptions?.Any() == true)
                 {
+                    // Var olan tüm exceptionları sil
                     var existingExceptions = await _repositoryManager.FieldException
                         .GetExceptionsByFieldIdAsync(entity.Id, true);
 
-                    foreach (var ex in dto.Exceptions)
+                    foreach (var oldEx in existingExceptions)
+                        _repositoryManager.FieldException.DeleteFieldException(oldEx);
+
+                    // DTO'daki exceptionları tekilleştirerek ekle
+                    var distinctExceptions = dto.Exceptions
+                        .GroupBy(e => e.Date.Date)
+                        .Select(g => g.First())
+                        .ToList();
+
+                    foreach (var ex in distinctExceptions)
                     {
-                        // Aynı güne ait varsa sil
-                        var duplicate = existingExceptions
-                            .FirstOrDefault(e => e.Date.Date == ex.Date.Date);
-
-                        if (duplicate != null)
-                            _repositoryManager.FieldException.DeleteFieldException(duplicate);
-
-                        // Yeniyi ekle
                         _repositoryManager.FieldException.CreateFieldException(new FieldException
                         {
                             FieldId = entity.Id,
@@ -110,6 +112,7 @@ namespace Service
                         });
                     }
                 }
+
 
 
                 // Save all changes at once
