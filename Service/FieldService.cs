@@ -143,6 +143,7 @@ namespace Service
 
                 foreach (var old in existingOpenings)
                     _repositoryManager.WeeklyOpening.DeleteWeeklyOpening(old);
+                await _repositoryManager.SaveAsync();
 
                 // 3. Sadece tekil olanları ekle
                 foreach (var newOpening in distinctOpenings)
@@ -173,6 +174,8 @@ namespace Service
 
                 foreach (var oldEx in existingExceptions)
                     _repositoryManager.FieldException.DeleteFieldException(oldEx);
+                await _repositoryManager.SaveAsync();
+
 
                 foreach (var ex in distinctExceptions)
                 {
