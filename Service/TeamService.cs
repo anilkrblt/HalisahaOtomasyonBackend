@@ -1,4 +1,5 @@
 using AutoMapper;
+using AutoMapper.Execution;
 using Contracts;
 using Entities.Exceptions;
 using Entities.Models;
@@ -211,9 +212,23 @@ public class TeamService : ITeamService
         await _repo.SaveAsync();
     }
 
-    public async Task<IEnumerable<TeamMemberDto>> GetMembersAsync(int teamId, bool track) =>
-        _mapper.Map<IEnumerable<TeamMemberDto>>(
-            await _repo.TeamMember.GetMembersByTeamIdAsync(teamId, track));
+    public async Task<IEnumerable<TeamMemberDto>> GetMembersAsync(int teamId, bool track)
+    {
+        var members = await _repo.TeamMember.GetMembersByTeamIdAsync(teamId, track);
+        var membersDto = _mapper.Map<List<TeamMemberDto>>(members);
+
+        foreach (var member in membersDto)
+        {
+            var photosDto = await _photoService.
+                GetPhotosAsync("user", member.UserId, false);
+
+            var photoUrl = photosDto?.FirstOrDefault()?.Url ?? "";
+            member.UserPhotoUrl = photoUrl;
+        }
+
+        return membersDto;
+    }
+
 
     public async Task<IEnumerable<TeamDto>> GetTeamsOfUserAsync(int userId, bool track) =>
         _mapper.Map<IEnumerable<TeamDto>>(
@@ -292,12 +307,19 @@ public class TeamService : ITeamService
     {
         var member = await _repo.
             TeamMember
-            .GetMemberAsync(teamId, userId, true);
+            .GetTeamMemberAsync(teamId, userId, true);
 
         var updatedMember = _mapper.Map(teamMemberDto, member);
         await _repo.SaveAsync();
 
         var updatedMembersDto = _mapper.Map<TeamMemberDto>(updatedMember);
+
+        var photosDto = await _photoService.
+            GetPhotosAsync("user", userId, false);
+
+        var photoUrl = photosDto?.FirstOrDefault()?.Url ?? "";
+            updatedMembersDto.UserPhotoUrl = photoUrl;
+
         return updatedMembersDto;
     }
 }

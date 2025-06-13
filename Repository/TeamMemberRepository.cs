@@ -13,7 +13,7 @@ namespace Repository
         public TeamMemberRepository(RepositoryContext ctx) : base(ctx) { }
 
         /* -------- Command -------- */
-        public void AddMember(TeamMember member)    => Create(member);
+        public void AddMember(TeamMember member) => Create(member);
         public void RemoveMember(TeamMember member) => Delete(member);
 
         /* -------- Helper: eager-load --- */
@@ -21,20 +21,33 @@ namespace Repository
             q.Include(tm => tm.Team)
              .Include(tm => tm.User);
 
+        private static IQueryable<TeamMember> IncludeUser(IQueryable<TeamMember> q) =>
+            q.Include(tm => tm.User);
+
         /* -------- Tek kayıt -------- */
         public async Task<TeamMember?> GetMemberAsync(int teamId, int userId, bool trackChanges) =>
             await IncludeAll(
                     FindByCondition(m => m.TeamId == teamId && m.UserId == userId, trackChanges))
                  .SingleOrDefaultAsync();
 
+        public async Task<TeamMember?> GetTeamMemberAsync(int teamId, int userId, bool trackChanges) =>
+            await IncludeUser(
+                FindByCondition(m => m.TeamId == teamId && m.UserId == userId, trackChanges))
+                .SingleOrDefaultAsync();
+
         /* -------- Takıma göre liste ---- */
-        public async Task<IEnumerable<TeamMember>> GetMembersByTeamIdAsync(int teamId, bool trackChanges) =>
-            await IncludeAll(
+        public async Task<IEnumerable<TeamMember>> GetMembersByTeamIdAsync(int teamId, bool trackChanges)
+        {
+            var members = await IncludeUser(
                     FindByCondition(m => m.TeamId == teamId, trackChanges)
                     .AsNoTracking())
                  .OrderByDescending(m => m.IsCaptain)
                  .ThenBy(m => m.JoinedAt)
                  .ToListAsync();
+
+            return members;
+        }
+
 
         /* -------- Oyuncuya göre takımlar - */
         public async Task<IEnumerable<TeamMember>> GetTeamsByUserIdAsync(int userId, bool trackChanges) =>
