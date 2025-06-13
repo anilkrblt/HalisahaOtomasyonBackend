@@ -25,7 +25,7 @@ public class Customer : ApplicationUser
                                    .Select(p => Enum.Parse<PlayingPosition>(p))
                                    .ToList();
 
-                set => Positions = value is { Count: > 0 }
+                             set => Positions = value is { Count: > 0 }
                         ? string.Join(',', value)
                         : string.Empty;
         }

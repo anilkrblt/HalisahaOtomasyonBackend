@@ -24,7 +24,7 @@ namespace Shared.DataTransferObjects
         public string Town { get; set; } = null!;
         public DateTime Birthday { get; set; }
         public string Password { get; set; } = null!;
-        public List<IFormFile> PhotoFiles { get; set; }
+        public List<IFormFile>? PhotoFiles { get; set; }
 
     }
     public class CustomerRegisterDto : UserRegisterDto
