@@ -8,7 +8,7 @@ using Shared.DataTransferObjects;
 namespace HalisahaOtomasyonPresentation.Controllers
 {
     [ApiController]
-    [Authorize]                                 
+    [Authorize]
     [Route("api/friendships")]
     public class FriendshipsController : ControllerBase
     {
@@ -18,7 +18,7 @@ namespace HalisahaOtomasyonPresentation.Controllers
             _svc = svc;
         }
 
-  
+
         private int CallerId =>
             int.Parse(User.FindFirst("id")?.Value);
 
@@ -74,16 +74,33 @@ namespace HalisahaOtomasyonPresentation.Controllers
         [HttpGet("search")]
         public async Task<IActionResult> Search([FromQuery] string q, [FromQuery] int take = 10)
         {
-            var results = await _svc.FriendshipService.SearchCustomersAsync(q, take);
-            return Ok(results.Select(c => new { c.Id, c.UserName, c.FullName }));
+            var users = await _svc.FriendshipService.SearchCustomersAsync(q, take);
+
+            var results = new List<object>();
+            foreach (var c in users)
+            {
+                // Her kullanıcı için fotoğrafı sırayla çek (paralel değil!)
+                var photos = await _svc.PhotoService.GetPhotosAsync("user", c.Id, false);
+                var photoUrl = photos.FirstOrDefault()?.Url;
+                results.Add(new
+                {
+                    c.Id,
+                    c.UserName,
+                    c.FullName,
+                    PhotoUrl = photoUrl
+                });
+            }
+
+            return Ok(results);
         }
+
 
         /*──── Bekleyen isteği iptal ────*/
         [HttpDelete("{fromId:int}/{toId:int}/cancel")]
         public async Task<IActionResult> Cancel(int fromId, int toId)
         {
             if (CallerId != fromId)
-                return Forbid();            
+                return Forbid();
 
             await _svc.FriendshipService.CancelFriendRequestAsync(fromId, toId);
             return NoContent();

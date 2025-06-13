@@ -213,12 +213,16 @@ public class AuthService : IAuthService
         if (user is null)
             return null;   // Controller’da NotFound olarak işleyin
 
+
         // 2. Rolleri al
         var roles = await _userMgr.GetRolesAsync(user);
 
+
+        Console.WriteLine(roles[0]);
         // 3. Role göre DTO’ya manuel map
         if (roles.Contains("Owner"))
         {
+            Console.WriteLine("Owner bölümü");
             // ApplicationUser’dan OwnerDto’ya map
             var owner = user as Owner;
 
@@ -240,15 +244,17 @@ public class AuthService : IAuthService
             var photos = await _photoService.GetPhotosAsync("user", userId, true);
             var photo = photos.FirstOrDefault();
             // ApplicationUser’dan CustomerDto’ya map
+            Console.WriteLine("ÖNCE");
             var cust = user as Customer;
+            Console.WriteLine("SONRA");
             return new CustomerDto
             {
-                FirstName = cust!.FirstName,
-                LastName = cust.LastName,
+                FirstName = cust!.FirstName ?? "",
+                LastName = cust.LastName ?? "",
                 UserName = cust.UserName!,
                 Email = cust.Email!,
                 Role = Shared.DataTransferObjects.Role.Customer,
-                PhotoUrl = photo.Url,
+                PhotoUrl = photo?.Url ?? "",
                 City = cust.City!,
                 Town = cust.Town!,
                 Birthday = (DateTime)cust.Birthday,
