@@ -24,9 +24,18 @@ public class CommentsController : ControllerBase
     public async Task<IActionResult> GetFieldComments([FromRoute] int fieldId)
     {
         var comments = await _svc.GetFieldCommentsAsync(fieldId, trackChanges: false);
+
         return Ok(comments);
     }
 
+
+    [HttpGet("field/{fieldId:int}/comments/{commentId}", Name = "GetFieldComment")]
+    public async Task<IActionResult> GetFieldComment([FromRoute] int fieldId, [FromRoute] int commentId)
+    {
+        var comments = await _svc.GetFieldCommentAsync(commentId, trackChanges: false);
+
+        return Ok(comments);
+    }
 
 
     [HttpPost("field")]

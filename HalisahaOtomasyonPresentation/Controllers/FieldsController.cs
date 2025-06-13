@@ -8,6 +8,34 @@ using Shared.DataTransferObjects;
 using HalisahaOtomasyon.ActionFilters;
 using Microsoft.AspNetCore.Http;
 
+/*
+{
+
+    "weeklyOpenings": [
+      {
+        "dayOfWeek": "Monday",
+      "startTime": "09:00,
+        "endTime": "23:00"
+      },
+    {
+        "dayOfWeek": "Wednesday",
+      "startTime": "07:00,
+      "endTime": "21:00"
+    }
+  ],
+  "exceptions": [
+    {
+        "date": "2025-06-15",
+      "isOpen": false
+    },
+    {
+        "date": "2025-06-16",
+      "isOpen": false
+    }
+  ]
+}
+
+*/
 namespace HalisahaOtomasyonPresentation.Controllers
 {
     [ApiController]
@@ -22,20 +50,27 @@ namespace HalisahaOtomasyonPresentation.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetFields([FromQuery] int? facilityId)
+        public async Task<IActionResult> GetFields([FromQuery] int? facilityId, [FromQuery] int? ownerId)
         {
             // 1) Tüm sahaları çek (facilityId filtreli de olabilir)
             var allFields = await _serviceManager
-                                     .FieldService
-                                     .GetAllFieldsAsync(trackChanges: false);
+                         .FieldService
+                         .GetAllFieldsAsync(trackChanges: false);
 
-            // 2) Eğer facilityId verilmişse, sadece o tesise ait sahaları al
-            var fields = facilityId.HasValue
-                ? allFields.Where(f => f.FacilityId == facilityId.Value).ToList()
-                : allFields.ToList();
+            // 2) İsteğe göre filtrele
+            var fields = allFields.AsQueryable();
+
+            if (facilityId.HasValue)
+                fields = fields.Where(f => f.FacilityId == facilityId.Value);
+
+            if (ownerId.HasValue)
+                fields = fields.Where(f => f.OwnerId == ownerId.Value);
+
+            var fieldList = fields.ToList();
+
 
             // 3) Her bir saha için foto URL’lerini ekle
-            foreach (var field in fields)
+            foreach (var field in fieldList)
             {
                 var photoDtos = await _serviceManager
                                       .PhotoService
@@ -139,8 +174,7 @@ namespace HalisahaOtomasyonPresentation.Controllers
         [HttpPatch("{id:int}")]
         public async Task<IActionResult> PatchField(int id, [FromBody] FieldPatchDto patch)
         {
-            if (patch == null)
-                return BadRequest("Gönderilen veri boş olamaz.");
+
             await _serviceManager.FieldService.PatchFieldAsync(id, patch);
             return NoContent();
         }
