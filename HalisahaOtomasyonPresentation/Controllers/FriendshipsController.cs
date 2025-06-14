@@ -39,6 +39,18 @@ namespace HalisahaOtomasyonPresentation.Controllers
             return Ok(list);
         }
 
+        [HttpGet("users/{userId:int}/outgoing")]
+        public async Task<IActionResult> GetOutgoingRequests(int userId)
+        {
+            if (CallerId != userId)
+                return Forbid();
+
+            var list = await _svc.FriendshipService.GetOutgoingRequestsAsync(userId, false);
+            return Ok(list);
+        }
+
+
+
         [HttpPost]
         public async Task<IActionResult> SendRequest([FromBody] FriendRequestForCreationDto dto)
         {

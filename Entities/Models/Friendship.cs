@@ -13,8 +13,8 @@ public enum FriendshipStatus
 
 public class Friendship
 {
-    public int UserId1 { get; set; }          
-    public int UserId2 { get; set; }          
+    public int UserId1 { get; set; }
+    public int UserId2 { get; set; }
 
     public FriendshipStatus Status { get; set; } = FriendshipStatus.Pending;
 

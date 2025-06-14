@@ -7,6 +7,9 @@ namespace Contracts
     public interface IFriendshipRepository
     {
         /* Command */
+
+        Task<IEnumerable<Friendship>> GetSentRequestsAsync(int fromUserId, bool trackChanges);
+
         void CreateFriendship(Friendship friendship);
         void DeleteFriendship(Friendship friendship);
 

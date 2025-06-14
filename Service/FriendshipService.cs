@@ -20,6 +20,22 @@ public class FriendshipService : IFriendshipService
     }
 
 
+    public async Task<IEnumerable<UserDto>> GetOutgoingRequestsAsync(int userId, bool trackChanges)
+    {
+        var requests = await _repo.Friendship.GetSentRequestsAsync(userId, trackChanges);
+
+        var users = requests.Select(f => new UserDto
+        {
+            Id = f.User2!.Id,
+            UserName = f.User2.UserName,
+            FullName = $"{f.User2.FirstName} {f.User2.LastName}"
+        });
+
+        return users;
+    }
+
+
+
     public async Task<IEnumerable<CustomerLiteDto>> SearchCustomersAsync(string q, int take)
     {
         var users = await _repo.Friendship.SearchCustomersAsync(q, take);

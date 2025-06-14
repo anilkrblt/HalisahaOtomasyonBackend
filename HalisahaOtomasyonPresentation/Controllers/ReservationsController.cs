@@ -35,7 +35,7 @@ namespace HalisahaOtomasyonPresentation.Controllers
             if (facilityId.HasValue)
             {
                 var fieldDtos = await _service.FieldService.GetFieldsByFacilityIdAsync(facilityId.Value, false);
-                var fieldIds = fieldDtos.Select(f => f.Id).ToList(); // Sadece Id’ler
+                var fieldIds = fieldDtos.Select(f => f.Id).ToList();
 
                 reservations = reservations.Where(r => fieldIds.Contains(r.FieldId));
 
@@ -94,13 +94,6 @@ namespace HalisahaOtomasyonPresentation.Controllers
             return NoContent();
         }
 
-        // Belirli sahada çakışan rezervasyonları getir
-        [HttpGet("overlaps")]
-        public async Task<IActionResult> GetOverlappingReservations([FromQuery] int fieldId, [FromQuery] DateTime slotStart)
-        {
-            var overlaps = await _service.ReservationService.GetOverlappingReservationsByFieldAsync(fieldId, slotStart);
-            return Ok(overlaps);
-        }
 
         // Tüm ödeme kayıtlarını getir
         [HttpGet("payments")]
