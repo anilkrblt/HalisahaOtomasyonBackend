@@ -113,9 +113,17 @@ namespace Shared.DataTransferObjects
         public decimal Weight { get; set; }
         public string? PlayingPosition { get; set; }
         public bool Gender { get; set; }
+        public List<UserTeamDto>? Teams { get; set; }
+
     }
 
+    public class UserTeamDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string PhotoUrl { get; set; }
 
+    }
 
 
     public class OwnerUpdateDto

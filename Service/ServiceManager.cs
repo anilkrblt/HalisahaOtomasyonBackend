@@ -49,7 +49,7 @@ public class ServiceManager : IServiceManager
 
         /* Auth */
         _auth = new(() =>
-            new AuthService(userManager, signInManager, config, roleManager, redis, _photo.Value));
+            new AuthService(userManager, signInManager, config, roleManager, redis, _photo.Value, repo));
         _facility = new(() => new FacilityService(repo, log, map, _photo.Value));
         _notification = new(() => new NotificationService(repo, log, map, hub));
 

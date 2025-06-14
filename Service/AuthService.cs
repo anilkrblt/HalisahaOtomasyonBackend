@@ -11,6 +11,7 @@ using StackExchange.Redis;
 using MimeKit;
 using MailKit.Security;
 using Microsoft.AspNetCore.JsonPatch;
+using Contracts;
 
 
 namespace Service;
@@ -25,13 +26,17 @@ public class AuthService : IAuthService
     private readonly IConfiguration _cfg;
     private readonly IConnectionMultiplexer _redis;
     private readonly IPhotoService _photoService;
+    private readonly IRepositoryManager _repo;
+
+
 
     public AuthService(UserManager<ApplicationUser> userMgr,
                        SignInManager<ApplicationUser> signInMgr,
                        IConfiguration cfg,
                        RoleManager<IdentityRole<int>> roleMgr,
                        IConnectionMultiplexer redis,
-                       IPhotoService photoService)
+                       IPhotoService photoService,
+                       IRepositoryManager repo)
     {
         _userMgr = userMgr;
         _signInMgr = signInMgr;
@@ -39,6 +44,7 @@ public class AuthService : IAuthService
         _roleMgr = roleMgr;
         _redis = redis;
         _photoService = photoService;
+        _repo = repo;
     }
 
     /*────────────────────────  ŞİFRE SIFIRLAMA  ───────────────────────*/
@@ -211,14 +217,9 @@ public class AuthService : IAuthService
         // 1. User'ı getir
         var user = await _userMgr.FindByIdAsync(userId.ToString());
         if (user is null)
-            return null;   // Controller’da NotFound olarak işleyin
+            return null;
 
-
-        // 2. Rolleri al
         var roles = await _userMgr.GetRolesAsync(user);
-
-
-        Console.WriteLine(roles[0]);
         // 3. Role göre DTO’ya manuel map
         if (roles.Contains("Owner"))
         {
@@ -241,12 +242,38 @@ public class AuthService : IAuthService
 
         if (roles.Contains("Customer"))
         {
+
+
+
             var photos = await _photoService.GetPhotosAsync("user", userId, true);
             var photo = photos.FirstOrDefault();
             // ApplicationUser’dan CustomerDto’ya map
-            Console.WriteLine("ÖNCE");
             var cust = user as Customer;
-            Console.WriteLine("SONRA");
+
+            // 1. Bu user'a ait tüm team membership kayıtlarını çek
+            var memberships = await _repo.TeamMember
+                .GetTeamsByUserIdAsync(userId, false); // List<TeamMember>
+
+            // 2. Bu membership'lara ait teamId listesini bul
+            var teamIds = memberships
+                .Select(tm => tm.TeamId)
+                .Distinct()
+                .ToList();
+
+            // 3. Bütün takımları getir (fonksiyonun filtreli yok)
+            var allTeams = await _repo.Team.GetAllTeamsAsync(false);
+
+            // 4. Sadece user'ın ait olduğu takımları filtrele
+            var userTeams = allTeams
+                .Where(team => teamIds.Contains(team.Id))
+                .Select(team => new UserTeamDto
+                {
+                    Id = team.Id,
+                    Name = team.Name,
+                    PhotoUrl = team.LogoUrl
+                }).ToList();
+
+
             return new CustomerDto
             {
                 FirstName = cust!.FirstName ?? "",
@@ -264,7 +291,8 @@ public class AuthService : IAuthService
                 PlayingPosition = string.IsNullOrWhiteSpace(cust.Positions)
                                   ? null
                                   : cust.Positions,
-                Gender = cust.Gender
+                Gender = cust.Gender,
+                Teams = userTeams
             };
 
         }
