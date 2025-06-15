@@ -261,7 +261,7 @@ public class AuthService : IAuthService
                 .ToList();
 
             // 3. Bütün takımları getir (fonksiyonun filtreli yok)
-            var allTeams = await _repo.Team.GetAllTeamsAsync(false);
+            var allTeams = await _repo.Team.GetTeamsAsync(null, null, false);
 
             // 4. Sadece user'ın ait olduğu takımları filtrele
             var userTeams = allTeams

@@ -12,5 +12,6 @@ namespace Contracts
         Task<TeamMember> GetTeamMemberAsync(int teamId, int userId, bool trackChanges);
         Task<IEnumerable<TeamMember>> GetMembersByTeamIdWithUserAsync(int teamId, bool trackChanges);
         Task<IEnumerable<TeamMember>> GetMembersByTeamIdAsync(int teamId, bool trackChanges);
+        Task<IEnumerable<TeamMember>> GetTeamsByUserIdAsync(int userId, bool trackChanges);
     }
 }

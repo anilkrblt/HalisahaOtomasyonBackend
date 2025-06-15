@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Contracts;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore;
@@ -44,5 +41,11 @@ namespace Repository
                 .OrderByDescending(m => m.IsCaptain)
                 .ThenBy(m => m.JoinedAt)
                 .ToListAsync();
+
+        public async Task<IEnumerable<TeamMember>> GetTeamsByUserIdAsync(int userId, bool trackChanges) =>
+            await IncludeAll(
+                FindByCondition(m => m.UserId == userId, false))
+                .ToListAsync();
+
     }
 }

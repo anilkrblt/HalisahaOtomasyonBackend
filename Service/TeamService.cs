@@ -2,10 +2,8 @@ using AutoMapper;
 using Contracts;
 using Entities.Exceptions;
 using Entities.Models;
-using Microsoft.AspNetCore.Http;
 using Service.Contracts;
 using Shared.DataTransferObjects;
-using Stripe;
 
 namespace Service;
 
