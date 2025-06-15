@@ -26,12 +26,11 @@ namespace HalisahaOtomasyonPresentation.Controllers
 
 
 
-        // TODO id girince kullanıcıların bilglerini getiren get isteği
         /*──── 1. PROFİL GET ─────────────────────────*/
         [HttpGet("/user/info/{id:int}")]
         public async Task<IActionResult> GetUserInformation(int id)
         {
-           
+
             var userObject = await _serviceManager.AuthService.GetUserAsync(id);
 
             if (userObject is null) return NotFound();
@@ -41,16 +40,28 @@ namespace HalisahaOtomasyonPresentation.Controllers
 
         /*──── 1. PROFİL GET ─────────────────────────*/
         [HttpGet("{id:int}")]
+        [Authorize]
         public async Task<IActionResult> GetUser(int id)
         {
-            int userId = int.Parse(User.FindFirst("id")!.Value);
-            if (userId != id) return Forbid();
+            // Claim'den user id'yi güvenle çek
+            var idClaim = User.FindFirst("id");
+            if (idClaim == null)
+                return Unauthorized("Kullanıcı id bilgisi bulunamadı!");
+
+            if (!int.TryParse(idClaim.Value, out int userId))
+                return Unauthorized("Geçersiz kullanıcı id!");
+
+            if (userId != id)
+                return Forbid("Kendi dışındaki kullanıcıyı görüntüleyemezsin!");
 
             var dto = await _serviceManager.AuthService.GetUserAsync(id);
 
-            if (dto is null) return NotFound();
+            if (dto is null)
+                return NotFound("Kullanıcı bulunamadı!");
+
             return Ok(dto);
         }
+
 
         /*──── 2. CUSTOMER PUT & PATCH ───────────────*/
         [Authorize(Roles = "Customer")]

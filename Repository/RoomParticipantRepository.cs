@@ -16,6 +16,15 @@ namespace Repository
         public void CreateParticipant(RoomParticipant p) => Create(p);
         public void DeleteParticipant(RoomParticipant p) => Delete(p);
 
+
+
+        public async Task<RoomParticipant?> GetByCustomerAsync(int roomId, int customerId)
+        {
+            return await FindByCondition(p =>
+                p.RoomId == roomId && p.CustomerId == customerId, false)
+                .FirstOrDefaultAsync();
+        }
+
         /* -------- Tek kayıt -------- */
         public async Task<RoomParticipant?> GetParticipantAsync(
             int roomId, int teamId, bool trackChanges) =>

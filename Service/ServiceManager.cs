@@ -49,21 +49,21 @@ public class ServiceManager : IServiceManager
 
         /* Auth */
         _auth = new(() =>
-            new AuthService(userManager, signInManager, config, roleManager, redis, _photo.Value));
+            new AuthService(userManager, signInManager, config, roleManager, redis, _photo.Value, repo));
         _facility = new(() => new FacilityService(repo, log, map, _photo.Value));
         _notification = new(() => new NotificationService(repo, log, map, hub));
 
         /* Core servisler */
         _comment = new(() => new CommentService(repo, map, log));
         _field = new(() => new FieldService(repo, log, map, _photo.Value));
-        _room = new(() => new RoomService(repo, _notification.Value, code, map));
+        _room = new(() => new RoomService(repo, _notification.Value, code, map, userManager));
         _equipment = new(() => new EquipmentService(repo, map));
         _announcement = new(() => new AnnouncementService(repo, log, map));
         _match = new(() => new MatchService(repo, map));
 
         /* Yeni servisler */
         _facilityRating = new(() => new FacilityRatingService(repo, map));
-        _friendship = new(() => new FriendshipService(repo, map));
+        _friendship = new(() => new FriendshipService(repo, map, _photo.Value));
         _team = new(() => new TeamService(repo, map, log, _photo.Value));
         _reservation = new(() => new ReservationService(repo, map));
     }

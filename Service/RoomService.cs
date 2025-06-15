@@ -3,6 +3,7 @@ using AutoMapper;
 using Contracts;
 using Entities.Exceptions;
 using Entities.Models;
+using Microsoft.AspNetCore.Identity;
 using Service.Contracts;
 using Shared.DataTransferObjects;
 
@@ -14,16 +15,19 @@ public class RoomService : IRoomService
     private readonly INotificationService _notifs;
     private readonly ICodeGenerator _codeGen;
     private readonly IMapper _map;
+    private readonly UserManager<ApplicationUser> _userManager;
 
     public RoomService(IRepositoryManager repo,
                        INotificationService notifs,
                        ICodeGenerator codeGen,
-                       IMapper map)
+                       IMapper map,
+                       UserManager<ApplicationUser> userManager)
     {
         _repo = repo;
         _notifs = notifs;
         _codeGen = codeGen;
         _map = map;
+        _userManager = userManager;
     }
 
     /*──────────────── ROOM CRUD ───────────────────────────────*/
@@ -73,6 +77,41 @@ public class RoomService : IRoomService
             await _repo.Room.GetPublicRoomsAsync(RoomAccessType.Public));
 
     /*──────────────── JOIN ───────────────────────────────────*/
+
+
+    public async Task InviteUserToRoomAsync(int roomId, int userId)
+    {
+        var room = await _repo.Room.GetOneRoomAsync(roomId, false)
+                   ?? throw new RoomNotFoundException(roomId);
+
+        var user = await _userManager.FindByIdAsync(userId.ToString())
+                    ?? throw new UserNotFoundException(userId);
+
+        // Aynı kullanıcı zaten bu odada mı?
+        var existing = await _repo.RoomParticipant.GetByCustomerAsync(roomId, userId);
+        if (existing is not null)
+            throw new InvalidOperationException("Bu kullanıcı zaten bu odada.");
+
+        var participant = new RoomParticipant
+        {
+            RoomId = roomId,
+            CustomerId = userId,
+            Status = ParticipantStatus.Invited
+        };
+
+        _repo.RoomParticipant.CreateParticipant(participant);
+        await _repo.SaveAsync();
+
+        await _notifs.CreateNotificationAsync(new NotificationForCreationDto
+        {
+            UserId = userId,
+            Title = "Maç Daveti",
+            Content = $"Bir maça davet edildin! Oda ID: #{roomId}",
+            RelatedId = roomId,
+            RelatedType = "room"
+        });
+    }
+
 
     public async Task<RoomParticipantDto> JoinRoomAsync(int id, int teamId)
     {
@@ -315,21 +354,14 @@ public class RoomService : IRoomService
         part.IsReady = true;
         await _repo.SaveAsync();
     }
-    public async Task RespondInviteAsync(int roomId, int teamId, int userId, bool accept)
+    public async Task RespondUserInviteAsync(int roomId, int userId, bool accept)
     {
-        // Takımın oyuncusu katılımı kabul/ret ediyor
-        // RoomPlayer gibi bir tablon varsa ona göre işle
-        // Eğer sadece takım düzeyindeyse, katılımcının durumunu güncelle
-
-        var participant = await _repo.RoomParticipant.GetParticipantAsync(roomId, teamId, true)
-                          ?? throw new Exception("Katılımcı bulunamadı.");
-
-        // Varsayım: RoomParticipant, bireysel oyuncu için CustomerId veya UserId tutuyor
-        // Eğer takım üyeleriyle ayrı tablon varsa, onu güncellemelisin.
-        // Aksi halde team-level katılım güncellenir
+        var participant = await _repo.RoomParticipant.GetByCustomerAsync(roomId, userId)
+                          ?? throw new Exception("Kullanıcı bu odaya davetli değil.");
 
         participant.Status = accept ? ParticipantStatus.Accepted : ParticipantStatus.Rejected;
         await _repo.SaveAsync();
     }
+
 
 }

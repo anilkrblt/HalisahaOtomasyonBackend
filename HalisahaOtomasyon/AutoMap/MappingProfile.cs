@@ -79,7 +79,9 @@ namespace HalisahaOtomasyon.AutoMap
             CreateMap<FieldExceptionForCreationDto, FieldException>();
 
 
-            CreateMap<Field, FieldDto>();
+            // Eğer AutoMapper kullanıyorsan:
+
+
 
             CreateMap<FieldForCreationDto, Field>();
 
@@ -186,11 +188,20 @@ namespace HalisahaOtomasyon.AutoMap
             CreateMap<FacilityForCreationDto, Facility>();
             CreateMap<FacilityForUpdateDto, Facility>();
 
-
+/*
             CreateMap<Field, FieldDto>()
             .ForMember(
                 dest => dest.Reservations,
                 opt => opt.MapFrom(src => src.Rooms));
+            CreateMap<Field, FieldDto>()
+            .ForMember(dest => dest.OwnerId, opt => opt.MapFrom(src => src.Facility.OwnerId));
+*/
+            CreateMap<Field, FieldDto>()
+                .ForMember(dest => dest.OwnerId, opt => opt.MapFrom(src => src.Facility.OwnerId))
+                .ForMember(dest => dest.Reservations, opt => opt.MapFrom(src => src.Rooms));
+
+
+
 
             CreateMap<FieldForCreationDto, Field>();
             CreateMap<FieldForUpdateDto, Field>();

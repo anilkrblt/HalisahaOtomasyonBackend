@@ -22,6 +22,10 @@ namespace Repository
              .Include(r => r.Participants)
                  .ThenInclude(p => p.Team);
 
+
+
+
+
         /* ---------- All ------------------- */
         public async Task<IEnumerable<Room>> GetAllRoomsAsync(bool trackChanges) =>
             await IncludeAll(FindAll(trackChanges))

@@ -45,6 +45,7 @@ namespace Shared.DataTransferObjects
 
     public record FieldDto
     {
+        public int OwnerId { get; set; }
 
         public int FacilityId { get; set; }
         public decimal? Latitude { get; set; }
@@ -94,6 +95,7 @@ namespace Shared.DataTransferObjects
         // Günlük rutin ve istisnalar
         public List<WeeklyOpeningDto>? WeeklyOpenings { get; set; }
         public List<FieldExceptionDto>? Exceptions { get; set; }
+
     }
 
     public record FieldForCreationDto
@@ -160,8 +162,8 @@ namespace Shared.DataTransferObjects
         public decimal? PricePerHour { get; set; }
         public bool? LightingAvailable { get; set; }
         public DateTime? CreatedAt { get; set; }
-        public List<WeeklyOpeningDto>? WeeklyOpenings { get; set; }
-        public List<FieldExceptionDto>? Exceptions { get; set; }
+        public List<WeeklyOpeningForCreationDto>? WeeklyOpenings { get; set; }
+        public List<FieldExceptionForCreationDto>? Exceptions { get; set; }
     }
 
 

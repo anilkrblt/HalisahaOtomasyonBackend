@@ -12,12 +12,30 @@ public class FriendshipService : IFriendshipService
 {
     private readonly IRepositoryManager _repo;
     private readonly IMapper _mapper;
+    private readonly IPhotoService _photoService;
 
-    public FriendshipService(IRepositoryManager repo, IMapper mapper)
+    public FriendshipService(IRepositoryManager repo, IMapper mapper, IPhotoService photoService)
     {
         _repo = repo;
         _mapper = mapper;
+        _photoService = photoService;
     }
+
+
+    public async Task<IEnumerable<UserDto>> GetOutgoingRequestsAsync(int userId, bool trackChanges)
+    {
+        var requests = await _repo.Friendship.GetSentRequestsAsync(userId, trackChanges);
+
+        var users = requests.Select(f => new UserDto
+        {
+            Id = f.User2!.Id,
+            UserName = f.User2.UserName,
+            FullName = $"{f.User2.FirstName} {f.User2.LastName}"
+        });
+
+        return users;
+    }
+
 
 
     public async Task<IEnumerable<CustomerLiteDto>> SearchCustomersAsync(string q, int take)
@@ -118,9 +136,36 @@ public class FriendshipService : IFriendshipService
         _mapper.Map<IEnumerable<FriendshipDto>>(
             await _repo.Friendship.GetFriendsOfUserAsync(userId, track));
 
-    public async Task<IEnumerable<FriendshipDto>> GetPendingRequestsAsync(int userId, bool track) =>
-        _mapper.Map<IEnumerable<FriendshipDto>>(
-            await _repo.Friendship.GetPendingRequestsForUserAsync(userId, track));
+    public async Task<IEnumerable<FriendshipDto>> GetPendingRequestsAsync(int userId, bool track)
+    {
+        var requests = await _repo.Friendship.GetPendingRequestsForUserAsync(userId, track);
+
+        var result = new List<FriendshipDto>();
+
+        foreach (var f in requests)
+        {
+            var user = f.User1!;
+            var photos = await _photoService.GetPhotosAsync("user", user.Id, false);
+            var photoUrl = photos.FirstOrDefault()?.Url;
+
+            result.Add(new FriendshipDto(
+                f.UserId1,
+                f.UserId2,
+                f.Status,
+                f.CreatedAt,
+                f.UpdatedAt,
+                new UserMiniDto(
+                    user.Id,
+                    user.UserName!,
+                    $"{user.FirstName} {user.LastName}",
+                    photoUrl
+                )
+            ));
+        }
+
+        return result;
+    }
+
 }
 
 /* Basit istisna */

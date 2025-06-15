@@ -34,6 +34,17 @@ namespace Repository
         }
 
 
+        public async Task<IEnumerable<Friendship>> GetSentRequestsAsync(int fromUserId, bool trackChanges)
+        {
+            return await FindByCondition(f =>
+                f.UserId1 == fromUserId && f.Status == FriendshipStatus.Pending,
+                trackChanges)
+                .Include(f => f.User2)  // Alıcı kullanıcı bilgilerini dahil et
+                .ToListAsync();
+        }
+
+
+
         public async Task<bool> DoesUserExistAsync(int userId) =>
             await RepositoryContext.Users.AnyAsync(u => u.Id == userId);
 
@@ -65,12 +76,12 @@ namespace Repository
         public async Task<Customer?> GetCustomerByUserNameAsync(string userName) =>
             await CustomerSet.SingleOrDefaultAsync(c => c.UserName == userName);
 
-    public async Task<IEnumerable<Customer>> SearchCustomersAsync(string q, int take = 10) =>
-            await CustomerSet
-                 .Where(c => EF.Functions.Like(c.UserName, $"%{q}%"))
-                 .OrderBy(c => c.UserName)
-                 .Take(take)
-                 .ToListAsync();
+        public async Task<IEnumerable<Customer>> SearchCustomersAsync(string q, int take = 10) =>
+                await CustomerSet
+                     .Where(c => EF.Functions.Like(c.UserName, $"%{q}%"))
+                     .OrderBy(c => c.UserName)
+                     .Take(take)
+                     .ToListAsync();
 
     }
 }

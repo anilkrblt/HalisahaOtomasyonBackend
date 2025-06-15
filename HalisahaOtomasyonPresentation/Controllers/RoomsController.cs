@@ -32,13 +32,25 @@ public class RoomsController : ControllerBase
         return NoContent();
     }
 
-    // POST api/rooms/42/invite/respond?teamId=5&userId=17&accept=true
-    [HttpPost("{id:int}/invite/respond")]
-    public async Task<IActionResult> RespondInvite(int id, [FromQuery] int teamId, [FromQuery] int userId, [FromQuery] bool accept)
+
+    // POST api/rooms/42/invite/user/17
+    [HttpPost("{roomId:int}/invite/user/{userId:int}")]
+    public async Task<IActionResult> InviteUser(int roomId, int userId)
     {
-        await _svc.RoomService.RespondInviteAsync(id, teamId, userId, accept);
+        await _svc.RoomService.InviteUserToRoomAsync(roomId, userId);
         return NoContent();
     }
+
+
+    // POST api/rooms/42/invite/respond?teamId=5&userId=17&accept=true
+    // POST api/rooms/42/invite/user/17/respond?accept=true
+    [HttpPost("{roomId:int}/invite/user/{userId:int}/respond")]
+    public async Task<IActionResult> RespondUserInvite(int roomId, int userId, [FromQuery] bool accept)
+    {
+        await _svc.RoomService.RespondUserInviteAsync(roomId, userId, accept);
+        return NoContent();
+    }
+
     // GET api/rooms/42/participants
     [HttpGet("{id:int}/participants")]
     public async Task<IActionResult> GetParticipants(int id)

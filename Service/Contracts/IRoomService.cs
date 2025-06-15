@@ -7,9 +7,9 @@ namespace Service.Contracts;
 
 public interface IRoomService
 {
-
+    Task RespondUserInviteAsync(int roomId, int userId, bool accept);
+    Task InviteUserToRoomAsync(int roomId, int userId);
     Task SetReadyAsync(int roomId, int teamId);
-    Task RespondInviteAsync(int roomId, int teamId, int userId, bool accept);
     /*──────── ROOM CRUD ────────*/
     Task<RoomDto> CreateRoomAsync(RoomCreateDto dto, int creatorTeamId);
     Task<RoomDto?> GetRoomAsync(int roomId);
