@@ -7,6 +7,7 @@ namespace Contracts
     public interface IFriendshipRepository
     {
         /* Command */
+        Task<Friendship?> GetFriendshipExactAsync(int fromUserId, int toUserId, bool trackChanges);
 
         Task<IEnumerable<Friendship>> GetSentRequestsAsync(int fromUserId, bool trackChanges);
 
