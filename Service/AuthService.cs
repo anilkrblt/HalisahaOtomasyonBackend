@@ -292,7 +292,8 @@ public class AuthService : IAuthService
                                   ? null
                                   : cust.Positions,
                 Gender = cust.Gender,
-                Teams = userTeams
+                Teams = userTeams,
+                Status = ""
             };
 
         }

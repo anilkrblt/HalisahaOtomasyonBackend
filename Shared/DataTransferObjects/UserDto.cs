@@ -118,6 +118,7 @@ namespace Shared.DataTransferObjects
         public decimal Weight { get; set; }
         public string? PlayingPosition { get; set; }
         public bool Gender { get; set; }
+        public string? Status { get; set; }
         public List<UserTeamDto>? Teams { get; set; }
 
     }

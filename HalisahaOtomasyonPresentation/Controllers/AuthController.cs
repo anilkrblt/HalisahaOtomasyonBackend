@@ -40,14 +40,16 @@ namespace HalisahaOtomasyonPresentation.Controllers
             var userObject = await _serviceManager.AuthService.GetUserAsync(id);
             if (userObject is null) return NotFound();
 
-            string friendshipStatus = await _serviceManager.FriendshipService
-                .GetRelationshipStatusAsync(callerId, id);
-
-            return Ok(new
+            if (userObject is CustomerDto cust)
             {
-                User = userObject,
-                Status = friendshipStatus
-            });
+                cust.Status = await _serviceManager.FriendshipService
+                    .GetRelationshipStatusAsync(callerId, id);
+
+                return Ok(cust);
+            }
+
+            return Ok(userObject);
+
         }
 
 

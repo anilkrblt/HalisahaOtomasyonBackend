@@ -13,7 +13,11 @@ public record RoomDto
     public int RoomId { get; set; }
     public string? HomeTeamName { get; set; }
     public string? AwayTeamName { get; set; }
+    public int? HomeTeamId { get; set; }
+    public int? AwayTeamId { get; set; }
+
     public int FieldId { get; set; }
+    public string? FieldName { get; set; }
     public DateTime SlotStart { get; set; }
     public DateTime SlotEnd { get; set; }
     public RoomAccessType AccessType { get; set; }

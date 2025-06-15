@@ -66,6 +66,7 @@ namespace Repository
             return await RepositoryContext.Rooms
                 .AsNoTracking()
                 .Where(r => r.AccessType == accessType)
+                .Include(r => r.Field)
                 .Include(r => r.Participants)
                     .ThenInclude(rp => rp.Team)
                 .Include(r => r.Match)
