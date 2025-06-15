@@ -8,6 +8,8 @@ namespace Service.Contracts;
 
 public interface IFriendshipService
 {
+    Task<string> GetRelationshipStatusAsync(int callerId, int otherUserId);
+
     Task<IEnumerable<UserDto>> GetOutgoingRequestsAsync(int userId, bool trackChanges);
 
     Task<FriendshipDto> SendFriendRequestAsync(int fromUserId, int toUserId);

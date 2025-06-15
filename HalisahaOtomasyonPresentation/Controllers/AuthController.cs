@@ -28,13 +28,26 @@ namespace HalisahaOtomasyonPresentation.Controllers
 
         /*──── 1. PROFİL GET ─────────────────────────*/
         [HttpGet("/user/info/{id:int}")]
+        [Authorize]
         public async Task<IActionResult> GetUserInformation(int id)
         {
+            var idClaim = User.FindFirst("id");
+            if (idClaim == null)
+                return Unauthorized("Kullanıcı id bilgisi bulunamadı!");
+
+            int callerId = int.Parse(idClaim.Value);
 
             var userObject = await _serviceManager.AuthService.GetUserAsync(id);
-
             if (userObject is null) return NotFound();
-            return Ok(userObject);
+
+            string friendshipStatus = await _serviceManager.FriendshipService
+                .GetRelationshipStatusAsync(callerId, id);
+
+            return Ok(new
+            {
+                User = userObject,
+                Status = friendshipStatus
+            });
         }
 
 

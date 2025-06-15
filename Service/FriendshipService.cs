@@ -37,6 +37,32 @@ public class FriendshipService : IFriendshipService
     }
 
 
+    public async Task<string> GetRelationshipStatusAsync(int callerId, int otherUserId)
+    {
+        if (callerId == otherUserId)
+            return "self";
+
+        var friendship = await _repo.Friendship.GetFriendshipExactAsync(callerId, otherUserId, false)
+                        ?? await _repo.Friendship.GetFriendshipExactAsync(otherUserId, callerId, false);
+
+        if (friendship is null)
+            return "unfriend";
+
+        if (friendship.Status == FriendshipStatus.Accepted)
+            return "friend";
+
+        if (friendship.Status == FriendshipStatus.Pending)
+        {
+            if (friendship.UserId1 == callerId)
+                return "pending";       // biz gönderdik
+            else
+                return "userPending";   // karşı taraf gönderdi
+        }
+
+        return "unfriend"; // fallback
+    }
+
+
 
     public async Task<IEnumerable<CustomerLiteDto>> SearchCustomersAsync(string q, int take)
     {

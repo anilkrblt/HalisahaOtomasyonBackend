@@ -32,6 +32,16 @@ namespace Repository
                          .Include(f => f.User2)
                          .SingleOrDefaultAsync();
         }
+        public async Task<Friendship?> GetFriendshipExactAsync(int fromUserId, int toUserId, bool trackChanges)
+        {
+            return await FindByCondition(f =>
+                f.UserId1 == fromUserId && f.UserId2 == toUserId,
+                trackChanges)
+                .Include(f => f.User1)
+                .Include(f => f.User2)
+                .SingleOrDefaultAsync();
+        }
+
 
 
         public async Task<IEnumerable<Friendship>> GetSentRequestsAsync(int fromUserId, bool trackChanges)
