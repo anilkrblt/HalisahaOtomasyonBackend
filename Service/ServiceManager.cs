@@ -56,7 +56,7 @@ public class ServiceManager : IServiceManager
         /* Core servisler */
         _comment = new(() => new CommentService(repo, map, log));
         _field = new(() => new FieldService(repo, log, map, _photo.Value));
-        _room = new(() => new RoomService(repo, _notification.Value, code, map));
+        _room = new(() => new RoomService(repo, _notification.Value, code, map, userManager));
         _equipment = new(() => new EquipmentService(repo, map));
         _announcement = new(() => new AnnouncementService(repo, log, map));
         _match = new(() => new MatchService(repo, map));

@@ -9,6 +9,8 @@ namespace Contracts
         /* Command */
         void CreateParticipant(RoomParticipant participant);
         void DeleteParticipant(RoomParticipant participant);
+        Task<RoomParticipant?> GetByCustomerAsync(int roomId, int customerId);
+
 
         /* Query – tek satır (bileşik PK) */
         Task<RoomParticipant?> GetParticipantAsync(int reservationId, int teamId, bool trackChanges);
