@@ -1,11 +1,11 @@
 using AutoMapper;
-using AutoMapper.Execution;
 using Contracts;
 using Entities.Exceptions;
 using Entities.Models;
 using Microsoft.AspNetCore.Http;
 using Service.Contracts;
 using Shared.DataTransferObjects;
+using Stripe;
 
 namespace Service;
 
@@ -27,147 +27,71 @@ public class TeamService : ITeamService
         _log = log;
     }
 
-    /*────────────────────  TEAM  ────────────────────*/
-
-    // Service/TeamService.cs
     public async Task<TeamDto> CreateTeamAsync(TeamForCreationDto dto, int creatorUserId)
     {
-        // 1) Takımı oluştur
         var entity = _mapper.Map<Team>(dto);
         _repo.Team.CreateTeam(entity);
-        await _repo.SaveAsync(); // entity.Id oluştu
+        await _repo.SaveAsync(); 
 
-        // 2) Oluşturan kullanıcıyı kaptan üye olarak ekle
         var captain = new TeamMember
         {
             TeamId = entity.Id,
             UserId = creatorUserId,
             IsCaptain = true,
             IsAdmin = true,
-            Position = PlayerPosition.Utility,  // istersen DTO’ya default pozisyon ekleyebilirsin
+            Position = PlayerPosition.Utility, 
             JoinedAt = DateTime.UtcNow
         };
         _repo.TeamMember.AddMember(captain);
         await _repo.SaveAsync();
 
-        // 3) Son hali tekrar yükleyip DTO’ya çevir
         var fullTeam = await _repo.Team.GetTeamAsync(entity.Id, trackChanges: false);
         return _mapper.Map<TeamDto>(fullTeam);
     }
 
-
-    public async Task SetTeamLogoAsync(int teamId, IFormFile logoFile)
-    {
-        var team = await _repo.Team.GetTeamAsync(teamId, trackChanges: true)
-                   ?? throw new TeamNotFoundException(teamId);
-
-        // logosu “team/{id}” klasörüne koy, path’i al
-        var url = await _photoService.UploadLogoAsync(logoFile, $"team/{teamId}");
-        team.LogoUrl = url;
-        await _repo.SaveAsync();
-    }
-
     public async Task<TeamDto> GetTeamAsync(int teamId, bool track)
     {
-        var teamEntity = await _repo.Team.GetTeamAsync(teamId, track)
+        var members = await _repo.Team.GetTeamAsync(teamId, track)
                          ?? throw new TeamNotFoundException(teamId);
 
-        // TeamMember + User bilgileriyle beraber geliyor olmalı
-        var members = await _repo.TeamMember.GetMembersByTeamIdAsync(teamId, trackChanges: false);
+        var teamDto = _mapper.Map<TeamDto>(members);
 
-        // Takım DTO’sunu mapleyelim
-        var teamDto = _mapper.Map<TeamDto>(teamEntity);
-
-        // 🔧 TeamMemberDto'ları manuel olarak oluşturalım
-        var memberDtos = new List<TeamMemberDto>();
-
-        Console.WriteLine($"Team ID: {teamId} için {members.Count()} adet member bulundu.");
-
-        foreach (var member in members)
+        foreach (var memberDto in teamDto.Members)
         {
-            var user = member.User; // Include ile gelmeli
-            var photoDto = await _photoService.GetPhotosAsync("user", member.UserId, false);
-
-            var memberDto = new TeamMemberDto
-            {
-                UserId = member.UserId,
-                UserName = user?.UserName ?? "",
-                FirstName = user?.FirstName ?? "",
-                LastName = user?.LastName ?? "",
-                IsCaptain = member.IsCaptain,
-                IsAdmin = member.IsAdmin,
-                Position = member.Position,
-                JoinedAt = member.JoinedAt,
-                UserPhotoUrl = photoDto?.FirstOrDefault()?.Url ?? ""
-            };
-
-            memberDtos.Add(memberDto);
+            var photosDto = await _photoService.GetPhotosAsync("user", memberDto.UserId, false);
+            memberDto.UserPhotoUrl = photosDto?.FirstOrDefault()?.Url ?? "";
         }
-
-        teamDto = teamDto with { Members = memberDtos };
 
         return teamDto;
     }
 
-    public async Task<IEnumerable<TeamDto>> GetAllTeamsAsync(bool track)
+    public async Task<IEnumerable<TeamDto>> GetTeamsAsync(string? city, string? teamName, bool trackChanges)
     {
-        // 1. Tüm takımları al
-        var teamEntities = await _repo.Team.GetAllTeamsAsync(track);
-        var teamDtos = new List<TeamDto>();
+        var teams = await _repo.Team.GetTeamsAsync(city, teamName, trackChanges);
+        var teamsDto = _mapper.Map<List<TeamDto>>(teams);
 
-        // 2. Her takım için üyeleri çek ve manuel olarak TeamDto oluştur
-        foreach (var team in teamEntities)
+        foreach (var teamDto in teamsDto)
         {
-            var members = await _repo.TeamMember.GetMembersByTeamIdAsync(team.Id, trackChanges: false);
-
-            var memberDtos = new List<TeamMemberDto>();
-
-            foreach (var member in members)
+            foreach (var memberDto in teamDto.Members)
             {
-                var user = member.User; // Include ile gelmiş olmalı
-                var photoDto = await _photoService.GetPhotosAsync("user", member.UserId, false);
-
-                var memberDto = new TeamMemberDto
-                {
-                    UserId = member.UserId,
-                    UserName = user?.UserName ?? "",
-                    FirstName = user?.FirstName ?? "",
-                    LastName = user?.LastName ?? "",
-                    IsCaptain = member.IsCaptain,
-                    IsAdmin = member.IsAdmin,
-                    Position = member.Position,
-                    JoinedAt = member.JoinedAt,
-                    UserPhotoUrl = photoDto?.FirstOrDefault()?.Url ?? ""
-                };
-
-                memberDtos.Add(memberDto);
+                var photosDto = await _photoService.GetPhotosAsync("user", memberDto.UserId, false);
+                memberDto.UserPhotoUrl = photosDto?.FirstOrDefault()?.Url ?? "";
             }
-
-            var teamDto = _mapper.Map<TeamDto>(team);
-            teamDto = teamDto with { Members = memberDtos };
-
-            teamDtos.Add(teamDto);
         }
 
-        return teamDtos;
+        return teamsDto;
     }
-
-
-
-    public async Task<IEnumerable<TeamDto>> GetTeamsByCityAsync(string city, bool track) =>
-        _mapper.Map<IEnumerable<TeamDto>>(
-            await _repo.Team.GetTeamsByCityAsync(city, track));
-
-    public async Task<IEnumerable<TeamDto>> SearchTeamsByNameAsync(string keyword, bool track) =>
-        _mapper.Map<IEnumerable<TeamDto>>(
-            await _repo.Team.SearchTeamsByNameAsync(keyword, track));
 
     public async Task<TeamDto> UpdateTeamAsync(int id, TeamForUpdateDto dto)
     {
         var entity = await _repo.Team.GetTeamAsync(id, true)
                      ?? throw new TeamNotFoundException(id);
 
+        var url = await _photoService.UploadLogoAsync(dto.Logo, $"team/{id}");
+
         _mapper.Map(dto, entity);
+        entity.LogoUrl = url;
+
         await _repo.SaveAsync();
         return _mapper.Map<TeamDto>(entity);
     }
@@ -181,25 +105,28 @@ public class TeamService : ITeamService
         await _repo.SaveAsync();
     }
 
-    /*─────────────────  TEAM MEMBERS  ───────────────*/
-
-    public async Task AddMemberAsync(int teamId, int userId, PlayerPosition pos, bool isCaptain)
+    public async Task AddMembersAsync(int teamId, List<TeamMemberDtoForAdd> dtos)
     {
         var team = await _repo.Team.GetTeamAsync(teamId, true)
                    ?? throw new TeamNotFoundException(teamId);
 
-        var exists = await _repo.TeamMember.GetMemberAsync(teamId, userId, false);
-        if (exists is not null)
-            throw new InvalidOperationException("Üye zaten takımda.");
+        var members = await _repo.
+            TeamMember
+            .GetMembersByTeamIdAsync(teamId, false);
 
-        var member = new TeamMember
+        var memberIds = members.Select(m => m.UserId).ToHashSet();
+        var duplicateUserIds = dtos.Select(d => d.UserId).Where(id => memberIds.Contains(id)).ToList();
+        if (duplicateUserIds.Any())
+            throw new InvalidOperationException($"Üye zaten takımda: {string.Join(", ", duplicateUserIds)}");
+
+        var newMembers = _mapper.Map<List<TeamMember>>(dtos);
+
+        foreach (var newMember in newMembers)
         {
-            TeamId = teamId,
-            UserId = userId,
-            Position = pos,
-            IsCaptain = isCaptain
-        };
-        _repo.TeamMember.AddMember(member);
+            newMember.TeamId = teamId;
+            _repo.TeamMember.AddMember(newMember);
+        }
+
         await _repo.SaveAsync();
     }
 
@@ -214,7 +141,7 @@ public class TeamService : ITeamService
 
     public async Task<IEnumerable<TeamMemberDto>> GetMembersAsync(int teamId, bool track)
     {
-        var members = await _repo.TeamMember.GetMembersByTeamIdAsync(teamId, track);
+        var members = await _repo.TeamMember.GetMembersByTeamIdWithUserAsync(teamId, track);
         var membersDto = _mapper.Map<List<TeamMemberDto>>(members);
 
         foreach (var member in membersDto)
@@ -229,13 +156,25 @@ public class TeamService : ITeamService
         return membersDto;
     }
 
+    public async Task<TeamMemberDto> SetAdminAndCaptain(int teamId, int userId, TeamMemberDtoForUpdateAdminAndCaptain teamMemberDto)
+    {
+        var member = await _repo.
+            TeamMember
+            .GetTeamMemberAsync(teamId, userId, true);
 
-    public async Task<IEnumerable<TeamDto>> GetTeamsOfUserAsync(int userId, bool track) =>
-        _mapper.Map<IEnumerable<TeamDto>>(
-            await _repo.TeamMember.GetTeamsByUserIdAsync(userId, track));
+        var updatedMember = _mapper.Map(teamMemberDto, member);
+        await _repo.SaveAsync();
 
-    /*───────────────  JOIN REQUESTS  ────────────────*/
+        var updatedMembersDto = _mapper.Map<TeamMemberDto>(updatedMember);
 
+        var photosDto = await _photoService.
+            GetPhotosAsync("user", userId, false);
+
+        var photoUrl = photosDto?.FirstOrDefault()?.Url ?? "";
+        updatedMembersDto.UserPhotoUrl = photoUrl;
+
+        return updatedMembersDto;
+    }
 
     public async Task<TeamJoinRequestDto> CreateJoinRequestAsync(int teamId, int userId)
     {
@@ -245,6 +184,7 @@ public class TeamService : ITeamService
         var pending = (await _repo.TeamJoinRequest
                            .GetPendingRequestsByTeamIdAsync(teamId, true))
                          .FirstOrDefault(r => r.UserId == userId);
+
         if (pending is not null)
             throw new InvalidOperationException("Bekleyen isteğiniz zaten var.");
 
@@ -292,7 +232,6 @@ public class TeamService : ITeamService
         await _repo.SaveAsync();
     }
 
-
     public async Task<IEnumerable<TeamJoinRequestDto>>
         GetTeamJoinRequestsAsync(int teamId, bool track) =>
         _mapper.Map<IEnumerable<TeamJoinRequestDto>>(
@@ -302,24 +241,4 @@ public class TeamService : ITeamService
         GetUserJoinRequestsAsync(int userId, bool track) =>
         _mapper.Map<IEnumerable<TeamJoinRequestDto>>(
             await _repo.TeamJoinRequest.GetRequestsByUserIdAsync(userId, track));
-
-    public async Task<TeamMemberDto> SetAdminAndCaptain(int teamId, int userId, TeamMemberDtoForUpdateAdminAndCaptain teamMemberDto)
-    {
-        var member = await _repo.
-            TeamMember
-            .GetTeamMemberAsync(teamId, userId, true);
-
-        var updatedMember = _mapper.Map(teamMemberDto, member);
-        await _repo.SaveAsync();
-
-        var updatedMembersDto = _mapper.Map<TeamMemberDto>(updatedMember);
-
-        var photosDto = await _photoService.
-            GetPhotosAsync("user", userId, false);
-
-        var photoUrl = photosDto?.FirstOrDefault()?.Url ?? "";
-            updatedMembersDto.UserPhotoUrl = photoUrl;
-
-        return updatedMembersDto;
-    }
 }

@@ -232,7 +232,7 @@ public class RoomService : IRoomService
 
     private async Task NotifyTeamAsync(int teamId, string msg, int roomId)
     {
-        var members = await _repo.TeamMember.GetMembersByTeamIdAsync(teamId, false);
+        var members = await _repo.TeamMember.GetMembersByTeamIdWithUserAsync(teamId, false);
         foreach (var m in members)
             await _notifs.CreateNotificationAsync(new NotificationForCreationDto
             {
@@ -247,7 +247,7 @@ public class RoomService : IRoomService
 
     private async Task NotifyTeamInviteAsync(int teamId, int roomId)
     {
-        var members = await _repo.TeamMember.GetMembersByTeamIdAsync(teamId, false);
+        var members = await _repo.TeamMember.GetMembersByTeamIdWithUserAsync(teamId, false);
         foreach (var m in members)
             await _notifs.CreateNotificationAsync(new NotificationForCreationDto
             {

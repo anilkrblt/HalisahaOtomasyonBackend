@@ -1,7 +1,3 @@
-// ─────────────────────────────────────────────────────────────
-// 1) TAKIM (Team)
-// ─────────────────────────────────────────────────────────────
-
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Entities.Models;
@@ -31,22 +27,20 @@ public record TeamForCreationDto(
     string Content,
     string LogoUrl);
 
-public record TeamForUpdateDto(
-    string Name,
-    string City,
-    string Content,
-    string Town);
-// Shared/DataTransferObjects/TeamDtos.cs
+public class TeamForUpdateDto
+{
+    public string Name { get; set; }
+    public string City { get; set; }
+    public string Town { get; set; }
+    public string Content { get; set; }
+    public IFormFile Logo {  get; set; }
+}
+
 public class TeamLogoUploadDto
 {
     [Required]
     public IFormFile LogoFile { get; set; } = null!;
 }
-
-
-// ─────────────────────────────────────────────────────────────
-// 2) TAKIM ÜYESİ (TeamMember)
-// ─────────────────────────────────────────────────────────────
 
 public record TeamMemberDto
 {
@@ -67,21 +61,12 @@ public record TeamMemberDtoForUpdateAdminAndCaptain
     public bool IsAdmin { get; set; }
 }
 
-public class TeamMemberForAddDto
+public class TeamMemberDtoForAdd
 {
     public int UserId { get; set; }
     public bool IsCaptain { get; set; }
     public bool IsAdmin { get; set; }
-
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public PlayerPosition Position { get; set; }
 }
-
-
-
-// ─────────────────────────────────────────────────────────────
-// 3) TAKIMA KATILIM İSTEĞİ (TeamJoinRequest)
-// ─────────────────────────────────────────────────────────────
 
 public record TeamJoinRequestDto
 {
@@ -95,6 +80,5 @@ public record TeamJoinRequestDto
     public DateTime CreatedAt { get; set; }
     public DateTime? RespondedAt { get; set; }
 }
-
 
 public record TeamJoinRequestForCreationDto(int TeamId, int UserId);

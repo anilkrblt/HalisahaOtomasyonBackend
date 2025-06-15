@@ -147,6 +147,8 @@ namespace HalisahaOtomasyon.AutoMap
 
             CreateMap<TeamForCreationDto, Team>();
             CreateMap<TeamForUpdateDto, Team>();
+            CreateMap<Team, TeamDto>();
+
 
             CreateMap<TeamMember, TeamMemberDto>()
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName))

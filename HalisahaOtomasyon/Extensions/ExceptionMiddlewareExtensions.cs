@@ -1,6 +1,7 @@
 using System.Net;
 using Contracts;
 using Entities.ErrorModel;
+using Entities.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 
 namespace HalisahaOtomasyon.Extensions
@@ -21,7 +22,7 @@ namespace HalisahaOtomasyon.Extensions
                                             context.Response.StatusCode = contextFeature.Error switch
                                             {
                                                 UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
-                                                KeyNotFoundException => StatusCodes.Status404NotFound,
+                                                NotFoundException => StatusCodes.Status404NotFound,
                                                 ArgumentException => StatusCodes.Status400BadRequest,
                                                 _ => StatusCodes.Status500InternalServerError
                                             };

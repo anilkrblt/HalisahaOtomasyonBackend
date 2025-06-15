@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
@@ -17,12 +13,28 @@ namespace HalisahaOtomasyon.ActionFilters
         {
             var action = context.RouteData.Values["action"];
             var controller = context.RouteData.Values["controller"];
-            var param = context.ActionArguments.SingleOrDefault(x => x.Value.ToString().Contains("Dto")).Value;
-            
-            if (param is null)
+
+            foreach (var arg in context.ActionArguments)
             {
-                context.Result = new BadRequestObjectResult($"Object is null. Controller: {controller}, action: {action}");
-                return;
+                var value = arg.Value;
+
+                if (value == null)
+                {
+                    context.Result = new BadRequestObjectResult($"Argument '{arg.Key}' is null. Controller: {controller}, Action: {action}");
+                    return;
+                }
+
+                if (value is IEnumerable<object> list)
+                {
+                    foreach (var item in list)
+                    {
+                        if (item == null)
+                        {
+                            context.Result = new BadRequestObjectResult($"List item in '{arg.Key}' is null. Controller: {controller}, Action: {action}");
+                            return;
+                        }
+                    }
+                }
             }
             if (!context.ModelState.IsValid)
                 context.Result = new UnprocessableEntityObjectResult(context.ModelState);
