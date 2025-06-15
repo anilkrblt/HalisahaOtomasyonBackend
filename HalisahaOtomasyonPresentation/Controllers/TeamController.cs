@@ -2,7 +2,6 @@ using System.Security.Claims;
 using Entities.Models;
 using HalisahaOtomasyon.ActionFilters;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
 using Shared.DataTransferObjects;
@@ -10,7 +9,7 @@ using Shared.DataTransferObjects;
 namespace HalisahaOtomasyonPresentation.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/teams")]
 public class TeamsController : ControllerBase
 {
     public readonly IServiceManager _serviceManager;
@@ -55,22 +54,9 @@ public class TeamsController : ControllerBase
         return CreatedAtRoute("GetTeam", new { id = created.Id }, created);
     }
 
-    /*
-    // update yaz
-        // Yeni logo yükleme endpoint
-        [HttpPost("{id:int}/logo")]
-        [Consumes("multipart/form-data")]
-        public async Task<IActionResult> UploadTeamLogo([FromRoute] int id, [FromForm] TeamLogoUploadDto dto)
-        {
-            if (dto.LogoFile == null) return BadRequest("LogoFile is required.");
-            await _serviceManager.TeamService.SetTeamLogoAsync(id, dto.LogoFile);
-            return NoContent();
-        }
-
-    */
     [ServiceFilter(typeof(ValidationFilterAttribute))]
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> UpdateTeam([FromRoute(Name = "id")] int id, [FromForm] TeamForUpdateDto dto)
+    public async Task<IActionResult> UpdateTeam([FromRoute(Name = "id")] int id, [FromBody] TeamForUpdateDto dto)
     {
         await _serviceManager.TeamService.UpdateTeamAsync(id, dto);
         return NoContent();
@@ -157,7 +143,7 @@ public class TeamsController : ControllerBase
         return Ok(list);
     }
 
-    [HttpPut("/api/join-requests/{requestId:int}")]
+    [HttpPut("join-requests/{requestId:int}")]
     [Authorize]
     public async Task<IActionResult> RespondJoinRequest([FromRoute(Name = "requestId")] int requestId, [FromBody] RequestStatus status)
     {

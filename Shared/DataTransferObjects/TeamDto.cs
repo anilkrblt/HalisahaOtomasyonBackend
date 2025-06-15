@@ -1,31 +1,33 @@
-using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Entities.Models;
-using Microsoft.AspNetCore.Http;
 
 namespace Shared.DataTransferObjects;
 
-public record TeamDto(
-    int Id,
-    string Name,
-    string LogoUrl,
-    string City,
-    string Town,
-    DateTime CreatedAt,
-    int MatchPlayed,
-    int MatchWon,
-    int MatchDrawn,
-    int MatchLost,
-    string Content,
-    double AvgRating,
-    IEnumerable<TeamMemberDto> Members);
+public class TeamDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string? LogoUrl { get; set; }
+    public string City { get; set; }
+    public string Town { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public int MatchPlayed { get; set; }
+    public int MatchWon { get; set; }
+    public int MatchDrawn { get; set; }
+    public int MatchLost { get; set; }
+    public string Content { get; set; }
+    public double AvgRating { get; set; }
+    public IEnumerable<TeamMemberDto> Members { get; set; }
+}
 
-public record TeamForCreationDto(
-    string Name,
-    string City,
-    string Town,
-    string Content,
-    string LogoUrl);
+public record TeamForCreationDto
+{
+    public string Name { get; set; }
+    public string City { get; set; }
+    public string Town { get; set; }
+    public string Content { get; set; }
+    public string? LogoUrl { get; set; }
+}
 
 public class TeamForUpdateDto
 {
@@ -33,13 +35,7 @@ public class TeamForUpdateDto
     public string City { get; set; }
     public string Town { get; set; }
     public string Content { get; set; }
-    public IFormFile Logo {  get; set; }
-}
-
-public class TeamLogoUploadDto
-{
-    [Required]
-    public IFormFile LogoFile { get; set; } = null!;
+    public string? LogoUrl {  get; set; }
 }
 
 public record TeamMemberDto
@@ -80,5 +76,3 @@ public record TeamJoinRequestDto
     public DateTime CreatedAt { get; set; }
     public DateTime? RespondedAt { get; set; }
 }
-
-public record TeamJoinRequestForCreationDto(int TeamId, int UserId);

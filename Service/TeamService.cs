@@ -85,10 +85,10 @@ public class TeamService : ITeamService
         var entity = await _repo.Team.GetTeamAsync(id, true)
                      ?? throw new TeamNotFoundException(id);
 
-        var url = await _photoService.UploadLogoAsync(dto.Logo, $"team/{id}");
-
         _mapper.Map(dto, entity);
-        entity.LogoUrl = url;
+
+        if(dto.LogoUrl is not null)
+            entity.LogoUrl = dto.LogoUrl;
 
         await _repo.SaveAsync();
         return _mapper.Map<TeamDto>(entity);

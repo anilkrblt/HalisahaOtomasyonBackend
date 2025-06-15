@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using Entities.Models;
 using Shared.DataTransferObjects;
@@ -76,15 +72,7 @@ namespace HalisahaOtomasyon.AutoMap
                 .ForMember(dest => dest.Comment, opt => opt.MapFrom(src => src.Comment));
 
 
-            CreateMap<Team, TeamDto>()
-             .ForMember(dest => dest.Members, opt => opt.MapFrom(src => src.Members));
-
-
-
-            CreateMap<TeamMember, TeamMemberDto>();
-
-
-
+ 
 
             CreateMap<WeeklyOpening, WeeklyOpeningDto>().ReverseMap();
             CreateMap<WeeklyOpeningForCreationDto, WeeklyOpening>();
@@ -161,26 +149,6 @@ namespace HalisahaOtomasyon.AutoMap
             CreateMap<Match, MatchDto>().ReverseMap();
 
 
-            CreateMap<TeamForCreationDto, Team>();
-            CreateMap<TeamForUpdateDto, Team>();
-            CreateMap<Team, TeamDto>();
-
-
-            CreateMap<TeamMember, TeamMemberDto>()
-                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName))
-                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.User.FirstName))
-                .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.User.LastName))
-                .ForMember(dest => dest.Position, opt => opt.MapFrom(src => src.Position))
-                .ForMember(dest => dest.IsCaptain, opt => opt.MapFrom(src => src.IsCaptain))
-                .ForMember(dest => dest.IsAdmin, opt => opt.MapFrom(src => src.IsAdmin))
-                .ForMember(dest => dest.JoinedAt, opt => opt.MapFrom(src => src.JoinedAt))
-                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId));
-
-            CreateMap<TeamMemberDtoForUpdateAdminAndCaptain, TeamMember>();
-
-
-            CreateMap<TeamJoinRequest, TeamJoinRequestDto>();
-            CreateMap<TeamJoinRequestForCreationDto, TeamJoinRequest>();
 
 
 
@@ -223,18 +191,12 @@ namespace HalisahaOtomasyon.AutoMap
 
 
 
-            CreateMap<Equipment, EquipmentDto>();
-            CreateMap<EquipmentForCreationDto, Equipment>();
-            CreateMap<EquipmentForUpdateDto, Equipment>();
 
 
             CreateMap<Photo, PhotoDto>();
             CreateMap<PhotoForCreationDto, Photo>();
 
-            CreateMap<Announcement, AnnouncementDto>();
-            CreateMap<AnnouncementForCreationDto, Announcement>();
-            CreateMap<AnnouncementForUpdateDto, Announcement>();
-            CreateMap<AnnouncementForUpdateDto, Announcement>().ReverseMap();
+
 
         }
     }

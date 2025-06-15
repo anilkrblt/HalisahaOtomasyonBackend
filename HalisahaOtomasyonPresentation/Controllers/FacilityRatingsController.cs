@@ -1,4 +1,3 @@
-// Presentation/Controllers/FacilityRatingsController.cs
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,8 +5,6 @@ using Service.Contracts;
 using Shared.DataTransferObjects;
 
 namespace HalisahaOtomasyonPresentation.Controllers;
-
-// Presentation/Controllers/FacilityRatingsController.cs
 
 [ApiController]
 [Route("api/facilities/{facilityId:int}/ratings")]

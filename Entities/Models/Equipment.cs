@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace Entities.Models
 {
     public class Equipment
@@ -10,11 +5,10 @@ namespace Entities.Models
         public int Id { get; set; }
         public int FacilityId { get; set; }
         public Facility Facility { get; set; }
-        public string Name { get; set; }     // Ayakabı             
+        public string Name { get; set; }           
         public bool IsRentable { get; set; }            
         public decimal? Price { get; set; }               
         public int Quantity { get; set; }                
-        public string? Description { get; set; }      // Adidas marka 47 numara ayakkabı    
+        public string? Description { get; set; }
     }
-
 }

@@ -4,23 +4,14 @@ using Entities.Exceptions;
 using Entities.Models;
 using Service.Contracts;
 using Shared.DataTransferObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 
 namespace Service
 {
     public class AnnouncementService : IAnnouncementService
     {
-
         private readonly IRepositoryManager _repositoryManager;
         private readonly ILoggerManager _loggerManager;
         private readonly IMapper _mapper;
-
-
 
         public AnnouncementService(IRepositoryManager manager, ILoggerManager logger, IMapper mapper)
         {
@@ -28,7 +19,6 @@ namespace Service
             _loggerManager = logger;
             _mapper = mapper;
         }
-
 
         public async Task<AnnouncementDto> CreateAnnouncementAsync(int facilityId, AnnouncementForCreationDto announcementDto)
         {
@@ -75,7 +65,6 @@ namespace Service
             {
                 throw new AnnouncementNotFoundException(announcementId);
             }
-
 
             _mapper.Map(announcement, entity);
             await _repositoryManager.SaveAsync();

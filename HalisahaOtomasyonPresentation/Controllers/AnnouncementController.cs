@@ -20,17 +20,14 @@ namespace HalisahaOtomasyonPresentation.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAnnouncements([FromQuery] int? facilityId)
         {
-            // Tüm duyuruları al
             var anns = await _service.AnnouncementService
                                      .GetAllAnnouncementsAsync(trackChanges: false);
 
-            // Query parametre geldiyse filtrele
             if (facilityId.HasValue)
                 anns = anns
                     .Where(a => a.FacilityId == facilityId.Value)
                     .ToList();
 
-            // Fotoğraf URL'lerini ekle
             foreach (var ann in anns)
             {
                 var photos = await _service.PhotoService.GetPhotosAsync("announcement", ann.Id, false);
@@ -41,8 +38,6 @@ namespace HalisahaOtomasyonPresentation.Controllers
             return Ok(anns);
         }
 
-
-
         [HttpGet("{announcementId:int}", Name = "GetAnnouncement")]
         public async Task<IActionResult> GetAnnouncement(int announcementId)
         {
@@ -52,7 +47,6 @@ namespace HalisahaOtomasyonPresentation.Controllers
             ann.BannerUrl = photo?.Url;
             return Ok(ann);
         }
-
 
         [HttpPost]
         [Route("/api/announcements/{facilityId:int}")]
