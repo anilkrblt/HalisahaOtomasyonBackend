@@ -174,23 +174,28 @@ public class FriendshipService : IFriendshipService
             var photos = await _photoService.GetPhotosAsync("user", user.Id, false);
             var photoUrl = photos.FirstOrDefault()?.Url;
 
-            result.Add(new FriendshipDto(
-                f.UserId1,
-                f.UserId2,
-                f.Status,
-                f.CreatedAt,
-                f.UpdatedAt,
-                new UserMiniDto(
-                    user.Id,
-                    user.UserName!,
-                    $"{user.FirstName} {user.LastName}",
-                    photoUrl
-                )
-            ));
+            var dto = new FriendshipDto
+            {
+                UserId1 = f.UserId1,
+                UserId2 = f.UserId2,
+                Status = f.Status,
+                CreatedAt = f.CreatedAt,
+                UpdatedAt = f.UpdatedAt,
+                User1Info = new UserMiniDto
+                {
+                    Id = user.Id,
+                    UserName = user.UserName!,
+                    FullName = $"{user.FirstName} {user.LastName}",
+                    PhotoUrl = photoUrl
+                }
+            };
+
+            result.Add(dto);
         }
 
         return result;
     }
+
 
 }
 
