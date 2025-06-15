@@ -15,7 +15,6 @@ namespace HalisahaOtomasyonPresentation.Controllers
             _service = service;
         }
 
-
         [HttpGet]
         // [SwaggerOperation(Summary = "Tüm tesisleri getirir", Description = "Kayıtlı tüm tesisleri ve fotoğraflarını listeler.")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -49,7 +48,6 @@ namespace HalisahaOtomasyonPresentation.Controllers
             return Ok(facility);
         }
 
-
         //[ServiceFilter(typeof(ValidationFilterAttribute))]
         [HttpPost]
         [Consumes("multipart/form-data")]
@@ -76,9 +74,6 @@ namespace HalisahaOtomasyonPresentation.Controllers
             return CreatedAtRoute("GetFacilityById", new { id = createdFacility.Id }, createdFacility);
         }
 
-
-
-
         [HttpDelete("{id:int}")]
         // [SwaggerOperation(Summary = "Tesis siler", Description = "ID’ye göre tesisi ve ona ait tüm fotoğrafları siler.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -89,7 +84,6 @@ namespace HalisahaOtomasyonPresentation.Controllers
             await _service.FacilityService.DeleteFacility(id, false);
             return NoContent();
         }
-
 
         [HttpPut("{id:int}")]
         [Consumes("multipart/form-data")]
@@ -104,7 +98,6 @@ namespace HalisahaOtomasyonPresentation.Controllers
             return NoContent();
         }
 
-
         [HttpPatch("{id:int}")]
         // [SwaggerOperation(Summary = "Tesisin bazı alanlarını günceller", Description = "Kısmi veri gönderimiyle bir tesisin seçilen alanlarını günceller.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -117,8 +110,6 @@ namespace HalisahaOtomasyonPresentation.Controllers
             await _service.FacilityService.PatchFacilityAsync(id, patch);
             return NoContent();
         }
-
-        // fotoğraf güncelleme
 
         [HttpPut("{id:int}/photos")]
         [Consumes("multipart/form-data")]
@@ -139,7 +130,6 @@ namespace HalisahaOtomasyonPresentation.Controllers
 
             return NoContent();
         }
-
     }
 }
 

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
 using Shared.DataTransferObjects;
@@ -81,8 +77,6 @@ namespace HalisahaOtomasyonPresentation.Controllers
             return Ok(fields);
         }
 
-
-
         [HttpGet("{id:int}", Name = "FieldById")]
         public async Task<IActionResult> GetField(int id)
         {
@@ -110,8 +104,6 @@ namespace HalisahaOtomasyonPresentation.Controllers
 
             return NoContent();
         }
-
-
 
         [HttpPost]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
@@ -152,7 +144,6 @@ namespace HalisahaOtomasyonPresentation.Controllers
             return CreatedAtRoute("FieldById", new { id = createdField.Id }, createdField);
         }
 
-
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteField(int id)
         {
@@ -179,7 +170,6 @@ namespace HalisahaOtomasyonPresentation.Controllers
             return NoContent();
         }
 
-
         [HttpPut("{id:int}/photos")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> UpdateFieldPhotos(int id, [FromForm] FieldPhotosUpdateDto dto)
@@ -196,6 +186,5 @@ namespace HalisahaOtomasyonPresentation.Controllers
 
             return NoContent();
         }
-
     }
 }

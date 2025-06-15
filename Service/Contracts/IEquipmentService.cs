@@ -1,6 +1,4 @@
 using Shared.DataTransferObjects;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Service.Contracts
 {

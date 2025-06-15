@@ -1,11 +1,9 @@
-// Service/PhotoService.cs
 using AutoMapper;
 using Contracts;
 using Entities.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Shared.DataTransferObjects;
-using System.IO;
 
 namespace Service
 {
@@ -16,7 +14,7 @@ namespace Service
         private readonly IWebHostEnvironment _env;
 
         private static readonly string[] _allowed = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
-        private const int _maxSize = 5 * 1024 * 1024;                    // 5 MB
+        private const int _maxSize = 5 * 1024 * 1024;
 
         public PhotoService(IRepositoryManager repo,
                             IMapper map,
@@ -27,14 +25,11 @@ namespace Service
             _env = env;
         }
 
-        /*─────────── HELPERS ───────────*/
-
-        /// <summary>wwwroot yolunu garantiye alır (yoksa oluşturur).</summary>
         private string GetWebRoot()
         {
             var root = _env.WebRootPath
                        ?? Path.Combine(_env.ContentRootPath, "wwwroot");
-            Directory.CreateDirectory(root);          // yoksa oluştur
+            Directory.CreateDirectory(root);         
             return root;
         }
 
@@ -47,9 +42,6 @@ namespace Service
                 throw new InvalidOperationException("Dosya 5 MB’tan büyük.");
         }
 
-        /*─────────── PUBLIC API ───────────*/
-
-        /// <summary>Logo – tek dosya, URL döndürür.</summary>
         public async Task<string> UploadLogoAsync(IFormFile file, string entityFolder)
         {
             if (string.IsNullOrWhiteSpace(entityFolder))
@@ -71,7 +63,6 @@ namespace Service
             return $"/images/{entityFolder}/{logoName}";
         }
 
-        /// <summary>En fazla 5 fotoğraf yükler.</summary>
         public async Task UploadPhotosAsync(IEnumerable<IFormFile> files,
                                             string entityType,
                                             int entityId,
@@ -110,12 +101,10 @@ namespace Service
             await _repo.SaveAsync();
         }
 
-        /// <summary>Fotoğrafları listeler.</summary>
         public async Task<IEnumerable<PhotoDto>> GetPhotosAsync(string entityType, int entityId, bool track) =>
             _map.Map<IEnumerable<PhotoDto>>(
                 await _repo.Photo.GetAllByEntityAsync(entityType.ToLower(), entityId, track));
 
-        /// <summary>Bir varlığa ait tüm fotoğrafları (logo dâhil) siler.</summary>
         public async Task DeletePhotosByEntityAsync(string entityType, int entityId, bool track)
         {
             var rows = await _repo.Photo.GetAllByEntityAsync(entityType, entityId, track);

@@ -2,9 +2,6 @@
 using Entities.Models;
 using Microsoft.EntityFrameworkCore;
 
-// Bir halısaha sahibi duyuru oluşturdugunda kendi duyuru sayfasında görünsün
-// 
-
 namespace Repository
 {
     public class AnnouncementRepository : RepositoryBase<Announcement>, IAnnouncementRepository
@@ -19,7 +16,7 @@ namespace Repository
 
         public async Task<Announcement?> GetAnnouncementAsync(int announcementId, bool trackChanges) =>
             await FindByCondition(a => a.Id == announcementId, trackChanges)
-                .Include(a => a.Facility) // Announcement -> Facility ilişkisini getiriyoruz
+                .Include(a => a.Facility)
                 .SingleOrDefaultAsync();
 
         public async Task<IEnumerable<Announcement>> GetAnnouncementsAsync(bool trackChanges) =>

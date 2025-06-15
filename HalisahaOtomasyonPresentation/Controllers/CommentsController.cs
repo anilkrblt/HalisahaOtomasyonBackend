@@ -1,5 +1,3 @@
-using System.Security.Claims;
-using Entities.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
@@ -18,8 +16,6 @@ public class CommentsController : ControllerBase
         _svc = service.CommentService;
     }
 
-    /*──────────────────── FIELD COMMENTS ───────────────────*/
-
     [HttpGet("field/{fieldId:int}/comments", Name = "GetFieldComments")]
     public async Task<IActionResult> GetFieldComments([FromRoute] int fieldId)
     {
@@ -28,7 +24,6 @@ public class CommentsController : ControllerBase
         return Ok(comments);
     }
 
-
     [HttpGet("field/{fieldId:int}/comments/{commentId}", Name = "GetFieldComment")]
     public async Task<IActionResult> GetFieldComment([FromRoute] int fieldId, [FromRoute] int commentId)
     {
@@ -36,7 +31,6 @@ public class CommentsController : ControllerBase
 
         return Ok(comments);
     }
-
 
     [HttpPost("field")]
     [Authorize]
@@ -60,7 +54,6 @@ public class CommentsController : ControllerBase
             value: created);
     }
 
-
     [HttpPut("field/{commentId:int}")]
     [Authorize]
     public async Task<IActionResult> UpdateFieldComment([FromRoute] int commentId, [FromBody] FieldCommentForUpdateDto dto)
@@ -68,7 +61,6 @@ public class CommentsController : ControllerBase
         await _svc.UpdateFieldCommentAsync(commentId, dto);
         return NoContent();
     }
-
 
     [HttpDelete("field/{commentId:int}")]
     [Authorize]
@@ -78,19 +70,9 @@ public class CommentsController : ControllerBase
         return NoContent();
     }
 
-
-
-
-
-
-
-    /*──────────────────── TEAM COMMENTS ───────────────────*/
-
     [HttpGet("team/{teamId:int}/comments", Name = "GetTeamComments")]
     public async Task<IActionResult> GetTeamComments([FromRoute] int teamId) =>
         Ok(await _svc.GetTeamCommentsAsync(teamId, trackChanges: false));
-
-
 
     [HttpPost("team")]
     [Authorize]
@@ -134,7 +116,6 @@ public class CommentsController : ControllerBase
         return NoContent();
     }
 
-    /*──────────────────── USER COMMENTS ───────────────────*/
     [HttpGet("user/to/{userId:int}")]
     public async Task<IActionResult> GetCommentsAboutUser(int userId) =>
         Ok(await _svc.GetCommentsAboutUserAsync(userId, trackChanges: false));
