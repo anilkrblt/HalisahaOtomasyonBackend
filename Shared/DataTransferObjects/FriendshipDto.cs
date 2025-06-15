@@ -7,21 +7,23 @@ using Entities.Models;
 namespace Shared.DataTransferObjects
 {
     /* Arkadaş satırını döndürürken */
-    public record FriendshipDto(
-     int UserId1,
-     int UserId2,
-     FriendshipStatus Status,
-     DateTime CreatedAt,
-     DateTime? UpdatedAt,
-     UserMiniDto User1Info
- );
+    public class FriendshipDto
+    {
+        public int UserId1 { get; set; }
+        public int UserId2 { get; set; }
+        public FriendshipStatus Status { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
 
-    public record UserMiniDto(
-        int Id,
-        string UserName,
-        string FullName,
-        string? PhotoUrl
-    );
+        public UserMiniDto? User1Info { get; set; } // optional olabilir
+    }
+    public class UserMiniDto
+    {
+        public int Id { get; set; }
+        public string UserName { get; set; } = string.Empty;
+        public string FullName { get; set; } = string.Empty;
+        public string? PhotoUrl { get; set; }
+    }
 
 
     /* İstek gönderme */
