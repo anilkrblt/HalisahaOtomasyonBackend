@@ -141,8 +141,10 @@ public class FriendshipService : IFriendshipService
         if (row.Status != FriendshipStatus.Pending || row.UserId1 != Math.Min(fromUserId, toUserId))
             throw new InvalidOperationException("İptal edilecek bekleyen istek bulunamadı.");
 
-        row.Status = FriendshipStatus.Rejected;
-        row.UpdatedAt = DateTime.UtcNow;
+        /*
+                row.Status = FriendshipStatus.Rejected;
+                row.UpdatedAt = DateTime.UtcNow;*/
+        _repo.Friendship.DeleteFriendship(row);
 
         await _repo.SaveAsync();
     }
@@ -162,9 +164,41 @@ public class FriendshipService : IFriendshipService
     }
 
     /*──── Queries ────*/
-    public async Task<IEnumerable<FriendshipDto>> GetFriendsAsync(int userId, bool track) =>
-        _mapper.Map<IEnumerable<FriendshipDto>>(
-            await _repo.Friendship.GetFriendsOfUserAsync(userId, track));
+    public async Task<IEnumerable<FriendshipDto>> GetFriendsAsync(int userId, bool track)
+    {
+        var friendships = await _repo.Friendship.GetFriendsOfUserAsync(userId, track);
+
+        var list = new List<FriendshipDto>();
+
+        foreach (var f in friendships)
+        {
+            var user = f.UserId1 == userId ? f.User2! : f.User1!;
+
+            var photos = await _photoService.GetPhotosAsync("user", user.Id, true);
+            var photoUrl = photos.FirstOrDefault()?.Url;
+
+            var dto = new FriendshipDto
+            {
+                UserId1 = f.UserId1,
+                UserId2 = f.UserId2,
+                Status = f.Status,
+                CreatedAt = f.CreatedAt,
+                UpdatedAt = f.UpdatedAt,
+                User1Info = new UserMiniDto
+                {
+                    Id = user.Id,
+                    UserName = user.UserName!,
+                    FullName = $"{user.FirstName} {user.LastName}",
+                    PhotoUrl = photoUrl
+                }
+            };
+
+            list.Add(dto);
+        }
+
+        return list;
+    }
+
 
     public async Task<IEnumerable<FriendshipDto>> GetPendingRequestsAsync(int userId, bool track)
     {
