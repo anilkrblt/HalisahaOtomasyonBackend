@@ -77,6 +77,20 @@ public class RoomService : IRoomService
             await _repo.Room.GetPublicRoomsAsync(RoomAccessType.Public));
 
     /*──────────────── JOIN ───────────────────────────────────*/
+    public async Task InviteUsersToRoomAsync(int roomId, List<int> userIds)
+    {
+        foreach (var userId in userIds)
+        {
+            try
+            {
+                await InviteUserToRoomAsync(roomId, userId);
+            }
+            catch (InvalidOperationException)
+            {
+                continue;
+            }
+        }
+    }
 
 
     public async Task InviteUserToRoomAsync(int roomId, int userId)

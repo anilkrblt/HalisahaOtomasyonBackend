@@ -15,7 +15,7 @@ namespace Shared.DataTransferObjects
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
 
-        public UserMiniDto? User1Info { get; set; } // optional olabilir
+        public UserMiniDto? User1Info { get; set; }
     }
     public class UserMiniDto
     {

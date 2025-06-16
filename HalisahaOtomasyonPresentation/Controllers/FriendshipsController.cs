@@ -1,5 +1,4 @@
 // Presentation/Controllers/FriendshipsController.cs
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
@@ -10,6 +9,8 @@ namespace HalisahaOtomasyonPresentation.Controllers
     [ApiController]
     [Authorize]
     [Route("api/friendships")]
+    // TODO bu controlleri ve servisi kontrol et bi temizlik yap
+    // TODO arkadaşlık isteği iptal kısmında bug var
     public class FriendshipsController : ControllerBase
     {
         private readonly IServiceManager _svc;
@@ -107,6 +108,7 @@ namespace HalisahaOtomasyonPresentation.Controllers
         }
 
 
+        // TODO sıkıntı
         /*──── Bekleyen isteği iptal ────*/
         [HttpDelete("{fromId:int}/{toId:int}/cancel")]
         public async Task<IActionResult> Cancel(int fromId, int toId)

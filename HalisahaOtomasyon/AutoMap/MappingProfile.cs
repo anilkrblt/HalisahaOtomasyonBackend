@@ -72,7 +72,7 @@ namespace HalisahaOtomasyon.AutoMap
                 .ForMember(dest => dest.Comment, opt => opt.MapFrom(src => src.Comment));
 
 
- 
+
 
             CreateMap<WeeklyOpening, WeeklyOpeningDto>().ReverseMap();
             CreateMap<WeeklyOpeningForCreationDto, WeeklyOpening>();
@@ -139,6 +139,7 @@ namespace HalisahaOtomasyon.AutoMap
 
 
             CreateMap<Friendship, FriendshipDto>();
+
 
 
             CreateMap<FacilityRating, FacilityRatingDto>();

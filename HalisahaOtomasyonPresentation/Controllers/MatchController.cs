@@ -6,6 +6,7 @@ namespace HalisahaOtomasyonPresentation.Controllers;
 
 [ApiController]
 [Route("api/matches")]
+// TODO maç mantığını kontrol et her rezervasyon bir maç olabilir
 public class MatchesController : ControllerBase
 {
     private readonly IServiceManager _service;

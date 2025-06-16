@@ -14,6 +14,8 @@ public interface IRoomService
     Task<RoomDto> CreateRoomAsync(RoomCreateDto dto, int creatorTeamId);
     Task<RoomDto?> GetRoomAsync(int roomId);
     Task<IEnumerable<RoomDto>> GetPublicRoomsAsync();
+    Task InviteUsersToRoomAsync(int roomId, List<int> userIds);
+
 
     /*──────── PARTICIPATION ────*/
     Task<RoomParticipantDto> JoinRoomAsync(int roomId, int teamId);          // public

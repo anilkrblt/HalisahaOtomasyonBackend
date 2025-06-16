@@ -8,6 +8,7 @@ using Stripe.Checkout;
 
 namespace HalisahaOtomasyonPresentation.Controllers
 {
+    // ödeme ihtiyaçlarına göre yeni endpointler ekle
     [ApiController]
     [Route("api/[controller]")]
     public class PaymentsController : ControllerBase

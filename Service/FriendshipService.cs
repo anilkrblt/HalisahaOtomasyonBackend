@@ -104,6 +104,7 @@ public class FriendshipService : IFriendshipService
                 UserId2 = Math.Max(fromUserId, toUserId),
                 Status = FriendshipStatus.Pending,
                 CreatedAt = DateTime.UtcNow
+
             };
 
             _repo.Friendship.CreateFriendship(row);
@@ -140,9 +141,12 @@ public class FriendshipService : IFriendshipService
         if (row.Status != FriendshipStatus.Pending || row.UserId1 != Math.Min(fromUserId, toUserId))
             throw new InvalidOperationException("İptal edilecek bekleyen istek bulunamadı.");
 
-        _repo.Friendship.DeleteFriendship(row);
+        row.Status = FriendshipStatus.Rejected;
+        row.UpdatedAt = DateTime.UtcNow;
+
         await _repo.SaveAsync();
     }
+
 
 
 
