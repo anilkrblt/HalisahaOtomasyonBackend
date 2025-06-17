@@ -3,6 +3,7 @@ using Service.Contracts;
 using Shared.DataTransferObjects;
 
 namespace HalisahaOtomasyonPresentation.Controllers;
+// TODO odaları kontrol et
 
 [ApiController]
 [Route("api/rooms")]
@@ -38,6 +39,12 @@ public class RoomsController : ControllerBase
     public async Task<IActionResult> InviteUser(int roomId, int userId)
     {
         await _svc.RoomService.InviteUserToRoomAsync(roomId, userId);
+        return NoContent();
+    }
+    [HttpPost("{roomId:int}/invite/users")]
+    public async Task<IActionResult> InviteUsers(int roomId, [FromBody] List<int> userIds)
+    {
+        await _svc.RoomService.InviteUsersToRoomAsync(roomId, userIds);
         return NoContent();
     }
 

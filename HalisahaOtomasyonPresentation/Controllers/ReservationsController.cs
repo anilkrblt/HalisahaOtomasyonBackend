@@ -5,6 +5,7 @@ using Shared.DataTransferObjects;
 
 namespace HalisahaOtomasyonPresentation.Controllers
 {
+    //TODO rezervasyonları kontrol et
     [ApiController]
     [Route("api/reservations")]
     public class ReservationsController : ControllerBase

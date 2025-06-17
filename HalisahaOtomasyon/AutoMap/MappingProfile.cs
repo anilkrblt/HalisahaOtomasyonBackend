@@ -75,7 +75,16 @@ namespace HalisahaOtomasyon.AutoMap
             CreateMap<MonthlyMembership, MonthlyMembershipDto>();
             CreateMap<MonthlyMembershipForCreationDto, MonthlyMembership>();
 
-            CreateMap<Friendship, FriendshipDto>();
+
+            CreateMap<Friendship, FriendshipDto>()
+                .ForMember(dest => dest.User1Info, opt => opt.MapFrom(src => new UserMiniDto
+                {
+                    Id = src.User1!.Id,
+                    UserName = src.User1.UserName!,
+                    FullName = $"{src.User1.FirstName} {src.User1.LastName}",
+                    PhotoUrl = ""
+                }));
+
 
             CreateMap<FacilityRating, FacilityRatingDto>();
             CreateMap<FacilityRatingForCreationDto, FacilityRating>();

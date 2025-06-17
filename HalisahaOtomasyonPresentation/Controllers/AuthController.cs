@@ -12,6 +12,7 @@ using Shared.DataTransferObjects;
 namespace HalisahaOtomasyonPresentation.Controllers
 {
 
+    //TODO Tüm endpointleri kontrol et
     [ApiController]
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
