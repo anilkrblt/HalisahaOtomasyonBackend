@@ -66,9 +66,9 @@ namespace HalisahaOtomasyonPresentation.Controllers
                                                  [FromBody] FriendRequestRespondDto dto)
         {
             if (CallerId != userA && CallerId != userB)
-                return Forbid();                // sadece taraflar yanıtlayabilir
+                return Forbid();
 
-            await _svc.FriendshipService.RespondFriendRequestAsync(userA, userB, dto.Status);
+            await _svc.FriendshipService.RespondFriendRequestAsync(userB, userA, dto.Status);
             return NoContent();
         }
 
