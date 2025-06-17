@@ -54,6 +54,33 @@ public record RoomParticipantDto
 }
 
 
+public class RoomParticipantsGroupedDto
+{
+    public RoomTeamDto? HomeTeam { get; set; }
+    public RoomTeamDto? AwayTeam { get; set; }
+}
+
+public class RoomTeamDto
+{
+    public int TeamId { get; set; }
+    public string TeamName { get; set; } = null!;
+    public string? LogoUrl { get; set; }
+
+    public List<RoomTeamMemberDto> Members { get; set; } = new();
+}
+
+public record RoomTeamMemberDto
+{
+    public int UserId { get; set; }
+    public string UserName { get; set; } = "";
+    public string FullName { get; set; } = "";
+    public List<string> Positions { get; set; } = new();
+    public bool IsReady { get; set; }
+}
+
+
+
+
 public record RoomParticipantForCreationDto(
     int RoomId,
     int TeamId,

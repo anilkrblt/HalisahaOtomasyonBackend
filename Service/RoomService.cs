@@ -314,11 +314,53 @@ public class RoomService : IRoomService
 
 
 
-
-    public Task<IEnumerable<RoomParticipantDto>> GetParticipantsByRoomAsync(int roomId, bool trackChanges)
+    public async Task<RoomParticipantsGroupedDto> GetParticipantsByRoomAsync(int roomId, bool trackChanges)
     {
-        throw new NotImplementedException();
+        var room = await _repo.Room.GetOneRoomAsync(roomId, trackChanges)
+                   ?? throw new RoomNotFoundException(roomId);
+
+        RoomTeamDto? MapTeam(RoomParticipant teamParticipant)
+        {
+            if (teamParticipant.Team == null) return null;
+
+            // O takıma ait tüm RoomParticipant kayıtları (oyuncular)
+            var roomParticipants = room.Participants
+                .Where(p => p.TeamId == teamParticipant.TeamId)
+                .ToList();
+
+            var members = roomParticipants
+                .Select(p => p.Team?.Members.FirstOrDefault(m => m.UserId == p.CustomerId)) // TeamMember
+                .Where(m => m != null)
+                .Select(m => new RoomTeamMemberDto
+                {
+                    UserId = m.UserId,
+                    UserName = m.User?.UserName ?? "",
+                    FullName = $"{m.User?.FirstName} {m.User?.LastName}",
+                    Positions = PositionHelper.ParsePositions(m.Position),
+                    IsReady = roomParticipants.First(rp => rp.CustomerId == m.UserId).IsReady
+                })
+                .ToList();
+
+            return new RoomTeamDto
+            {
+                TeamId = teamParticipant.Team.Id,
+                TeamName = teamParticipant.Team.Name,
+                LogoUrl = teamParticipant.Team.LogoUrl,
+                Members = members
+            };
+        }
+
+
+        var homePart = room.Participants.FirstOrDefault(p => p.IsHome);
+        var awayPart = room.Participants.FirstOrDefault(p => !p.IsHome);
+
+        return new RoomParticipantsGroupedDto
+        {
+            HomeTeam = homePart != null ? MapTeam(homePart) : null,
+            AwayTeam = awayPart != null ? MapTeam(awayPart) : null
+        };
     }
+
 
     public Task<IEnumerable<RoomParticipantDto>> GetParticipantsByTeamAsync(int teamId, bool trackChanges)
     {

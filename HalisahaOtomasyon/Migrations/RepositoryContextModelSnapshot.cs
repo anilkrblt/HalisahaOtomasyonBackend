@@ -471,7 +471,8 @@ namespace HalisahaOtomasyon.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FieldId");
+                    b.HasIndex("FieldId", "Date")
+                        .IsUnique();
 
                     b.ToTable("FieldExceptions");
                 });
@@ -971,8 +972,9 @@ namespace HalisahaOtomasyon.Migrations
                     b.Property<DateTime>("JoinedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("Position")
-                        .HasColumnType("int");
+                    b.Property<string>("Position")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.HasKey("TeamId", "UserId");
 
@@ -1045,7 +1047,8 @@ namespace HalisahaOtomasyon.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FieldId");
+                    b.HasIndex("FieldId", "DayOfWeek")
+                        .IsUnique();
 
                     b.ToTable("WeeklyOpenings");
                 });
@@ -1296,7 +1299,7 @@ namespace HalisahaOtomasyon.Migrations
                         .HasForeignKey("FacilityId");
 
                     b.HasOne("Entities.Models.Field", "Field")
-                        .WithMany()
+                        .WithMany("Comments")
                         .HasForeignKey("FieldId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1645,6 +1648,8 @@ namespace HalisahaOtomasyon.Migrations
 
             modelBuilder.Entity("Entities.Models.Field", b =>
                 {
+                    b.Navigation("Comments");
+
                     b.Navigation("Exceptions");
 
                     b.Navigation("MonthlyMemberships");

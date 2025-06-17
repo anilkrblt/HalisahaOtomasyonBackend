@@ -38,7 +38,7 @@ public class TeamService : ITeamService
             UserId = creatorUserId,
             IsCaptain = true,
             IsAdmin = true,
-            Position = PlayerPosition.Utility, 
+            Position = "Kaptan",
             JoinedAt = DateTime.UtcNow
         };
         _repo.TeamMember.AddMember(captain);

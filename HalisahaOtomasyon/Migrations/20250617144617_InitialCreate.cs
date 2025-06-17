@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HalisahaOtomasyon.Migrations
 {
     /// <inheritdoc />
-    public partial class IntialCreate : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -107,6 +107,8 @@ namespace HalisahaOtomasyon.Migrations
                     Town = table.Column<string>(type: "varchar(128)", maxLength: 128, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    Content = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     MatchPlayed = table.Column<int>(type: "int", nullable: false),
                     MatchWon = table.Column<int>(type: "int", nullable: false),
                     MatchDrawn = table.Column<int>(type: "int", nullable: false),
@@ -280,8 +282,8 @@ namespace HalisahaOtomasyon.Migrations
                     LogoUrl = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     OwnerId = table.Column<int>(type: "int", nullable: false),
-                    Latitude = table.Column<decimal>(type: "decimal(9,6)", nullable: true),
-                    Longitude = table.Column<decimal>(type: "decimal(9,6)", nullable: true),
+                    Latitude = table.Column<decimal>(type: "decimal(18,15)", nullable: true),
+                    Longitude = table.Column<decimal>(type: "decimal(18,15)", nullable: true),
                     City = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Town = table.Column<string>(type: "longtext", nullable: true)
@@ -290,6 +292,7 @@ namespace HalisahaOtomasyon.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Description = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    HasLockableCabinet = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     HasCafeteria = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     HasLockerRoom = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     HasFirstAid = table.Column<bool>(type: "tinyint(1)", nullable: false),
@@ -450,7 +453,9 @@ namespace HalisahaOtomasyon.Migrations
                     TeamId = table.Column<int>(type: "int", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     IsCaptain = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    Position = table.Column<int>(type: "int", nullable: false),
+                    IsAdmin = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    Position = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     JoinedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
                 constraints: table =>
@@ -565,7 +570,9 @@ namespace HalisahaOtomasyon.Migrations
                     Name = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     IsIndoor = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    HasTribune = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     IsAvailable = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    HasScoreBoard = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     HasCamera = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     FloorType = table.Column<int>(type: "int", nullable: false),
                     Capacity = table.Column<int>(type: "int", nullable: false),
@@ -839,19 +846,57 @@ namespace HalisahaOtomasyon.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "Reservations",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    FieldId = table.Column<int>(type: "int", nullable: false),
+                    SlotStart = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    SlotEnd = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    PriceTotal = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    RoomId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Reservations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Reservations_Fields_FieldId",
+                        column: x => x.FieldId,
+                        principalTable: "Fields",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Reservations_Rooms_RoomId",
+                        column: x => x.RoomId,
+                        principalTable: "Rooms",
+                        principalColumn: "Id");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "RoomParticipants",
                 columns: table => new
                 {
                     RoomId = table.Column<int>(type: "int", nullable: false),
                     TeamId = table.Column<int>(type: "int", nullable: false),
+                    CustomerId = table.Column<int>(type: "int", nullable: true),
                     IsHome = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
-                    HasPaid = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    IsReady = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    PaymentStatus = table.Column<int>(type: "int", nullable: false),
                     PaidAmount = table.Column<decimal>(type: "decimal(65,30)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_RoomParticipants", x => new { x.RoomId, x.TeamId });
+                    table.ForeignKey(
+                        name: "FK_RoomParticipants_AspNetUsers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_RoomParticipants_Rooms_RoomId",
                         column: x => x.RoomId,
@@ -864,6 +909,39 @@ namespace HalisahaOtomasyon.Migrations
                         principalTable: "Teams",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "ReservationPayments",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    ReservationId = table.Column<int>(type: "int", nullable: false),
+                    RoomParticipantRoomId = table.Column<int>(type: "int", nullable: true),
+                    RoomParticipantTeamId = table.Column<int>(type: "int", nullable: true),
+                    Amount = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    ProviderRef = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PaidAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    RefundedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReservationPayments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ReservationPayments_Reservations_ReservationId",
+                        column: x => x.ReservationId,
+                        principalTable: "Reservations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ReservationPayments_RoomParticipants_RoomParticipantRoomId_R~",
+                        columns: x => new { x.RoomParticipantRoomId, x.RoomParticipantTeamId },
+                        principalTable: "RoomParticipants",
+                        principalColumns: new[] { "RoomId", "TeamId" });
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -951,9 +1029,10 @@ namespace HalisahaOtomasyon.Migrations
                 column: "FromUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_FieldExceptions_FieldId",
+                name: "IX_FieldExceptions_FieldId_Date",
                 table: "FieldExceptions",
-                column: "FieldId");
+                columns: new[] { "FieldId", "Date" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Fields_FacilityId",
@@ -1017,6 +1096,39 @@ namespace HalisahaOtomasyon.Migrations
                 column: "FacilityId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ReservationPayments_ReservationId",
+                table: "ReservationPayments",
+                column: "ReservationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReservationPayments_RoomParticipantRoomId_RoomParticipantTea~",
+                table: "ReservationPayments",
+                columns: new[] { "RoomParticipantRoomId", "RoomParticipantTeamId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reservations_FieldId_SlotStart",
+                table: "Reservations",
+                columns: new[] { "FieldId", "SlotStart" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reservations_RoomId",
+                table: "Reservations",
+                column: "RoomId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RoomParticipants_CustomerId",
+                table: "RoomParticipants",
+                column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RoomParticipants_RoomId_IsHome",
+                table: "RoomParticipants",
+                columns: new[] { "RoomId", "IsHome" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_RoomParticipants_TeamId",
                 table: "RoomParticipants",
                 column: "TeamId");
@@ -1075,9 +1187,10 @@ namespace HalisahaOtomasyon.Migrations
                 column: "ToUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_WeeklyOpenings_FieldId",
+                name: "IX_WeeklyOpenings_FieldId_DayOfWeek",
                 table: "WeeklyOpenings",
-                column: "FieldId");
+                columns: new[] { "FieldId", "DayOfWeek" },
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -1132,7 +1245,7 @@ namespace HalisahaOtomasyon.Migrations
                 name: "Photos");
 
             migrationBuilder.DropTable(
-                name: "RoomParticipants");
+                name: "ReservationPayments");
 
             migrationBuilder.DropTable(
                 name: "TeamComments");
@@ -1151,6 +1264,12 @@ namespace HalisahaOtomasyon.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "Reservations");
+
+            migrationBuilder.DropTable(
+                name: "RoomParticipants");
 
             migrationBuilder.DropTable(
                 name: "Rooms");

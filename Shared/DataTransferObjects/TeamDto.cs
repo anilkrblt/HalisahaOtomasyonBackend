@@ -47,7 +47,7 @@ public class TeamMemberDto
     public bool IsCaptain { get; set; }
     public double AvgRating { get; set; }
     public bool IsAdmin { get; set; }
-    public PlayerPosition Position { get; set; }
+    public string Position { get; set; }
     public DateTime JoinedAt { get; set; }
     public string UserPhotoUrl { get; set; }
 }

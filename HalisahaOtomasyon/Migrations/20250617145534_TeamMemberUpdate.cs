@@ -5,7 +5,7 @@
 namespace HalisahaOtomasyon.Migrations
 {
     /// <inheritdoc />
-    public partial class RailwayInitialCreate : Migration
+    public partial class TeamMemberUpdate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
