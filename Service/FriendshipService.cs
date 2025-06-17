@@ -80,25 +80,31 @@ public class FriendshipService : IFriendshipService
         if (fromUserId == toUserId)
             throw new InvalidOperationException("Kendinize istek gönderemezsiniz.");
 
-        /* yalnızca var olan kullanıcılar */
+        // Hedef kullanıcı gerçekten var mı?
         if (!await _repo.Friendship.DoesUserExistAsync(toUserId))
             throw new InvalidOperationException("Hedef kullanıcı bulunamadı.");
 
-        /* mevcut satır? */
-        var row = await _repo.Friendship.GetFriendshipAsync(fromUserId, toUserId, true);
-        if (row is not null)
+        // Hem (from, to) hem (to, from) kontrolleri yapılmalı
+        var existing = await _repo.Friendship.GetFriendshipExactAsync(fromUserId, toUserId, true)
+                       ?? await _repo.Friendship.GetFriendshipExactAsync(toUserId, fromUserId, true);
+
+        if (existing is not null)
         {
-            if (row.Status == FriendshipStatus.Pending)
+            if (existing.Status == FriendshipStatus.Pending)
                 throw new InvalidOperationException("Zaten bekleyen bir istek var.");
-            if (row.Status == FriendshipStatus.Accepted)
+
+            if (existing.Status == FriendshipStatus.Accepted)
                 throw new InvalidOperationException("Zaten arkadaşsınız.");
 
-            row.Status = FriendshipStatus.Pending;
-            row.UpdatedAt = DateTime.UtcNow;
+            // Daha önce reddedilmişse yeniden istek atılabilir
+            existing.UserId1 = fromUserId;
+            existing.UserId2 = toUserId;
+            existing.Status = FriendshipStatus.Pending;
+            existing.UpdatedAt = DateTime.UtcNow;
         }
         else
         {
-            row = new Friendship
+            existing = new Friendship
             {
                 UserId1 = fromUserId,
                 UserId2 = toUserId,
@@ -106,12 +112,11 @@ public class FriendshipService : IFriendshipService
                 CreatedAt = DateTime.UtcNow
             };
 
-
-            _repo.Friendship.CreateFriendship(row);
+            _repo.Friendship.CreateFriendship(existing);
         }
 
         await _repo.SaveAsync();
-        return _mapper.Map<FriendshipDto>(row);
+        return _mapper.Map<FriendshipDto>(existing);
     }
 
 
