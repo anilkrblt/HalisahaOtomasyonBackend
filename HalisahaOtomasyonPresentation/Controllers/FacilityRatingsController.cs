@@ -5,7 +5,7 @@ using Service.Contracts;
 using Shared.DataTransferObjects;
 
 namespace HalisahaOtomasyonPresentation.Controllers;
-
+// dummy commit
 [ApiController]
 [Route("api/facilities/{facilityId:int}/ratings")]
 public class FacilityRatingsController : ControllerBase
