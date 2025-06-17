@@ -144,17 +144,13 @@ public class FriendshipService : IFriendshipService
     /*──── Cancel Pending (gönderen iptal) ────*/
     public async Task CancelFriendRequestAsync(int fromUserId, int toUserId)
     {
-        var row = await _repo.Friendship.GetFriendshipAsync(fromUserId, toUserId, true)
+        var row = await _repo.Friendship.GetFriendshipExactAsync(fromUserId, toUserId, true)
                   ?? throw new FriendshipNotFoundException(fromUserId, toUserId);
 
-        if (row.Status != FriendshipStatus.Pending || row.UserId1 != Math.Min(fromUserId, toUserId))
+        if (row.Status != FriendshipStatus.Pending)
             throw new InvalidOperationException("İptal edilecek bekleyen istek bulunamadı.");
 
-        /*
-                row.Status = FriendshipStatus.Rejected;
-                row.UpdatedAt = DateTime.UtcNow;*/
         _repo.Friendship.DeleteFriendship(row);
-
         await _repo.SaveAsync();
     }
 
