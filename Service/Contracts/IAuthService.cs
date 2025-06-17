@@ -23,7 +23,7 @@ namespace Service.Contracts
         // 2. Kod ve yeni şifre ile şifre sıfırlama yapar
         Task<IdentityResult> ResetPasswordWithCodeAsync(string email, string code, string newPassword);
 
-        Task<IdentityResult> RegisterOwnerAsync(UserRegisterDto model);
+        Task<IdentityResult> RegisterOwnerAsync(RegisterOwnerDto model);
         Task<IdentityResult> RegisterCustomerAsync(CustomerRegisterDto model);
 
 
