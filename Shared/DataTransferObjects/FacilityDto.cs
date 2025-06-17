@@ -1,4 +1,3 @@
-// Shared.DataTransferObjects/FacilityDtos.cs
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
 
@@ -6,7 +5,6 @@ namespace Shared.DataTransferObjects;
 
 public record FacilityDto
 {
-
     public int OwnerId { get; set; }
 
     public int Id { get; set; }
@@ -150,7 +148,3 @@ public class FacilityPatchDto
     public string? Phone { get; set; }
 }
 public record FacilityPhotosUpdateDto(List<IFormFile> PhotoFiles);
-
-
-
-

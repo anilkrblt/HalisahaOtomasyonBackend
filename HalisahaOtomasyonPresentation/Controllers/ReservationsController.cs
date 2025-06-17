@@ -7,7 +7,7 @@ namespace HalisahaOtomasyonPresentation.Controllers
 {
     //TODO rezervasyonları kontrol et
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/reservations")]
     public class ReservationsController : ControllerBase
     {
         private readonly IServiceManager _service;

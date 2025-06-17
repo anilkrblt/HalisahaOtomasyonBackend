@@ -1,72 +1,72 @@
-// ------ Ortak baz (okuma DTO’ları için kalıtıma açık) ------------------
+using System.ComponentModel.DataAnnotations;
+
 namespace Shared.DataTransferObjects;
 
-public record BaseCommentDto(
-    int Id,
-    int AuthorId,
-    string Content,
-    int Rating,
-    DateTime CreatedAt);
-
-// -----------------------------------------------------------------------
-// Saha (Field) ----------------------------------------------------------
-// normal mutable DTO sınıfı
-public class FieldCommentDto
+public abstract class CommentDto
 {
     public int Id { get; set; }
-    public int FieldId { get; set; }
-    public string Content { get; set; } = null!;
     public int Rating { get; set; }
-    public int FromUserId { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public string Content { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime? UpdatedAt { get; set; }
 }
 
+public abstract class CommentDtoForManipulation
+{
+    public string Content { get; set; }
 
-public record FieldCommentForCreationDto(
-    int FieldId,
-    string Content,
-    int Rating);
+    [Required(ErrorMessage = "Rating is a required field.")]
+    [Range(1, 5)]
+    public int Rating { get; set; }
+}
 
-public record FieldCommentForUpdateDto(
-    string Content,
-    int Rating);
+public class FieldCommentDto : CommentDto
+{
+    public int FromUserId { get; set; }
+    public int FieldId { get; set; }
+}
 
-// -----------------------------------------------------------------------
-// Takım (Team) ----------------------------------------------------------
-public record TeamCommentDto(
-    int Id,
-    int AuthorId,
-    int TeamId,
-    string Content,
-    int Rating,
-    DateTime CreatedAt) : BaseCommentDto(Id, AuthorId, Content, Rating, CreatedAt);
+public class FieldCommentForCreationDto : CommentDtoForManipulation
+{
+    [Required(ErrorMessage = "FieldId is a required field.")]
+    public int FieldId { get; set; }
+}
 
-public record TeamCommentForCreationDto(
-    int AuthorId,
-    int TeamId,
-    string Content,
-    int Rating);
+public class FieldCommentForUpdateDto : CommentDtoForManipulation
+{
 
-public record TeamCommentForUpdateDto(
-    string Content,
-    int Rating);
+}
 
-// -----------------------------------------------------------------------
-// Kullanıcı (Customer) ---------------------------------------------------
-public record UserCommentDto(
-    int Id,
-    int FromUserId,
-    int ToUserId,
-    string Content,
-    int Rating,
-    DateTime CreatedAt) : BaseCommentDto(Id, FromUserId, Content, Rating, CreatedAt);
+public class TeamCommentDto : CommentDto
+{
+    public int FromUserId { get; set; }
+    public int ToTeamId { get; set; }
+}
 
-public record UserCommentForCreationDto(
-    int FromUserId,
-    int ToUserId,
-    string Content,
-    int Rating);
+public class TeamCommentForCreationDto : CommentDtoForManipulation
+{
+    [Required(ErrorMessage = "ToTeamId is a required field.")]
+    public int ToTeamId { get; set; }
+}
 
-public record UserCommentForUpdateDto(
-    string Content,
-    int Rating);
+public class TeamCommentForUpdateDto : CommentDtoForManipulation
+{
+
+}
+
+public class UserCommentDto : CommentDto
+{
+    public int FromUserId { get; set; }
+    public int ToUserId { get; set; }
+}
+
+public class UserCommentForCreationDto : CommentDtoForManipulation
+{
+    [Required(ErrorMessage = "ToUserId is a required field.")]
+    public int ToUserId { get; set; }
+}
+
+public class UserCommentForUpdateDto : CommentDtoForManipulation
+{
+
+}

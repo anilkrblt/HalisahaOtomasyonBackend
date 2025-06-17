@@ -18,6 +18,7 @@ namespace HalisahaOtomasyon.AutoMap
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName))
                 .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.User.FirstName))
                 .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.User.LastName))
+                .ForMember(dest => dest.AvgRating, opt => opt.MapFrom(src => src.User.AvgRating))
                 .ForMember(dest => dest.Position, opt => opt.MapFrom(src => src.Position))
                 .ForMember(dest => dest.IsCaptain, opt => opt.MapFrom(src => src.IsCaptain))
                 .ForMember(dest => dest.IsAdmin, opt => opt.MapFrom(src => src.IsAdmin))

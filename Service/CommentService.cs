@@ -2,6 +2,8 @@
 using Contracts;
 using Entities.Exceptions;
 using Entities.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Service.Contracts;
 using Shared.DataTransferObjects;
 
@@ -11,28 +13,26 @@ public class CommentService : ICommentService
 {
     private readonly IRepositoryManager _repo;
     private readonly IMapper _mapper;
-    private readonly ILoggerManager _log;
+    private readonly UserManager<ApplicationUser> _userManager;
+
 
     public CommentService(IRepositoryManager repo,
                           IMapper mapper,
-                          ILoggerManager log)
+                          UserManager<ApplicationUser> userManager)
     {
         _repo = repo;
         _mapper = mapper;
-        _log = log;
+        _userManager = userManager;
     }
-
-
-
-    /*────────────────── FIELD COMMENT ──────────────────*/
-
 
     public async Task<FieldCommentDto> GetFieldCommentAsync(int commentId, bool trackChanges)
     {
         var comment = await _repo.FieldComment.GetFieldCommentAsync(commentId, trackChanges);
+        if (comment is null)
+            throw new CommentNotFoundException(commentId);
+
         return _mapper.Map<FieldCommentDto>(comment);
     }
-
 
     public async Task<IEnumerable<FieldCommentDto>> GetFieldCommentsAsync(int fieldId, bool trackChanges)
     {
@@ -43,19 +43,12 @@ public class CommentService : ICommentService
         return _mapper.Map<IEnumerable<FieldCommentDto>>(comments);
     }
 
-
     public async Task<FieldCommentDto> AddFieldCommentAsync(FieldCommentForCreationDto dto, int fromUserId)
     {
         _ = await _repo.Field.GetFieldAsync(dto.FieldId, trackChanges: false) ?? throw new FieldNotFoundException(dto.FieldId);
 
-        var entity = new FieldComment
-        {
-            FieldId = dto.FieldId,
-            Content = dto.Content,
-            Rating = dto.Rating,
-            FromUserId = fromUserId,
-            CreatedAt = DateTime.UtcNow
-        };
+        var entity = _mapper.Map<FieldComment>(dto);
+        entity.FromUserId = fromUserId;
 
         _repo.FieldComment.CreateFieldComment(entity);
         await _repo.SaveAsync();
@@ -63,18 +56,16 @@ public class CommentService : ICommentService
         return _mapper.Map<FieldCommentDto>(entity);
     }
 
-
     public async Task<FieldCommentDto> UpdateFieldCommentAsync(int commentId, FieldCommentForUpdateDto dto)
     {
         var entity = await _repo.FieldComment.GetFieldCommentAsync(commentId, trackChanges: true) ?? throw new CommentNotFoundException(commentId);
 
-        entity.Content = dto.Content;
-        entity.Rating = dto.Rating;
-        entity.UpdatedAt = DateTime.UtcNow;
+        _mapper.Map(dto, entity);
 
         await _repo.SaveAsync();
         return _mapper.Map<FieldCommentDto>(entity);
     }
+
     public async Task DeleteFieldCommentAsync(int commentId)
     {
         var entity = await _repo.FieldComment.GetFieldCommentAsync(commentId, trackChanges: true) ?? throw new CommentNotFoundException(commentId);
@@ -82,16 +73,6 @@ public class CommentService : ICommentService
         entity.DeletedAt = DateTime.UtcNow;
         await _repo.SaveAsync();
     }
-
-
-
-
-
-
-
-
-
-
 
     public async Task<IEnumerable<TeamCommentDto>> GetTeamCommentsAsync(int teamId, bool trackChanges)
     {
@@ -117,22 +98,16 @@ public class CommentService : ICommentService
         TeamCommentForCreationDto dto,
         int fromUserId)
     {
-        _ = await _repo.Team.GetTeamAsync(dto.TeamId, false)
-            ?? throw new TeamNotFoundException(dto.TeamId);
+        _ = await _repo.Team.GetTeamAsync(dto.ToTeamId, false)
+            ?? throw new TeamNotFoundException(dto.ToTeamId);
 
-        var entity = new TeamComment
-        {
-            Id = dto.TeamId,
-            Content = dto.Content,
-            Rating = dto.Rating,
-            FromUserId = fromUserId,
-            CreatedAt = DateTime.UtcNow
-        };
+        var teamComment = _mapper.Map<TeamComment>(dto);
+        teamComment.FromUserId = fromUserId;
 
-        _repo.TeamComment.CreateTeamComment(entity);
+        _repo.TeamComment.CreateTeamComment(teamComment);
         await _repo.SaveAsync();
 
-        return _mapper.Map<TeamCommentDto>(entity);
+        return _mapper.Map<TeamCommentDto>(teamComment);
     }
 
     public async Task<TeamCommentDto> UpdateTeamCommentAsync(
@@ -143,9 +118,7 @@ public class CommentService : ICommentService
             .GetTeamCommentAsync(commentId, true)
             ?? throw new CommentNotFoundException(commentId);
 
-        entity.Content = dto.Content;
-        entity.Rating = dto.Rating;
-        entity.UpdatedAt = DateTime.UtcNow;
+        _mapper.Map(dto, entity);
 
         await _repo.SaveAsync();
         return _mapper.Map<TeamCommentDto>(entity);
@@ -162,12 +135,8 @@ public class CommentService : ICommentService
         await _repo.SaveAsync();
     }
 
-    /*────────────────── USER COMMENT ───────────────────*/
-
     public async Task<IEnumerable<UserCommentDto>> GetCommentsAboutUserAsync(int toUserId, bool trackChanges)
     {
-
-
         var comments = await _repo.UserComment
             .GetCommentsAboutUserAsync(toUserId, trackChanges);
 
@@ -195,16 +164,13 @@ public class CommentService : ICommentService
         UserCommentForCreationDto dto,
         int fromUserId)
     {
+        var exists = await _userManager.Users.AnyAsync(u => u.Id == dto.ToUserId);
 
+        if(exists is false)
+            throw new UserNotFoundException(dto.ToUserId);
 
-        var entity = new UserComment
-        {
-            ToUserId = dto.ToUserId,
-            Content = dto.Content,
-            Rating = dto.Rating,
-            FromUserId = fromUserId,
-            CreatedAt = DateTime.UtcNow
-        };
+        var entity = _mapper.Map<UserComment>(dto);
+        entity.FromUserId = fromUserId;
 
         _repo.UserComment.CreateUserComment(entity);
         await _repo.SaveAsync();
@@ -220,9 +186,7 @@ public class CommentService : ICommentService
             .GetUserCommentAsync(commentId, true)
             ?? throw new CommentNotFoundException(commentId);
 
-        entity.Content = dto.Content;
-        entity.Rating = dto.Rating;
-        entity.UpdatedAt = DateTime.UtcNow;
+        _mapper.Map(dto, entity);
 
         await _repo.SaveAsync();
         return _mapper.Map<UserCommentDto>(entity);

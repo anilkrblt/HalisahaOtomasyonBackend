@@ -8,10 +8,10 @@ namespace HalisahaOtomasyonPresentation.Controllers
 
     [Route("api/announcements")]
     [ApiController]
-    public class AnnouncementController : ControllerBase
+    public class AnnouncementsController : ControllerBase
     {
         private readonly IServiceManager _service;
-        public AnnouncementController(IServiceManager service)
+        public AnnouncementsController(IServiceManager service)
         {
             _service = service;
         }

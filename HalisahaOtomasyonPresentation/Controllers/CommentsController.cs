@@ -1,3 +1,4 @@
+using HalisahaOtomasyon.ActionFilters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
@@ -6,33 +7,35 @@ using Shared.DataTransferObjects;
 namespace HalisahaOtomasyonPresentation.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/comments")]
 public class CommentsController : ControllerBase
 {
-    private readonly ICommentService _svc;
+    private readonly IServiceManager _serviceManager;
 
     public CommentsController(IServiceManager service)
     {
-        _svc = service.CommentService;
+        _serviceManager = service;
     }
 
-    [HttpGet("field/{fieldId:int}/comments", Name = "GetFieldComments")]
-    public async Task<IActionResult> GetFieldComments([FromRoute] int fieldId)
+    [HttpGet("fields/{fieldId:int}", Name = "GetFieldComments")]
+    public async Task<IActionResult> GetFieldComments([FromRoute(Name = "fieldId")] int fieldId)
     {
-        var comments = await _svc.GetFieldCommentsAsync(fieldId, trackChanges: false);
+        var comments = await _serviceManager.CommentService
+            .GetFieldCommentsAsync(fieldId, trackChanges: false);
 
         return Ok(comments);
     }
 
-    [HttpGet("field/{fieldId:int}/comments/{commentId}", Name = "GetFieldComment")]
-    public async Task<IActionResult> GetFieldComment([FromRoute] int fieldId, [FromRoute] int commentId)
+    [HttpGet("field-comments/{commentId:int}", Name = "GetFieldComment")]
+    public async Task<IActionResult> GetFieldComment([FromRoute(Name = "commentId")] int commentId)
     {
-        var comments = await _svc.GetFieldCommentAsync(commentId, trackChanges: false);
+        var comments = await _serviceManager.CommentService.GetFieldCommentAsync(commentId, trackChanges: false);
 
         return Ok(comments);
     }
 
-    [HttpPost("field")]
+    [ServiceFilter(typeof(ValidationFilterAttribute))]
+    [HttpPost("field-comments")]
     [Authorize]
     public async Task<IActionResult> AddFieldComment([FromBody] FieldCommentForCreationDto dto)
     {
@@ -41,40 +44,51 @@ public class CommentsController : ControllerBase
             return Unauthorized();
         var userId = int.Parse(userIdClaim);
 
-        var created = await _svc.AddFieldCommentAsync(dto, userId);
-
+        var created = await _serviceManager.CommentService.AddFieldCommentAsync(dto, userId);
 
         return CreatedAtRoute(
             routeName: "GetFieldComment",
             routeValues: new
             {
-                fieldId = dto.FieldId,
                 commentId = created.Id
             },
             value: created);
     }
 
-    [HttpPut("field/{commentId:int}")]
+    [ServiceFilter(typeof(ValidationFilterAttribute))]
+    [HttpPut("field-comments/{commentId:int}")]
     [Authorize]
-    public async Task<IActionResult> UpdateFieldComment([FromRoute] int commentId, [FromBody] FieldCommentForUpdateDto dto)
+    public async Task<IActionResult> UpdateFieldComment([FromRoute(Name = "commentId")] int commentId, 
+        [FromBody] FieldCommentForUpdateDto dto)
     {
-        await _svc.UpdateFieldCommentAsync(commentId, dto);
+        await _serviceManager.CommentService.UpdateFieldCommentAsync(commentId, dto);
         return NoContent();
     }
 
-    [HttpDelete("field/{commentId:int}")]
+    [HttpDelete("field-comments/{commentId:int}")]
     [Authorize]
-    public async Task<IActionResult> DeleteFieldComment([FromRoute] int commentId)
+    public async Task<IActionResult> DeleteFieldComment([FromRoute(Name = "commentId")] int commentId)
     {
-        await _svc.DeleteFieldCommentAsync(commentId);
+        await _serviceManager.CommentService.DeleteFieldCommentAsync(commentId);
         return NoContent();
     }
 
-    [HttpGet("team/{teamId:int}/comments", Name = "GetTeamComments")]
-    public async Task<IActionResult> GetTeamComments([FromRoute] int teamId) =>
-        Ok(await _svc.GetTeamCommentsAsync(teamId, trackChanges: false));
+    [HttpGet("teams/{teamId:int}", Name = "GetTeamComments")]
+    public async Task<IActionResult> GetTeamComments([FromRoute(Name = "teamId")] int teamId)
+    {
+        var teamComments = await _serviceManager.CommentService.GetTeamCommentsAsync(teamId, trackChanges: false);
+        return Ok(teamComments);
+    }
 
-    [HttpPost("team")]
+    [HttpGet("team-comments/{commentId:int}", Name = "GetTeamComment")]
+    public async Task<IActionResult> GetTeamComment([FromRoute(Name = "commentId")] int commentId)
+    {
+        var teamComment = await _serviceManager.CommentService.GetTeamCommentAsync(commentId, trackChanges: false);
+        return Ok(teamComment);
+}
+
+    [ServiceFilter(typeof(ValidationFilterAttribute))]
+    [HttpPost("team-comments")]
     [Authorize]
     public async Task<IActionResult> AddTeamComment([FromBody] TeamCommentForCreationDto dto)
     {
@@ -83,55 +97,58 @@ public class CommentsController : ControllerBase
             return Unauthorized();
         var userId = int.Parse(userIdClaim);
 
-        var created = await _svc.AddTeamCommentAsync(dto, userId);
+        var created = await _serviceManager.CommentService.AddTeamCommentAsync(dto, userId);
 
         return CreatedAtRoute(
             routeName: "GetTeamComment",
             routeValues: new
             {
-                teamId = dto.TeamId,
-                commentId = created.Id
+                commentId = created.Id,
             },
             value: created);
     }
 
-    [HttpPut("team/{teamId:int}/comment/{commentId:int}")]
+    [ServiceFilter(typeof(ValidationFilterAttribute))]
+    [HttpPut("team-comments/{commentId:int}")]
     [Authorize]
-    public async Task<IActionResult> UpdateTeamComment(
-        [FromRoute] int teamId,
-        [FromRoute] int commentId,
+    public async Task<IActionResult> UpdateTeamComment([FromRoute] int commentId,
         [FromBody] TeamCommentForUpdateDto dto)
     {
-        await _svc.UpdateTeamCommentAsync(commentId, dto);
+        await _serviceManager.CommentService.UpdateTeamCommentAsync(commentId, dto);
         return NoContent();
     }
 
-    [HttpDelete("team/{teamId:int}/comment/{commentId:int}")]
+    [HttpDelete("team-comments/{commentId:int}")]
     [Authorize]
-    public async Task<IActionResult> DeleteTeamComment(
-        [FromRoute] int teamId,
-        [FromRoute] int commentId)
+    public async Task<IActionResult> DeleteTeamComment([FromRoute] int commentId)
     {
-        await _svc.DeleteTeamCommentAsync(commentId);
+        await _serviceManager.CommentService.DeleteTeamCommentAsync(commentId);
         return NoContent();
     }
 
-    [HttpGet("user/to/{userId:int}")]
-    public async Task<IActionResult> GetCommentsAboutUser(int userId) =>
-        Ok(await _svc.GetCommentsAboutUserAsync(userId, trackChanges: false));
-
-    [HttpGet("user/from/{userId:int}")]
-    public async Task<IActionResult> GetCommentsFromUser(int userId) =>
-        Ok(await _svc.GetCommentsFromUserAsync(userId, trackChanges: false));
-
-    [HttpGet("user/comment/{id:int}", Name = "GetUserComment")]
-    public async Task<IActionResult> GetUserComment(int id)
+    [HttpGet("users/to/{userId:int}")]
+    public async Task<IActionResult> GetCommentsAboutUser([FromRoute(Name = "userId")] int userId)
     {
-        var comment = await _svc.GetUserCommentAsync(id, trackChanges: false);
-        return comment is null ? NotFound() : Ok(comment);
+        var comments = await _serviceManager.CommentService.GetCommentsAboutUserAsync(userId, trackChanges: false);
+        return Ok(comments);
     }
 
-    [HttpPost("user")]
+    [HttpGet("users/from/{userId:int}")]
+    public async Task<IActionResult> GetCommentsFromUser([FromRoute(Name = "userId")] int userId)
+    {
+        var comments = await _serviceManager.CommentService.GetCommentsFromUserAsync(userId, trackChanges: false);
+        return Ok(comments);
+    }
+
+    [HttpGet("user-comments/{commentId:int}", Name = "GetUserComment")]
+    public async Task<IActionResult> GetUserComment([FromRoute(Name = "commentId")] int commentId)
+    {
+        var comment = await _serviceManager.CommentService.GetUserCommentAsync(commentId, trackChanges: false);
+        return Ok(comment);
+    }
+
+    [ServiceFilter(typeof(ValidationFilterAttribute))]
+    [HttpPost("user-comments")]
     [Authorize]
     public async Task<IActionResult> AddUserComment([FromBody] UserCommentForCreationDto dto)
     {
@@ -140,27 +157,28 @@ public class CommentsController : ControllerBase
             return Unauthorized();
         var userId = int.Parse(userIdClaim);
 
-        var created = await _svc.AddUserCommentAsync(dto, userId);
+        var created = await _serviceManager.CommentService.AddUserCommentAsync(dto, userId);
 
         return CreatedAtRoute(
             routeName: "GetUserComment",
-            routeValues: new { id = created.Id },
+            routeValues: new { commentId = created.Id},
             value: created);
     }
 
-    [HttpPut("user/comment/{id:int}")]
+    [ServiceFilter(typeof(ValidationFilterAttribute))]
+    [HttpPut("user-comments/{commentId:int}")]
     [Authorize]
-    public async Task<IActionResult> UpdateUserComment([FromRoute] int id, [FromBody] UserCommentForUpdateDto dto)
+    public async Task<IActionResult> UpdateUserComment([FromRoute(Name = "commentId")] int commentId, [FromBody] UserCommentForUpdateDto dto)
     {
-        await _svc.UpdateUserCommentAsync(id, dto);
+        await _serviceManager.CommentService.UpdateUserCommentAsync(commentId, dto);
         return NoContent();
     }
 
-    [HttpDelete("user/comment/{id:int}")]
+    [HttpDelete("user-comments/{commentId:int}")]
     [Authorize]
-    public async Task<IActionResult> DeleteUserComment(int id)
+    public async Task<IActionResult> DeleteUserComment([FromRoute(Name = "commentId")] int commentId)
     {
-        await _svc.DeleteUserCommentAsync(id);
+        await _serviceManager.CommentService.DeleteUserCommentAsync(commentId);
         return NoContent();
     }
 }
