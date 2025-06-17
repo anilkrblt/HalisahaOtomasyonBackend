@@ -100,12 +100,12 @@ public class FriendshipService : IFriendshipService
         {
             row = new Friendship
             {
-                UserId1 = Math.Min(fromUserId, toUserId),
-                UserId2 = Math.Max(fromUserId, toUserId),
+                UserId1 = fromUserId,
+                UserId2 = toUserId,
                 Status = FriendshipStatus.Pending,
                 CreatedAt = DateTime.UtcNow
-
             };
+
 
             _repo.Friendship.CreateFriendship(row);
         }
@@ -116,7 +116,7 @@ public class FriendshipService : IFriendshipService
 
 
 
-    
+
 
     /*──── Respond ────*/
     public async Task RespondFriendRequestAsync(int userIdA, int userIdB, FriendshipStatus status)
