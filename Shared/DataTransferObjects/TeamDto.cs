@@ -20,7 +20,7 @@ public class TeamDto
     public IEnumerable<TeamMemberDto> Members { get; set; }
 }
 
-public record TeamForCreationDto
+public class TeamForCreationDto
 {
     public string Name { get; set; }
     public string City { get; set; }
@@ -38,7 +38,7 @@ public class TeamForUpdateDto
     public string? LogoUrl {  get; set; }
 }
 
-public record TeamMemberDto
+public class TeamMemberDto
 {
     public int UserId { get; set; }
     public string UserName { get; set; }
@@ -52,7 +52,7 @@ public record TeamMemberDto
     public string UserPhotoUrl { get; set; }
 }
 
-public record TeamMemberDtoForUpdateAdminAndCaptain
+public class TeamMemberDtoForUpdateAdminAndCaptain
 {
     public bool IsCaptain { get; set; }
     public bool IsAdmin { get; set; }
@@ -65,15 +65,23 @@ public class TeamMemberDtoForAdd
     public bool IsAdmin { get; set; }
 }
 
-public record TeamJoinRequestDto
+public class TeamJoinRequestDto
 {
     public int Id { get; set; }
     public int TeamId { get; set; }
     public int UserId { get; set; }
+    public string UserName { get; set; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public RequestStatus Status { get; set; }
-
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } 
     public DateTime? RespondedAt { get; set; }
+}
+
+public class TeamJoinRequestDtoForUpdate
+{
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public RequestStatus Status { get; set; }
 }

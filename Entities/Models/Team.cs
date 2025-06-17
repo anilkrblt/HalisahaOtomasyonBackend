@@ -18,27 +18,20 @@ public class Team
 
     [MaxLength(128)]
     public string Town { get; set; } = string.Empty;
-
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public string Content { get; set;   }
-
-    /* ---------- İstatistik ---------- */
     public int MatchPlayed { get; set; }
     public int MatchWon { get; set; }
     public int MatchDrawn { get; set; }
     public int MatchLost { get; set; }
 
-    /* ---------- Navigation ---------- */
     public ICollection<TeamMember> Members { get; set; } = [];
     public ICollection<TeamJoinRequest> JoinRequests { get; set; } = [];
     public ICollection<TeamComment> Comments { get; set; } = [];
-
     public ICollection<Match> HomeMatches { get; set; } = [];
     public ICollection<Match> AwayMatches { get; set; } = [];
-
     public ICollection<RoomParticipant> TeamReservations { get; set; } = [];
 
-    /* ---------- Ortalama Takım Puanı ---------- */
     [NotMapped]
     public double AvgRating =>
         Comments.Any()

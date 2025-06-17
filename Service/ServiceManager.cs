@@ -57,7 +57,7 @@ public class ServiceManager : IServiceManager
 
         _facilityRating = new(() => new FacilityRatingService(repo, map));
         _friendship = new(() => new FriendshipService(repo, map, _photo.Value));
-        _team = new(() => new TeamService(repo, map, log, _photo.Value));
+        _team = new(() => new TeamService(repo, map, _photo.Value, userManager));
         _reservation = new(() => new ReservationService(repo, map));
     }
 

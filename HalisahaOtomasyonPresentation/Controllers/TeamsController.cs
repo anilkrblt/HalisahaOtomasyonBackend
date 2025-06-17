@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Entities.Models;
 using HalisahaOtomasyon.ActionFilters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -26,10 +25,10 @@ public class TeamsController : ControllerBase
         return Ok(teams);
     }
 
-    [HttpGet("{id:int}", Name = "GetTeam")]
-    public async Task<IActionResult> GetTeam([FromRoute(Name = "id")] int id)
+    [HttpGet("{teamId:int}", Name = "GetTeam")]
+    public async Task<IActionResult> GetTeam([FromRoute(Name = "teamId")] int teamId)
     {
-        var team = await _serviceManager.TeamService.GetTeamAsync(id, false);
+        var team = await _serviceManager.TeamService.GetTeamAsync(teamId, false);
         return Ok(team);
     }
 
@@ -42,30 +41,26 @@ public class TeamsController : ControllerBase
                     ?? User.FindFirst("id")?.Value;
         if (userIdClaim is null)
             return Unauthorized();
+
         var creatorUserId = int.Parse(userIdClaim);
 
-        // 2) Servisi çağır
         var created = await _serviceManager.TeamService.CreateTeamAsync(dto, creatorUserId);
-        /*
-        if (dto.LogoFile == null) return BadRequest("LogoFile is required.");
-        await _serviceManager.TeamService.SetTeamLogoAsync(created.Id, dto.LogoFile);
-*/
-        // 3) 201 ve Location header
-        return CreatedAtRoute("GetTeam", new { id = created.Id }, created);
+
+        return CreatedAtRoute("GetTeam", new { teamId = created.Id }, created);
     }
 
     [ServiceFilter(typeof(ValidationFilterAttribute))]
-    [HttpPut("{id:int}")]
-    public async Task<IActionResult> UpdateTeam([FromRoute(Name = "id")] int id, [FromBody] TeamForUpdateDto dto)
+    [HttpPut("{teamId:int}")]
+    public async Task<IActionResult> UpdateTeam([FromRoute(Name = "teamId")] int teamId, [FromBody] TeamForUpdateDto dto)
     {
-        await _serviceManager.TeamService.UpdateTeamAsync(id, dto);
+        await _serviceManager.TeamService.UpdateTeamAsync(teamId, dto);
         return NoContent();
     }
 
-    [HttpDelete("{id:int}")]
-    public async Task<IActionResult> DeleteTeam([FromRoute(Name = "id")] int id)
+    [HttpDelete("{teamId:int}")]
+    public async Task<IActionResult> DeleteTeam([FromRoute(Name = "teamId")] int teamId)
     {
-        await _serviceManager.TeamService.DeleteTeamAsync(id);
+        await _serviceManager.TeamService.DeleteTeamAsync(teamId);
         return NoContent();
     }
 
@@ -86,6 +81,16 @@ public class TeamsController : ControllerBase
         return NoContent();
     }
 
+    [ServiceFilter(typeof(ValidationFilterAttribute))]
+    [HttpPut("{teamId:int}/members/{userId:int}")]
+    public async Task<IActionResult> UpdateTeamMember([FromRoute(Name = "teamId")] int teamId,
+    [FromRoute(Name = "userId")] int userId,
+    [FromBody] TeamMemberDtoForUpdateAdminAndCaptain teamMemberDto)
+    {
+        var member = await _serviceManager.TeamService.SetAdminAndCaptain(teamId, userId, teamMemberDto);
+        return Ok(member);
+    }
+
     [HttpDelete("{teamId:int}/members/{userId:int}")]
     public async Task<IActionResult> RemoveMember([FromRoute(Name = "teamId")] int teamId, [FromRoute(Name = "userId")] int userId)
     {
@@ -93,20 +98,31 @@ public class TeamsController : ControllerBase
         return NoContent();
     }
 
-    [HttpPut("{teamId:int}/members/{userId:int}")]
-    public async Task<IActionResult> UpdateTeamMember([FromRoute(Name = "teamId")] int teamId, 
-        [FromRoute(Name = "userId")] int userId, 
-        [FromBody] TeamMemberDtoForUpdateAdminAndCaptain teamMemberDto)
+    [HttpGet("{teamId:int}/join-requests", Name = "GetTeamJoinRequests")]
+    public async Task<IActionResult> GetTeamJoinRequests([FromRoute(Name = "teamId")] int teamId)
     {
-        var member = await _serviceManager.TeamService.SetAdminAndCaptain(teamId, userId, teamMemberDto);
-        return Ok(member);
+        var list = await _serviceManager.TeamService.GetTeamJoinRequestsAsync(teamId, trackChanges: false);
+        return Ok(list);
+    }
+
+    [HttpGet("user-join-requests", Name = "GetMyJoinRequests")]
+    [Authorize]
+    public async Task<IActionResult> GetUserJoinRequests()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                          ?? User.FindFirst("id")?.Value;
+        if (userIdClaim is null)
+            return Unauthorized();
+
+        var userId = int.Parse(userIdClaim);
+        var list = await _serviceManager.TeamService.GetUserJoinRequestsAsync(userId, trackChanges: false);
+        return Ok(list);
     }
 
     [HttpPost("{teamId:int}/join-requests")]
     [Authorize]
     public async Task<IActionResult> CreateJoinRequest([FromRoute(Name = "teamId")] int teamId)
     {
-        // önce standart NameIdentifier’a bakalım, yoksa "id" claim’ine
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                           ?? User.FindFirst("id")?.Value;
         if (userIdClaim is null)
@@ -122,41 +138,21 @@ public class TeamsController : ControllerBase
         );
     }
 
-    [HttpGet("{teamId:int}/join-requests", Name = "GetTeamJoinRequests")]
-    public async Task<IActionResult> GetTeamJoinRequests([FromRoute(Name = "teamId")] int teamId)
-    {
-        var list = await _serviceManager.TeamService.GetTeamJoinRequestsAsync(teamId, trackChanges: false);
-        return Ok(list);
-    }
-
-    [HttpGet("join-requests", Name = "GetMyJoinRequests")]
+    [ServiceFilter(typeof(ValidationFilterAttribute))]
+    [HttpPut("{teamId:int}/join-requests/{requestId:int}")]
     [Authorize]
-    public async Task<IActionResult> GetUserJoinRequests()
+    public async Task<IActionResult> RespondJoinRequest([FromRoute(Name = "teamId")] int teamId,
+        [FromRoute(Name = "requestId")] int requestId, 
+        [FromBody] TeamJoinRequestDtoForUpdate dto)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                          ?? User.FindFirst("id")?.Value;
-        if (userIdClaim is null)
-            return Unauthorized();
-
-        var userId = int.Parse(userIdClaim);
-        var list = await _serviceManager.TeamService.GetUserJoinRequestsAsync(userId, trackChanges: false);
-        return Ok(list);
-    }
-
-    [HttpPut("join-requests/{requestId:int}")]
-    [Authorize]
-    public async Task<IActionResult> RespondJoinRequest([FromRoute(Name = "requestId")] int requestId, [FromBody] RequestStatus status)
-    {
-        // JWT'den respondent userId alıyoruz
         var responderClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                              ?? User.FindFirst("id")?.Value;
         if (responderClaim is null)
             return Unauthorized();
         var responderId = int.Parse(responderClaim);
 
-        // Servise requestId, status ve responderId gönderiliyor
         await _serviceManager.TeamService
-            .RespondJoinRequestAsync(requestId, status, responderId);
+            .RespondJoinRequestAsync(teamId, requestId, dto, responderId);
 
         return NoContent();
     }

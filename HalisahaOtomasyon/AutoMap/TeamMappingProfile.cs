@@ -26,7 +26,16 @@ namespace HalisahaOtomasyon.AutoMap
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId));
             CreateMap<TeamMemberDtoForUpdateAdminAndCaptain, TeamMember>();
 
-            CreateMap<TeamJoinRequest, TeamJoinRequestDto>();
+            CreateMap<TeamJoinRequest, TeamJoinRequestDto>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.TeamId, opt => opt.MapFrom(src => src.TeamId))
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName))
+                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.User.FirstName))
+                .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.User.LastName))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow))
+                .ForMember(dest => dest.RespondedAt, opt => opt.MapFrom(src => src.RespondedAt));
         }
     }
 }

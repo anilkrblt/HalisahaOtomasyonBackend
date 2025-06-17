@@ -15,7 +15,7 @@ namespace Service.Contracts
         Task RemoveMemberAsync(int teamId, int userId);
         Task<IEnumerable<TeamMemberDto>> GetMembersAsync(int teamId, bool trackChanges);
         Task<TeamJoinRequestDto> CreateJoinRequestAsync(int teamId, int userId);
-        Task RespondJoinRequestAsync(int requestId, RequestStatus status, int responderId);
+        Task RespondJoinRequestAsync(int teamId, int requestId, TeamJoinRequestDtoForUpdate dto, int responderId);
         Task<IEnumerable<TeamJoinRequestDto>> GetTeamJoinRequestsAsync(int teamId, bool trackChanges);
         Task<IEnumerable<TeamJoinRequestDto>> GetUserJoinRequestsAsync(int userId, bool trackChanges);
         Task<TeamMemberDto> SetAdminAndCaptain(int teamId, int userId, TeamMemberDtoForUpdateAdminAndCaptain teamMemberDto);

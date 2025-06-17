@@ -2,6 +2,7 @@ using AutoMapper;
 using Contracts;
 using Entities.Exceptions;
 using Entities.Models;
+using Microsoft.AspNetCore.Identity;
 using Service.Contracts;
 using Shared.DataTransferObjects;
 
@@ -11,25 +12,25 @@ public class TeamService : ITeamService
 {
     private readonly IRepositoryManager _repo;
     private readonly IMapper _mapper;
-    private readonly ILoggerManager _log;
     private readonly IPhotoService _photoService;
+    private readonly UserManager<ApplicationUser> _userManager;
 
     public TeamService(IRepositoryManager repo,
                        IMapper mapper,
-                       ILoggerManager log,
-                       IPhotoService photoService)
+                       IPhotoService photoService,
+                       UserManager<ApplicationUser> userManager)
     {
         _photoService = photoService;
         _repo = repo;
         _mapper = mapper;
-        _log = log;
+        _userManager = userManager;
     }
 
     public async Task<TeamDto> CreateTeamAsync(TeamForCreationDto dto, int creatorUserId)
     {
         var entity = _mapper.Map<Team>(dto);
         _repo.Team.CreateTeam(entity);
-        await _repo.SaveAsync(); 
+        await _repo.SaveAsync();
 
         var captain = new TeamMember
         {
@@ -49,8 +50,7 @@ public class TeamService : ITeamService
 
     public async Task<TeamDto> GetTeamAsync(int teamId, bool track)
     {
-        var members = await _repo.Team.GetTeamAsync(teamId, track)
-                         ?? throw new TeamNotFoundException(teamId);
+        var members = await CheckTeamExists(teamId);
 
         var teamDto = _mapper.Map<TeamDto>(members);
 
@@ -80,31 +80,49 @@ public class TeamService : ITeamService
         return teamsDto;
     }
 
-    public async Task<TeamDto> UpdateTeamAsync(int id, TeamForUpdateDto dto)
+    public async Task<TeamDto> UpdateTeamAsync(int teamId, TeamForUpdateDto dto)
     {
-        var entity = await _repo.Team.GetTeamAsync(id, true)
-                     ?? throw new TeamNotFoundException(id);
+        var entity = await CheckTeamExists(teamId);
 
         _mapper.Map(dto, entity);
-
-        if(dto.LogoUrl is not null)
-            entity.LogoUrl = dto.LogoUrl;
 
         await _repo.SaveAsync();
         return _mapper.Map<TeamDto>(entity);
     }
 
-    public async Task DeleteTeamAsync(int id)
+    public async Task DeleteTeamAsync(int teamId)
     {
-        var entity = await _repo.Team.GetTeamAsync(id, true)
-                     ?? throw new TeamNotFoundException(id);
+        var entity = await CheckTeamExists(teamId);
 
         _repo.Team.DeleteTeam(entity);
         await _repo.SaveAsync();
     }
 
+    public async Task<IEnumerable<TeamMemberDto>> GetMembersAsync(int teamId, bool track)
+    {
+        await CheckTeamExists(teamId);
+        var members = await _repo.TeamMember.GetMembersByTeamIdWithUserAsync(teamId, track);
+        var membersDto = _mapper.Map<List<TeamMemberDto>>(members);
+
+        foreach (var member in membersDto)
+        {
+            var photosDto = await _photoService.
+                GetPhotosAsync("user", member.UserId, false);
+
+            var photoUrl = photosDto?.FirstOrDefault()?.Url ?? "";
+            member.UserPhotoUrl = photoUrl;
+        }
+
+        return membersDto;
+    }
+
     public async Task AddMembersAsync(int teamId, List<TeamMemberDtoForAdd> dtos)
     {
+        foreach (var userId in dtos.Select(tm => tm.UserId))
+        {
+            await CheckUserExists(userId);
+        }
+
         var team = await _repo.Team.GetTeamAsync(teamId, true)
                    ?? throw new TeamNotFoundException(teamId);
 
@@ -128,37 +146,12 @@ public class TeamService : ITeamService
         await _repo.SaveAsync();
     }
 
-    public async Task RemoveMemberAsync(int teamId, int userId)
-    {
-        var member = await _repo.TeamMember.GetMemberAsync(teamId, userId, true)
-                     ?? throw new TeamMemberNotFoundException(teamId, userId);
-
-        _repo.TeamMember.RemoveMember(member);
-        await _repo.SaveAsync();
-    }
-
-    public async Task<IEnumerable<TeamMemberDto>> GetMembersAsync(int teamId, bool track)
-    {
-        var members = await _repo.TeamMember.GetMembersByTeamIdWithUserAsync(teamId, track);
-        var membersDto = _mapper.Map<List<TeamMemberDto>>(members);
-
-        foreach (var member in membersDto)
-        {
-            var photosDto = await _photoService.
-                GetPhotosAsync("user", member.UserId, false);
-
-            var photoUrl = photosDto?.FirstOrDefault()?.Url ?? "";
-            member.UserPhotoUrl = photoUrl;
-        }
-
-        return membersDto;
-    }
-
     public async Task<TeamMemberDto> SetAdminAndCaptain(int teamId, int userId, TeamMemberDtoForUpdateAdminAndCaptain teamMemberDto)
     {
-        var member = await _repo.
-            TeamMember
-            .GetTeamMemberAsync(teamId, userId, true);
+        await CheckTeamExists(teamId);
+        await CheckUserExists(userId);
+
+        var member = await CheckTeamMembership(teamId, userId);
 
         var updatedMember = _mapper.Map(teamMemberDto, member);
         await _repo.SaveAsync();
@@ -174,10 +167,34 @@ public class TeamService : ITeamService
         return updatedMembersDto;
     }
 
+    public async Task RemoveMemberAsync(int teamId, int userId)
+    {
+        await CheckTeamExists(teamId);
+        await CheckUserExists(userId);
+
+        var member = await CheckTeamMembership(teamId, userId);
+
+        _repo.TeamMember.RemoveMember(member);
+        await _repo.SaveAsync();
+    }
+
+    public async Task<IEnumerable<TeamJoinRequestDto>> GetTeamJoinRequestsAsync(int teamId, bool track)
+    {
+        var requests = await _repo.TeamJoinRequest.GetRequestsByTeamIdAsync(teamId, track);
+        var requestsDto = _mapper.Map<IEnumerable<TeamJoinRequestDto>>(requests);
+        return requestsDto;
+    }
+
+    public async Task<IEnumerable<TeamJoinRequestDto>> GetUserJoinRequestsAsync(int userId, bool track)
+    {
+        var requests = await _repo.TeamJoinRequest.GetRequestsByUserIdAsync(userId, track);
+        var requestsDto = _mapper.Map<IEnumerable<TeamJoinRequestDto>>(requests);
+        return requestsDto;
+    }
+
     public async Task<TeamJoinRequestDto> CreateJoinRequestAsync(int teamId, int userId)
     {
-        var team = await _repo.Team.GetTeamAsync(teamId, false)
-                   ?? throw new TeamNotFoundException(teamId);
+        var team = await CheckTeamExists(teamId);
 
         var pending = (await _repo.TeamJoinRequest
                            .GetPendingRequestsByTeamIdAsync(teamId, true))
@@ -192,51 +209,56 @@ public class TeamService : ITeamService
         return _mapper.Map<TeamJoinRequestDto>(req);
     }
 
-    public async Task RespondJoinRequestAsync(
-    int requestId,
-    RequestStatus status,
-    int responderId)
+    public async Task RespondJoinRequestAsync(int teamId, int requestId, TeamJoinRequestDtoForUpdate dto ,int responderId)
     {
-        // 1) İsteği bul
         var req = await _repo.TeamJoinRequest
                             .GetJoinRequestAsync(requestId, trackChanges: true)
                   ?? throw new JoinRequestNotFoundException(requestId);
 
-        // 2) Yetki kontrolü: yalnızca takımın kaptanı(ları) kabul/red yapabilir
-        var isCaptain = await _repo.TeamMember
-            .GetMemberAsync(req.TeamId, responderId, trackChanges: false) is TeamMember m
-            && m.IsCaptain;
-        if (!isCaptain)
+        var member = await CheckTeamMembership(teamId, responderId);
+
+        if (!member.IsCaptain)
             throw new UnauthorizedAccessException("Bu işlemi yalnızca takım kaptanları yapabilir.");
 
-        // 3) Durumu ve respondedAt’i güncelle
-        req.Status = status;
-        req.RespondedAt = DateTime.UtcNow;
-
-        // 4) Kabul edilmişse üyeliğe aktar
-        if (status == RequestStatus.Accepted)
+        if (dto.Status == RequestStatus.Accepted)
         {
-            var member = new TeamMember
+            var newMember = new TeamMember
             {
                 TeamId = req.TeamId,
                 UserId = req.UserId,
                 IsCaptain = false,
                 JoinedAt = DateTime.UtcNow
             };
-            _repo.TeamMember.AddMember(member);
+            _repo.TeamMember.AddMember(newMember);
         }
-
-        // 5) Kaydet
         await _repo.SaveAsync();
     }
 
-    public async Task<IEnumerable<TeamJoinRequestDto>>
-        GetTeamJoinRequestsAsync(int teamId, bool track) =>
-        _mapper.Map<IEnumerable<TeamJoinRequestDto>>(
-            await _repo.TeamJoinRequest.GetRequestsByTeamIdAsync(teamId, track));
+    private async Task CheckUserExists(int userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+            throw new UserNotFoundException(userId);
 
-    public async Task<IEnumerable<TeamJoinRequestDto>>
-        GetUserJoinRequestsAsync(int userId, bool track) =>
-        _mapper.Map<IEnumerable<TeamJoinRequestDto>>(
-            await _repo.TeamJoinRequest.GetRequestsByUserIdAsync(userId, track));
+        var roles = await _userManager.GetRolesAsync(user);
+
+        if (roles.Contains("Owner"))
+            throw new InvalidOperationException("Owner rolüne sahip kullanıcılar takımlara eklenemez.");
+    }
+
+    private async Task<Team> CheckTeamExists(int teamId)
+    {
+        var entity = await _repo.Team.GetTeamAsync(teamId, true)
+                     ?? throw new TeamNotFoundException(teamId);
+
+        return entity;
+    }
+
+    private async Task<TeamMember> CheckTeamMembership(int teamId, int userId)
+    {
+        var member = await _repo.TeamMember.GetMemberAsync(teamId, userId, true)
+             ?? throw new TeamMemberNotFoundException(teamId, userId);
+        
+        return member;
+    }
 }
