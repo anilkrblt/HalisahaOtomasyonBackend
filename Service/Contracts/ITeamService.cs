@@ -7,7 +7,7 @@ namespace Service.Contracts
     public interface ITeamService
     {
         Task<TeamDto> CreateTeamAsync(TeamForCreationDto dto, int creatorUserId);
-        Task<TeamDto> GetTeamAsync(int teamId, bool trackChanges);
+        Task<TeamDto> GetTeamAsync(int teamId, int reviewerId, bool trackChanges);
         Task<IEnumerable<TeamDto>> GetTeamsAsync(string? city, string? teamName, bool trackChanges);
         Task<TeamDto> UpdateTeamAsync(int teamId, TeamForUpdateDto dto);
         Task DeleteTeamAsync(int teamId);
