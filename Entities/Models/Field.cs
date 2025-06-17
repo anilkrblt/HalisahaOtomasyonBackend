@@ -1,4 +1,6 @@
-﻿namespace Entities.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Entities.Models
 {
     public enum FloorType
     {
@@ -28,7 +30,13 @@
         public ICollection<Room> Rooms { get; set; }
         public ICollection<WeeklyOpening> WeeklyOpenings { get; set; } = [];
         public ICollection<FieldException> Exceptions { get; set; } = [];
-
         public ICollection<MonthlyMembership> MonthlyMemberships { get; set; }
+        public ICollection<FieldComment> Comments { get; set; }
+
+        [NotMapped]
+        public double AvgRating =>
+            Comments.Any()
+            ? Comments.Average(c => c.Rating)
+            : 0;
     }
 }

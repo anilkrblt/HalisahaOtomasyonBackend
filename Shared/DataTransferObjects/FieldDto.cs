@@ -1,15 +1,9 @@
-// Shared/DataTransferObjects/FieldDtos.cs
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
-using Shared.Converters;
 
 namespace Shared.DataTransferObjects
 {
-    // --- Yeni: Haftalık program DTO’ları ---
-    public record WeeklyOpeningDto
+    public class WeeklyOpeningDto
     {
         public int Id { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
@@ -18,7 +12,7 @@ namespace Shared.DataTransferObjects
         public TimeSpan EndTime { get; set; }
     }
 
-    public record WeeklyOpeningForCreationDto
+    public class WeeklyOpeningForCreationDto
     {
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public DayOfWeek DayOfWeek { get; set; }
@@ -26,37 +20,32 @@ namespace Shared.DataTransferObjects
         public TimeSpan EndTime { get; set; }
     }
 
-    // --- Yeni: Tarihe özel istisna DTO’ları ---
-    public record FieldExceptionDto
+    public class FieldExceptionDto
     {
         public int Id { get; set; }
         public DateTime Date { get; set; }
         public bool IsOpen { get; set; }
     }
 
-    public record FieldExceptionForCreationDto
+    public class FieldExceptionForCreationDto
     {
         public DateTime Date { get; set; }
         public bool IsOpen { get; set; }
     }
 
-    // Var olan Field DTO’ları aşağı gibi güncellendi:
     public enum FloorType { Dogal, Yapay, Parke, Kum }
 
-    public record FieldDto
+    public class FieldDto
     {
         public int OwnerId { get; set; }
-
         public int FacilityId { get; set; }
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
         public string Phone { get; set; } = string.Empty;
         public string? Email { get; set; }
-
         public string? City { get; set; }
         public string? Town { get; set; }
         public string? AddressDetails { get; set; }
-
         public bool HasCafeteria { get; set; }
         public bool HasShower { get; set; }
         public bool HasToilet { get; set; }
@@ -68,8 +57,6 @@ namespace Shared.DataTransferObjects
         public bool HasGlove { get; set; }
         public bool HasParking { get; set; }
         public bool HasRefereeService { get; set; }
-
-
         public int Id { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
@@ -79,26 +66,21 @@ namespace Shared.DataTransferObjects
         public bool HasCamera { get; set; }
         public bool HasTribune { get; set; }
         public bool HasScoreBoard { get; set; }
+        public double AvgRating { get; set; }
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public FloorType FloorType { get; set; }
         public int Capacity { get; set; }
-
         public decimal PricePerHour { get; set; }
         public bool LightingAvailable { get; set; }
         public DateTime CreatedAt { get; set; }
-
-        // Fotoğraflar + Rezervasyonlar aynen duruyor
         public List<string>? PhotoUrls { get; set; }
         public List<RoomDto>? Reservations { get; set; }
-
-        // Günlük rutin ve istisnalar
         public List<WeeklyOpeningDto>? WeeklyOpenings { get; set; }
         public List<FieldExceptionDto>? Exceptions { get; set; }
-
     }
 
-    public record FieldForCreationDto
+    public class FieldForCreationDto
     {
         public int FacilityId { get; set; }
         public int Width { get; set; }
@@ -111,20 +93,13 @@ namespace Shared.DataTransferObjects
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public FloorType FloorType { get; set; }
         public int Capacity { get; set; }
-
         public decimal PricePerHour { get; set; }
         public bool LightingAvailable { get; set; }
-
-
-        // Yeni alanlar:
         public List<WeeklyOpeningForCreationDto>? WeeklyOpenings { get; set; }
         public List<FieldExceptionForCreationDto>? Exceptions { get; set; }
-
     }
 
-
-
-    public record FieldForUpdateDto
+    public class FieldForUpdateDto
     {
         public int Width { get; set; }
         public int Height { get; set; }
@@ -137,16 +112,13 @@ namespace Shared.DataTransferObjects
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public FloorType FloorType { get; set; }
         public int Capacity { get; set; }
-
         public decimal PricePerHour { get; set; }
         public bool LightingAvailable { get; set; }
-
-        // Yeni alanlar:
         public List<WeeklyOpeningForCreationDto>? WeeklyOpenings { get; set; }
         public List<FieldExceptionForCreationDto>? Exceptions { get; set; }
     }
 
-    public record FieldPatchDto
+    public class FieldPatchDto
     {
         public int? Width { get; set; }
         public int? Height { get; set; }
@@ -166,8 +138,7 @@ namespace Shared.DataTransferObjects
         public List<FieldExceptionForCreationDto>? Exceptions { get; set; }
     }
 
-
-    public record FieldPhotosUpdateDto
+    public class FieldPhotosUpdateDto
     {
         public List<IFormFile> PhotoFiles { get; set; }
     }

@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Contracts;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore;
@@ -13,22 +10,19 @@ namespace Repository
         public FieldCommentRepository(RepositoryContext context)
             : base(context) { }
 
-        /* CREATE / DELETE -------------------------------------------------- */
         public void CreateFieldComment(FieldComment comment) => Create(comment);
-        public void DeleteFieldComment(FieldComment comment) => Delete(comment);
 
-        /* READ -------------------------------------------------------------- */
         public async Task<IEnumerable<FieldComment>> GetAllFieldCommentsAsync(bool trackChanges) =>
-            await FindAll(trackChanges)
+            await FindByCondition(c => !c.IsDeleted, trackChanges)
                   .OrderBy(c => c.CreatedAt)
                   .ToListAsync();
 
         public async Task<FieldComment?> GetFieldCommentAsync(int commentId, bool trackChanges) =>
-            await FindByCondition(c => c.Id == commentId, trackChanges)
+            await FindByCondition(c => c.Id == commentId && !c.IsDeleted, trackChanges)
                   .SingleOrDefaultAsync();
 
         public async Task<IEnumerable<FieldComment>> GetFieldCommentsByFieldIdAsync(int fieldId, bool trackChanges) =>
-            await FindByCondition(c => c.FieldId == fieldId, trackChanges)
+            await FindByCondition(c => c.FieldId == fieldId && !c.IsDeleted, trackChanges)
                   .OrderByDescending(c => c.CreatedAt)
                   .ToListAsync();
     }

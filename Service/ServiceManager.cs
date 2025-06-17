@@ -8,13 +8,11 @@ using Microsoft.Extensions.Configuration;
 using Service.Contracts;
 using Service.Hubs;
 using StackExchange.Redis;
-using System;
 
 namespace Service;
 
 public class ServiceManager : IServiceManager
 {
-    /*───────── Lazy alanlar ─────────*/
     private readonly Lazy<IPhotoService> _photo;
 
     private readonly Lazy<IAnnouncementService> _announcement;
@@ -32,7 +30,6 @@ public class ServiceManager : IServiceManager
     private readonly Lazy<IReservationService> _reservation;
 
     public ServiceManager(
-        /* ①  User türü => ApplicationUser (üst sınıf) */
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         RoleManager<IdentityRole<int>> roleManager,
@@ -46,31 +43,25 @@ public class ServiceManager : IServiceManager
         IWebHostEnvironment env)
     {
         _photo = new(() => new PhotoService(repo, map, env));
-
-        /* Auth */
         _auth = new(() =>
             new AuthService(userManager, signInManager, config, roleManager, redis, _photo.Value, repo));
         _facility = new(() => new FacilityService(repo, log, map, _photo.Value));
         _notification = new(() => new NotificationService(repo, log, map, hub));
 
-        /* Core servisler */
-        _comment = new(() => new CommentService(repo, map, log));
+        _comment = new(() => new CommentService(repo, map, userManager));
         _field = new(() => new FieldService(repo, log, map, _photo.Value));
         _room = new(() => new RoomService(repo, _notification.Value, code, map, userManager));
         _equipment = new(() => new EquipmentService(repo, map));
         _announcement = new(() => new AnnouncementService(repo, log, map));
         _match = new(() => new MatchService(repo, map));
 
-        /* Yeni servisler */
         _facilityRating = new(() => new FacilityRatingService(repo, map));
         _friendship = new(() => new FriendshipService(repo, map, _photo.Value));
         _team = new(() => new TeamService(repo, map, log, _photo.Value));
         _reservation = new(() => new ReservationService(repo, map));
     }
 
-    /*───────── Arabirim üyeleri ─────────*/
     public IPhotoService PhotoService => _photo.Value;
-
     public IAnnouncementService AnnouncementService => _announcement.Value;
     public IAuthService AuthService => _auth.Value;
     public ICommentService CommentService => _comment.Value;
@@ -84,5 +75,4 @@ public class ServiceManager : IServiceManager
     public IRoomService RoomService => _room.Value;
     public ITeamService TeamService => _team.Value;
     public IReservationService ReservationService => _reservation.Value;
-
 }

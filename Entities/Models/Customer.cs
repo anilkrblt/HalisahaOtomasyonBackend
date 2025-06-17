@@ -17,6 +17,12 @@ public class Customer : ApplicationUser
         public string Positions { get; set; } = string.Empty;
 
         [NotMapped]
+        public double AvgRating =>
+        ReceivedComments.Any()
+            ? ReceivedComments.Average(c => c.Rating)
+            : 0;
+
+        [NotMapped]
         public List<PlayingPosition> PlayingPositions
         {
                 get => string.IsNullOrWhiteSpace(Positions)
@@ -37,7 +43,6 @@ public class Customer : ApplicationUser
         public ICollection<TeamMember> TeamMemberships { get; set; } = [];
         public ICollection<TeamJoinRequest> TeamJoinRequests { get; set; } = [];
         public ICollection<Comment> AuthoredComments { get; set; } = [];
-
 
         public ICollection<Friendship> Friends1 { get; set; } = [];
         public ICollection<Friendship> Friends2 { get; set; } = [];

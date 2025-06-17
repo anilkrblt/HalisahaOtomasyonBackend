@@ -6,7 +6,7 @@ using Shared.DataTransferObjects;
 namespace HalisahaOtomasyonPresentation.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/facilities")]
     public class FacilitiesController : ControllerBase
     {
         private readonly IServiceManager _service;

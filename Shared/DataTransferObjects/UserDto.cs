@@ -119,6 +119,7 @@ namespace Shared.DataTransferObjects
         public string? PlayingPosition { get; set; }
         public bool Gender { get; set; }
         public string? Status { get; set; }
+        public double AvgRating { get; set; }
         public List<UserTeamDto>? Teams { get; set; }
 
     }
