@@ -19,7 +19,6 @@ namespace Service;
 public class AuthService : IAuthService
 {
 
-    /* ───── DI alanları ───── */
     private readonly UserManager<ApplicationUser> _userMgr;
     private readonly SignInManager<ApplicationUser> _signInMgr;
     private readonly RoleManager<IdentityRole<int>> _roleMgr;
@@ -82,9 +81,9 @@ public class AuthService : IAuthService
     }
 
     /*────────────────────────────  KAYIT  ────────────────────────────*/
-    public async Task<IdentityResult> RegisterOwnerAsync(UserRegisterDto dto)
+    public async Task<IdentityResult> RegisterOwnerAsync(RegisterOwnerDto dto)
     {
-        /* Rol yoksa ekle */
+        /*  Rol yoksa ekle */
         if (!await _roleMgr.RoleExistsAsync("Owner"))
             await _roleMgr.CreateAsync(new IdentityRole<int>("Owner"));
 
@@ -242,9 +241,6 @@ public class AuthService : IAuthService
 
         if (roles.Contains("Customer"))
         {
-
-
-
             var photos = await _photoService.GetPhotosAsync("user", userId, true);
             var photo = photos.FirstOrDefault();
             // ApplicationUser’dan CustomerDto’ya map
@@ -272,7 +268,6 @@ public class AuthService : IAuthService
                     Name = team.Name,
                     PhotoUrl = team.LogoUrl
                 }).ToList();
-
 
             return new CustomerDto
             {

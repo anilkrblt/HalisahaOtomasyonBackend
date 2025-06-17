@@ -12,7 +12,6 @@ using Shared.DataTransferObjects;
 namespace HalisahaOtomasyonPresentation.Controllers
 {
 
-    //TODO Tüm endpointleri kontrol et
     [ApiController]
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
@@ -26,8 +25,7 @@ namespace HalisahaOtomasyonPresentation.Controllers
         }
 
 
-
-        /*──── 1. PROFİL GET ─────────────────────────*/
+        // Oturum açmış bir kullanıcı diğer kullanıcıların profilini görüntüler
         [HttpGet("/user/info/{id:int}")]
         [Authorize]
         public async Task<IActionResult> GetUserInformation(int id)
@@ -53,13 +51,11 @@ namespace HalisahaOtomasyonPresentation.Controllers
 
         }
 
-
-        /*──── 1. PROFİL GET ─────────────────────────*/
+        // Oturum açmış bir Kullanıcı kendi profilini görüntüler
         [HttpGet("{id:int}")]
         [Authorize]
         public async Task<IActionResult> GetUser(int id)
         {
-            // Claim'den user id'yi güvenle çek
             var idClaim = User.FindFirst("id");
             if (idClaim == null)
                 return Unauthorized("Kullanıcı id bilgisi bulunamadı!");
@@ -79,7 +75,7 @@ namespace HalisahaOtomasyonPresentation.Controllers
         }
 
 
-        /*──── 2. CUSTOMER PUT & PATCH ───────────────*/
+        // Müşteri kullanıcı için bilgilerini güncelleme
         [Authorize(Roles = "Customer")]
         [HttpPut("customer")]
         public async Task<IActionResult> UpdateCustomer([FromBody] CustomerUpdateDto dto)
@@ -89,6 +85,7 @@ namespace HalisahaOtomasyonPresentation.Controllers
             return res.Succeeded ? NoContent() : UnprocessableEntity(res.Errors);
         }
 
+        // Müşteri kullanıcı için patch ile kısmi güncelleme
         [Authorize(Roles = "Customer")]
         [HttpPatch("customer")]
         public async Task<IActionResult> PatchCustomer([FromBody] JsonPatchDocument<CustomerPatchDto> patch)
@@ -99,7 +96,7 @@ namespace HalisahaOtomasyonPresentation.Controllers
             return res.Succeeded ? NoContent() : UnprocessableEntity(res.Errors);
         }
 
-        /*──── 3. OWNER PUT & PATCH ──────────────────*/
+        // Halısaha sahibi için güncelleme
         [Authorize(Roles = "Owner")]
         [HttpPut("owner")]
         public async Task<IActionResult> UpdateOwner([FromBody] OwnerUpdateDto dto)
@@ -109,6 +106,7 @@ namespace HalisahaOtomasyonPresentation.Controllers
             return res.Succeeded ? NoContent() : UnprocessableEntity(res.Errors);
         }
 
+        // Halısaha sahibi için kısmi güncelleme
         [Authorize(Roles = "Owner")]
         [HttpPatch("owner")]
         public async Task<IActionResult> PatchOwner([FromBody] JsonPatchDocument<OwnerPatchDto> patch)
@@ -119,7 +117,9 @@ namespace HalisahaOtomasyonPresentation.Controllers
             return res.Succeeded ? NoContent() : UnprocessableEntity(res.Errors);
         }
 
+        // Kullanıcı silme
         [HttpDelete("{id:int?}")]
+        [Authorize]
         public async Task<IActionResult> DeleteUser(int? id)
         {
             var userId = int.Parse(User.FindFirst("id")!.Value);
@@ -132,9 +132,9 @@ namespace HalisahaOtomasyonPresentation.Controllers
         }
 
 
-
+        // Halısaha sahibi kayıt olma
         [HttpPost("register-owner")]
-        public async Task<IActionResult> RegisterOwner([FromBody] UserRegisterDto model)
+        public async Task<IActionResult> RegisterOwner([FromBody] RegisterOwnerDto model)
         {
             var result = await _serviceManager.AuthService.RegisterOwnerAsync(model);
             if (!result.Succeeded)
@@ -143,6 +143,8 @@ namespace HalisahaOtomasyonPresentation.Controllers
             return Ok("Owner registered successfully.");
         }
 
+
+        // Müşteri kayıt olma
         [HttpPost("register-customer")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> RegisterCustomer([FromForm] CustomerRegisterDto model)
@@ -155,7 +157,7 @@ namespace HalisahaOtomasyonPresentation.Controllers
             return Ok("Customer registered successfully.");
         }
 
-
+        // Halısaha sahbi ve müşteri için oturum açma işlemi
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginDto model)
         {
@@ -168,6 +170,7 @@ namespace HalisahaOtomasyonPresentation.Controllers
             return Ok(new { Token = userId });
         }
 
+        // Oturum açıkken şifre güncelleme işlemi
         [Authorize]
         [HttpPost("update-password")]
         public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordDto model)
@@ -185,6 +188,8 @@ namespace HalisahaOtomasyonPresentation.Controllers
             return Ok("Password updated successfully.");
         }
 
+
+        // Şifre unutma durumunda şifre sıfırlamak için e postaya kod gönderme işlemi
         [HttpPost("forgot-password")]
         public async Task<IActionResult> SendForgotPasswordCode([FromBody] ForgotPasswordRequestDto model)
         {
@@ -197,6 +202,7 @@ namespace HalisahaOtomasyonPresentation.Controllers
             return Ok("Reset code sent to your email address.");
         }
 
+        // Kod ve e posta ile şifreyi değiştirme
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPasswordWithCode([FromBody] ResetPasswordDto model)
         {
@@ -210,7 +216,7 @@ namespace HalisahaOtomasyonPresentation.Controllers
         }
 
 
-
+        // Kullanıcı profil fotoğrafı güncelleme (müşteri için önerilir post + put işlemi)
         [HttpPost("{id:int}/photos")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> UpdateUserPhoto(int id, [FromForm] UserPhotosUpdateDto dto)

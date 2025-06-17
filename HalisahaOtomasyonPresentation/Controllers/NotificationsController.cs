@@ -4,6 +4,7 @@ using Shared.DataTransferObjects;
 
 namespace HalisahaOtomasyonPresentation.Controllers
 {
+    // TODO düzenle
     // bildirimleri otomatikleştir ve sadece get ve belki put istekleri kalsın
     [ApiController]
     [Route("api/notifications")]
