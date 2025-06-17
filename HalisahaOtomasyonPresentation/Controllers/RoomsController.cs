@@ -58,10 +58,16 @@ public class RoomsController : ControllerBase
         return NoContent();
     }
 
-    // GET api/rooms/42/participants
     [HttpGet("{id:int}/participants")]
     public async Task<IActionResult> GetParticipants(int id)
-        => Ok(await _svc.RoomService.GetParticipantsByRoomAsync(id, false));
+    {
+        var result = await _svc.RoomService.GetParticipantsByRoomAsync(id, false);
+        return Ok(result);
+    }
+
+
+
+
     // DELETE api/rooms/42/leave?teamId=5
     [HttpDelete("{id:int}/leave")]
     public async Task<IActionResult> LeaveRoom(int id, [FromQuery] int teamId)

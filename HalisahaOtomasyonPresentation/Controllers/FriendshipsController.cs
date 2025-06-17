@@ -9,8 +9,6 @@ namespace HalisahaOtomasyonPresentation.Controllers
     [ApiController]
     [Authorize]
     [Route("api/friendships")]
-    // TODO bu controlleri ve servisi kontrol et bi temizlik yap
-    // TODO arkadaşlık isteği iptal kısmında bug var
     public class FriendshipsController : ControllerBase
     {
         private readonly IServiceManager _svc;
@@ -83,7 +81,7 @@ namespace HalisahaOtomasyonPresentation.Controllers
             return NoContent();
         }
 
-        /*──── Kullanıcı adı arama (autocomplete) ────*/
+        /*──── Kullanıcı adı arama ────*/
         [HttpGet("search")]
         public async Task<IActionResult> Search([FromQuery] string q, [FromQuery] int take = 10)
         {
@@ -92,7 +90,6 @@ namespace HalisahaOtomasyonPresentation.Controllers
             var results = new List<object>();
             foreach (var c in users)
             {
-                // Her kullanıcı için fotoğrafı sırayla çek (paralel değil!)
                 var photos = await _svc.PhotoService.GetPhotosAsync("user", c.Id, false);
                 var photoUrl = photos.FirstOrDefault()?.Url;
                 results.Add(new
@@ -108,8 +105,7 @@ namespace HalisahaOtomasyonPresentation.Controllers
         }
 
 
-        // TODO sıkıntı
-        /*──── Bekleyen isteği iptal ────*/
+  
         [HttpDelete("{fromId:int}/{toId:int}/cancel")]
         public async Task<IActionResult> Cancel(int fromId, int toId)
         {

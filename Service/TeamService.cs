@@ -29,7 +29,7 @@ public class TeamService : ITeamService
     {
         var entity = _mapper.Map<Team>(dto);
         _repo.Team.CreateTeam(entity);
-        await _repo.SaveAsync(); 
+        await _repo.SaveAsync();
 
         var captain = new TeamMember
         {
@@ -37,7 +37,7 @@ public class TeamService : ITeamService
             UserId = creatorUserId,
             IsCaptain = true,
             IsAdmin = true,
-            Position = PlayerPosition.Utility, 
+            Position = "Kaptan",
             JoinedAt = DateTime.UtcNow
         };
         _repo.TeamMember.AddMember(captain);

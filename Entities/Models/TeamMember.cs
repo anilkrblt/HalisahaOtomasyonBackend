@@ -1,14 +1,5 @@
 namespace Entities.Models;
 
-public enum PlayerPosition
-{
-    GK = 0,   // Kaleci
-    DF = 1,
-    MF = 2,
-    FW = 3,
-    Utility = 4
-}
-
 public class TeamMember
 {
     /* --------- Composite PK --------- */
@@ -22,6 +13,19 @@ public class TeamMember
     /* --------- Özellikler --------- */
     public bool IsCaptain { get; set; }
     public bool IsAdmin { get; set; }
-    public PlayerPosition Position { get; set; } = PlayerPosition.Utility;
+    public string Position { get; set; }
     public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
+}
+public static class PositionHelper
+{
+    public static List<string> ParsePositions(string? positionStr)
+    {
+        if (string.IsNullOrWhiteSpace(positionStr))
+            return new List<string>();
+
+        return positionStr
+            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(p => p.Trim())
+            .ToList();
+    }
 }
