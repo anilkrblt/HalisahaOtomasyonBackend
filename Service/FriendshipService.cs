@@ -114,6 +114,10 @@ public class FriendshipService : IFriendshipService
         return _mapper.Map<FriendshipDto>(row);
     }
 
+
+
+    
+
     /*──── Respond ────*/
     public async Task RespondFriendRequestAsync(int userIdA, int userIdB, FriendshipStatus status)
     {
@@ -237,7 +241,10 @@ public class FriendshipService : IFriendshipService
 
 }
 
-/* Basit istisna */
+
+
+
+
 public sealed class FriendshipNotFoundException : NotFoundException
 {
     public FriendshipNotFoundException(int a, int b)

@@ -22,16 +22,16 @@ namespace Repository
         public void DeleteFriendship(Friendship friendship) => Delete(friendship);
 
         /* ---------- Tek satır ---------- */
-        public async Task<Friendship?> GetFriendshipAsync(int userIdA, int userIdB, bool trackChanges)
+        public async Task<Friendship?> GetFriendshipAsync(int fromUserId, int toUserId, bool trackChanges)
         {
-            int a = userIdA < userIdB ? userIdA : userIdB;
-            int b = userIdA < userIdB ? userIdB : userIdA;
-
-            return await FindByCondition(f => f.UserId1 == a && f.UserId2 == b, trackChanges)
-                         .Include(f => f.User1)
-                         .Include(f => f.User2)
-                         .SingleOrDefaultAsync();
+            return await FindByCondition(f =>
+                f.UserId1 == fromUserId && f.UserId2 == toUserId,
+                trackChanges)
+                .Include(f => f.User1)
+                .Include(f => f.User2)
+                .SingleOrDefaultAsync();
         }
+
         public async Task<Friendship?> GetFriendshipExactAsync(int fromUserId, int toUserId, bool trackChanges)
         {
             return await FindByCondition(f =>
