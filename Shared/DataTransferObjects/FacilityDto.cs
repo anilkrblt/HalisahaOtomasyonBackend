@@ -31,9 +31,10 @@ public class FacilityDto
     public string Phone { get; set; } = string.Empty;
     public string? Email { get; set; }
     public string? BankAccountInfo { get; set; }
-    public double Rating { get; set; }
     public List<FieldDto>? Fields { get; set; }
     public List<EquipmentDto>? Equipments { get; set; }
+
+    [MaxLength(3)]
     public List<string>? PhotoUrls { get; set; }
 }
 
@@ -123,5 +124,6 @@ public class FacilityPatchDto
 }
 public class FacilityPhotosUpdateDto
 {
+    [MaxLength(3)]
     public List<IFormFile> PhotoFiles { get; set; }
 }
