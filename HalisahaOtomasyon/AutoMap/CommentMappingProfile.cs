@@ -21,7 +21,9 @@ namespace HalisahaOtomasyon.AutoMap
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.DeletedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.IsDeleted, opt => opt.Ignore());
-            CreateMap<FieldComment, FieldCommentDto>();
+            CreateMap<FieldComment, FieldCommentDto>()
+                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FromUser.FirstName))
+                .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.FromUser.LastName));
 
             CreateMap<TeamCommentForCreationDto, TeamComment>();
             CreateMap<TeamCommentForUpdateDto, TeamComment>()
@@ -36,7 +38,9 @@ namespace HalisahaOtomasyon.AutoMap
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.DeletedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.IsDeleted, opt => opt.Ignore());
-            CreateMap<TeamComment, TeamCommentDto>();
+            CreateMap<TeamComment, TeamCommentDto>()
+                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FromUser.FirstName))
+                .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.FromUser.LastName));
 
             CreateMap<UserCommentForCreationDto, UserComment>();
             CreateMap<UserCommentForUpdateDto, UserComment>()
@@ -51,7 +55,9 @@ namespace HalisahaOtomasyon.AutoMap
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.DeletedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.IsDeleted, opt => opt.Ignore());
-            CreateMap<UserComment, UserCommentDto>();
+            CreateMap<UserComment, UserCommentDto>()
+                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FromUser.FirstName))
+                .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.FromUser.LastName));
         }
     }
 }

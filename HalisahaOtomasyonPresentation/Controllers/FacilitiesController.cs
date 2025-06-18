@@ -1,7 +1,10 @@
+using HalisahaOtomasyon.ActionFilters;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
 using Shared.DataTransferObjects;
+using System.Security.Claims;
 
 namespace HalisahaOtomasyonPresentation.Controllers
 {
@@ -20,35 +23,24 @@ namespace HalisahaOtomasyonPresentation.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetFacilities([FromQuery] int? ownerId = null)
         {
-            var facilities = await _service.FacilityService.GetAllFacilitiesAsync(trackChanges: false);
+            var facilities = await _service.FacilityService.GetAllFacilitiesAsync(ownerId, trackChanges: false);
 
-            var filteredFacilities = ownerId.HasValue ? facilities.Where(f => f.OwnerId == ownerId.Value).ToList()
-                                                     : facilities.ToList();
-            foreach (var facility in filteredFacilities)
-            {
-                var photoDtos = await _service.PhotoService.GetPhotosAsync("facility", facility.Id, false);
-                facility.PhotoUrls = photoDtos.Select(p => p.Url).ToList();
-            }
-
-            return Ok(filteredFacilities);
-
+            return Ok(facilities);
         }
 
-        [HttpGet("{id:int}", Name = "GetFacilityById")]
+        [HttpGet("{facilityId:int}", Name = "GetFacilityById")]
         // [SwaggerOperation(Summary = "Belirli bir tesisi getirir", Description = "ID’ye göre tesisi ve fotoğraflarını döner.")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetFacility(int id)
+        public async Task<IActionResult> GetFacility([FromRoute(Name = "facilityId")] int facilityId)
         {
-            var facility = await _service.FacilityService.GetFacilityAsync(id, trackChanges: false);
-            var photoDtos = await _service.PhotoService.GetPhotosAsync("facility", facility.Id, false);
-            var photoUrls = photoDtos.Select(p => p.Url).ToList();
-            facility.PhotoUrls = photoUrls;
+            var facility = await _service.FacilityService.GetFacilityAsync(facilityId, trackChanges: false);
 
             return Ok(facility);
         }
 
-        //[ServiceFilter(typeof(ValidationFilterAttribute))]
+        [Authorize(Roles = "Owner")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
         [HttpPost]
         [Consumes("multipart/form-data")]
         //  [SwaggerOperation(Summary = "Yeni bir tesis oluşturur", Description = "Tesis bilgilerini ve maksimum 3 fotoğraf içeren bir form ile yeni tesis kaydı yapılır.")]
@@ -56,78 +48,89 @@ namespace HalisahaOtomasyonPresentation.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateFacility([FromForm] FacilityForCreationDto dto)
         {
-            if (dto == null)
-                return BadRequest("Facility DTO is null.");
-
-            if (dto.PhotoFiles != null && dto.PhotoFiles.Count > 3)
-                return BadRequest("En fazla 3 fotoğraf yükleyebilirsiniz.");
-
-
             var createdFacility = await _service.FacilityService.CreateFacilityAsync(dto);
 
-            // 2. Fotoğrafları PhotoService'e gönder
-            if (dto.PhotoFiles is not null && dto.PhotoFiles.Count > 0)
-            {
-                await _service.PhotoService.UploadPhotosAsync(dto.PhotoFiles, "facility", createdFacility.Id);
-            }
-
-            return CreatedAtRoute("GetFacilityById", new { id = createdFacility.Id }, createdFacility);
+            return CreatedAtRoute("GetFacilityById", new { facilityId = createdFacility.Id }, createdFacility);
         }
 
-        [HttpDelete("{id:int}")]
-        // [SwaggerOperation(Summary = "Tesis siler", Description = "ID’ye göre tesisi ve ona ait tüm fotoğrafları siler.")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> DeleteFacility(int id)
-        {
-            await _service.PhotoService.DeletePhotosByEntityAsync("facility", id, trackChanges: true);
-            await _service.FacilityService.DeleteFacility(id, false);
-            return NoContent();
-        }
-
-        [HttpPut("{id:int}")]
-        [Consumes("multipart/form-data")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateFacility(
-     int id,
-     [FromForm] FacilityForUpdateDto facilityDto)
-        {
-            await _service.FacilityService.UpdateFacilityAsync(id, facilityDto, true);
-            return NoContent();
-        }
-
-        [HttpPatch("{id:int}")]
+        [Authorize(Roles = "Owner")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
+        [HttpPatch("{facilityId:int}")]
         // [SwaggerOperation(Summary = "Tesisin bazı alanlarını günceller", Description = "Kısmi veri gönderimiyle bir tesisin seçilen alanlarını günceller.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> PatchFacility(int id, [FromBody] FacilityPatchDto patch)
+        public async Task<IActionResult> PatchFacility([FromRoute(Name = "facilityId")] int facilityId, 
+            [FromBody] FacilityPatchDto patch)
         {
-            if (patch == null)
-                return BadRequest("Gönderilen veri boş olamaz.");
-            await _service.FacilityService.PatchFacilityAsync(id, patch);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? User.FindFirst("id")?.Value;
+            if (userIdClaim is null)
+                return Unauthorized();
+
+            var reviewerId = int.Parse(userIdClaim);
+
+            await _service.FacilityService.PatchFacilityAsync(reviewerId, facilityId, patch);
             return NoContent();
         }
 
-        [HttpPut("{id:int}/photos")]
+        [Authorize(Roles = "Owner")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
+        [HttpPut("{facilityId:int}/photos")]
         [Consumes("multipart/form-data")]
         // [SwaggerOperation(Summary = "Tesisin fotoğraflarını günceller", Description = "Önceki fotoğrafları siler, yerine yenilerini yükler (en fazla 3 adet).")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> UpdateFacilityPhotos(int id, [FromForm] FacilityPhotosUpdateDto dto)
+        public async Task<IActionResult> UpdateFacilityPhotos([FromRoute(Name = "facilityId")] int facilityId,
+            [FromForm] FacilityPhotosUpdateDto dto)
         {
-            if (dto.PhotoFiles == null || dto.PhotoFiles.Count == 0)
-                return BadRequest("Fotoğraf yüklenmedi.");
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? User.FindFirst("id")?.Value;
+            if (userIdClaim is null)
+                return Unauthorized();
 
-            if (dto.PhotoFiles.Count > 3)
-                return BadRequest("En fazla 3 fotoğraf yükleyebilirsiniz.");
+            var reviewerId = int.Parse(userIdClaim);
 
-            await _service.PhotoService.DeletePhotosByEntityAsync("facility", id, trackChanges: true);
+            await _service.FacilityService.UpdateFacilityPhotos(reviewerId, facilityId, dto);
+            return NoContent();
+        }
 
-            await _service.PhotoService.UploadPhotosAsync(dto.PhotoFiles, "facility", id);
+        [Authorize(Roles = "Owner")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
+        [HttpPut("{facilityId:int}")]
+        [Consumes("multipart/form-data")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UpdateFacility([FromRoute(Name = "facilityId")] int facilityId,
+        [FromForm] FacilityForUpdateDto facilityDto)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                        ?? User.FindFirst("id")?.Value;
+            if (userIdClaim is null)
+                return Unauthorized();
 
+            var reviewerId = int.Parse(userIdClaim);
+
+            await _service.FacilityService.UpdateFacilityAsync(reviewerId, facilityId, facilityDto, true);
+            return NoContent();
+        }
+
+        [Authorize(Roles = "Owner")]
+        [HttpDelete("{facilityId:int}")]
+        // [SwaggerOperation(Summary = "Tesis siler", Description = "ID’ye göre tesisi ve ona ait tüm fotoğrafları siler.")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteFacility([FromRoute(Name = "facilityId")] int facilityId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                                    ?? User.FindFirst("id")?.Value;
+            if (userIdClaim is null)
+                return Unauthorized();
+
+            var reviewerId = int.Parse(userIdClaim);
+
+            await _service.FacilityService.DeleteFacility(reviewerId, facilityId, false);
             return NoContent();
         }
     }

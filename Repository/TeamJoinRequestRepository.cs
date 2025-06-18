@@ -30,7 +30,7 @@ namespace Repository
         /* ---------- Takıma göre -------- */
         public async Task<IEnumerable<TeamJoinRequest>> GetRequestsByTeamIdAsync(int teamId, bool trackChanges) =>
             await IncludeAll(
-                    FindByCondition(r => r.TeamId == teamId, trackChanges))
+                    FindByCondition(r => r.TeamId == teamId && r.Status == RequestStatus.Pending, trackChanges))
                  .OrderByDescending(r => r.CreatedAt)
                  .ToListAsync();
 

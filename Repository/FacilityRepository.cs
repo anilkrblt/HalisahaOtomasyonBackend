@@ -33,9 +33,8 @@ namespace Repository
                     .Include(f => f.Photos)
                     .Include(f => f.Equipments)
                     .Include(f => f.Fields)
-                     .OrderBy(f => f.Name)
-
-                     .ToListAsync();
+                    .OrderBy(f => f.Name)
+                    .ToListAsync();
 
         /* Basit harversine hesaplı yakınlık sorgusu (server-side) */
         public async Task<IEnumerable<Facility>> GetFacilitiesNearAsync(

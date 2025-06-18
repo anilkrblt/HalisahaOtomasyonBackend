@@ -2,8 +2,6 @@
 using Contracts;
 using Entities.Exceptions;
 using Entities.Models;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Service.Contracts;
 using Shared.DataTransferObjects;
 
@@ -13,25 +11,29 @@ public class CommentService : ICommentService
 {
     private readonly IRepositoryManager _repo;
     private readonly IMapper _mapper;
-    private readonly UserManager<ApplicationUser> _userManager;
-
+    private readonly IUserValidationService _userValidationService;
+    private readonly IPhotoService _photoService;
 
     public CommentService(IRepositoryManager repo,
                           IMapper mapper,
-                          UserManager<ApplicationUser> userManager)
+                          IUserValidationService userValidationService,
+                          IPhotoService photoService)
     {
         _repo = repo;
         _mapper = mapper;
-        _userManager = userManager;
+        _userValidationService = userValidationService;
+        _photoService = photoService;
     }
 
     public async Task<FieldCommentDto> GetFieldCommentAsync(int commentId, bool trackChanges)
     {
-        var comment = await _repo.FieldComment.GetFieldCommentAsync(commentId, trackChanges);
-        if (comment is null)
-            throw new CommentNotFoundException(commentId);
+        var entity = await CheckFieldCommentExists(commentId);
+        var commentDto = _mapper.Map<FieldCommentDto>(entity);
 
-        return _mapper.Map<FieldCommentDto>(comment);
+        var photosDto = await _photoService.GetPhotosAsync("user", commentDto.FromUserId, false);
+        commentDto.UserPhotoUrl = photosDto?.FirstOrDefault()?.Url ?? "";
+
+        return commentDto;
     }
 
     public async Task<IEnumerable<FieldCommentDto>> GetFieldCommentsAsync(int fieldId, bool trackChanges)
@@ -39,8 +41,15 @@ public class CommentService : ICommentService
         _ = await _repo.Field.GetFieldAsync(fieldId, trackChanges: false) ?? throw new FieldNotFoundException(fieldId);
 
         var comments = await _repo.FieldComment.GetFieldCommentsByFieldIdAsync(fieldId, trackChanges);
+        var commentDtos = _mapper.Map<IEnumerable<FieldCommentDto>>(comments);
 
-        return _mapper.Map<IEnumerable<FieldCommentDto>>(comments);
+        foreach (var commentDto in commentDtos)
+        {
+            var photosDto = await _photoService.GetPhotosAsync("user", commentDto.FromUserId, false);
+            commentDto.UserPhotoUrl = photosDto?.FirstOrDefault()?.Url ?? "";
+        }
+
+        return commentDtos;
     }
 
     public async Task<FieldCommentDto> AddFieldCommentAsync(FieldCommentForCreationDto dto, int fromUserId)
@@ -58,7 +67,7 @@ public class CommentService : ICommentService
 
     public async Task<FieldCommentDto> UpdateFieldCommentAsync(int commentId, FieldCommentForUpdateDto dto)
     {
-        var entity = await _repo.FieldComment.GetFieldCommentAsync(commentId, trackChanges: true) ?? throw new CommentNotFoundException(commentId);
+        var entity = await CheckFieldCommentExists(commentId);
 
         _mapper.Map(dto, entity);
 
@@ -68,7 +77,7 @@ public class CommentService : ICommentService
 
     public async Task DeleteFieldCommentAsync(int commentId)
     {
-        var entity = await _repo.FieldComment.GetFieldCommentAsync(commentId, trackChanges: true) ?? throw new CommentNotFoundException(commentId);
+        var entity = await CheckFieldCommentExists(commentId);
         entity.IsDeleted = true;
         entity.DeletedAt = DateTime.UtcNow;
         await _repo.SaveAsync();
@@ -82,16 +91,26 @@ public class CommentService : ICommentService
         var comments = await _repo.TeamComment
             .GetTeamCommentsByTeamIdAsync(teamId, trackChanges);
 
-        return _mapper.Map<IEnumerable<TeamCommentDto>>(comments);
+        var teamCommentDtos = _mapper.Map<IEnumerable<TeamCommentDto>>(comments);
+
+        foreach (var teamCommentDto in teamCommentDtos)
+        {
+            var photosDto = await _photoService.GetPhotosAsync("user", teamCommentDto.FromUserId, false);
+            teamCommentDto.UserPhotoUrl = photosDto?.FirstOrDefault()?.Url ?? "";
+        }
+
+        return teamCommentDtos;
     }
 
     public async Task<TeamCommentDto> GetTeamCommentAsync(int commentId, bool trackChanges)
     {
-        var entity = await _repo.TeamComment
-            .GetTeamCommentAsync(commentId, trackChanges)
-            ?? throw new CommentNotFoundException(commentId);
+        var entity = await CheckTeamCommentExists(commentId);
+        var teamCommentDto = _mapper.Map<TeamCommentDto>(entity);
 
-        return _mapper.Map<TeamCommentDto>(entity);
+        var photosDto = await _photoService.GetPhotosAsync("user", teamCommentDto.FromUserId, false);
+        teamCommentDto.UserPhotoUrl = photosDto?.FirstOrDefault()?.Url ?? "";
+
+        return teamCommentDto;
     }
 
     public async Task<TeamCommentDto> AddTeamCommentAsync(
@@ -114,9 +133,7 @@ public class CommentService : ICommentService
         int commentId,
         TeamCommentForUpdateDto dto)
     {
-        var entity = await _repo.TeamComment
-            .GetTeamCommentAsync(commentId, true)
-            ?? throw new CommentNotFoundException(commentId);
+        var entity = await CheckTeamCommentExists(commentId);
 
         _mapper.Map(dto, entity);
 
@@ -126,9 +143,7 @@ public class CommentService : ICommentService
 
     public async Task DeleteTeamCommentAsync(int commentId)
     {
-        var entity = await _repo.TeamComment
-            .GetTeamCommentAsync(commentId, true)
-            ?? throw new CommentNotFoundException(commentId);
+        var entity = await CheckTeamCommentExists(commentId);
 
         entity.IsDeleted = true;
         entity.DeletedAt = DateTime.UtcNow;
@@ -140,7 +155,15 @@ public class CommentService : ICommentService
         var comments = await _repo.UserComment
             .GetCommentsAboutUserAsync(toUserId, trackChanges);
 
-        return _mapper.Map<IEnumerable<UserCommentDto>>(comments);
+        var userCommentDtos = _mapper.Map<IEnumerable<UserCommentDto>>(comments);
+
+        foreach (var userCommentDto in userCommentDtos)
+        {
+            var photosDto = await _photoService.GetPhotosAsync("user", userCommentDto.FromUserId, false);
+            userCommentDto.UserPhotoUrl = photosDto?.FirstOrDefault()?.Url ?? "";
+        }
+
+        return userCommentDtos;
     }
 
     public async Task<IEnumerable<UserCommentDto>> GetCommentsFromUserAsync(int fromUserId, bool trackChanges)
@@ -148,26 +171,33 @@ public class CommentService : ICommentService
         var comments = await _repo.UserComment
             .GetCommentsFromUserAsync(fromUserId, trackChanges);
 
-        return _mapper.Map<IEnumerable<UserCommentDto>>(comments);
+        var userCommentDtos = _mapper.Map<IEnumerable<UserCommentDto>>(comments);
+
+        foreach (var userCommentDto in userCommentDtos)
+        {
+            var photosDto = await _photoService.GetPhotosAsync("user", userCommentDto.FromUserId, false);
+            userCommentDto.UserPhotoUrl = photosDto?.FirstOrDefault()?.Url ?? "";
+        }
+
+        return userCommentDtos;
     }
 
     public async Task<UserCommentDto> GetUserCommentAsync(int commentId, bool trackChanges)
     {
-        var entity = await _repo.UserComment
-            .GetUserCommentAsync(commentId, trackChanges)
-            ?? throw new CommentNotFoundException(commentId);
+        var entity = await CheckUserCommentExists(commentId);
+        var userCommentDto = _mapper.Map<UserCommentDto>(entity);
 
-        return _mapper.Map<UserCommentDto>(entity);
+        var photosDto = await _photoService.GetPhotosAsync("user", userCommentDto.FromUserId, false);
+        userCommentDto.UserPhotoUrl = photosDto?.FirstOrDefault()?.Url ?? "";
+
+        return userCommentDto;
     }
 
     public async Task<UserCommentDto> AddUserCommentAsync(
         UserCommentForCreationDto dto,
         int fromUserId)
     {
-        var exists = await _userManager.Users.AnyAsync(u => u.Id == dto.ToUserId);
-
-        if(exists is false)
-            throw new UserNotFoundException(dto.ToUserId);
+        await _userValidationService.CheckUserExists(dto.ToUserId);
 
         var entity = _mapper.Map<UserComment>(dto);
         entity.FromUserId = fromUserId;
@@ -182,9 +212,7 @@ public class CommentService : ICommentService
         int commentId,
         UserCommentForUpdateDto dto)
     {
-        var entity = await _repo.UserComment
-            .GetUserCommentAsync(commentId, true)
-            ?? throw new CommentNotFoundException(commentId);
+        var entity = await CheckUserCommentExists(commentId);
 
         _mapper.Map(dto, entity);
 
@@ -194,12 +222,43 @@ public class CommentService : ICommentService
 
     public async Task DeleteUserCommentAsync(int commentId)
     {
-        var entity = await _repo.UserComment
-            .GetUserCommentAsync(commentId, true)
-            ?? throw new CommentNotFoundException(commentId);
+        var entity = await CheckUserCommentExists(commentId);
 
         entity.IsDeleted = true;
         entity.DeletedAt = DateTime.UtcNow;
         await _repo.SaveAsync();
+    }
+
+    private async Task<UserComment> CheckUserCommentExists(int commentId)
+    {
+        var comment = await _repo.UserComment
+            .GetUserCommentAsync(commentId, true);
+
+        if (comment is null)
+            throw new CommentNotFoundException(commentId);
+
+        return comment;
+    }
+
+    private async Task<TeamComment> CheckTeamCommentExists(int commentId)
+    {
+        var comment = await _repo.TeamComment
+            .GetTeamCommentAsync(commentId, true);
+
+        if (comment is null)
+            throw new CommentNotFoundException(commentId);
+
+        return comment;
+    }
+
+    private async Task<FieldComment> CheckFieldCommentExists(int commentId)
+    {
+        var comment = await _repo.FieldComment
+            .GetFieldCommentAsync(commentId, true);
+
+        if (comment is null)
+            throw new CommentNotFoundException(commentId);
+
+        return comment;
     }
 }

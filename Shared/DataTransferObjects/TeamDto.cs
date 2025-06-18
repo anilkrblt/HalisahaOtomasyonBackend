@@ -89,6 +89,7 @@ public class TeamJoinRequestDto
     public RequestStatus Status { get; set; }
     public DateTime CreatedAt { get; set; } 
     public DateTime? RespondedAt { get; set; }
+    public string UserPhotoUrl { get; set; }
 }
 
 public class TeamJoinRequestDtoForUpdate

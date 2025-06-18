@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Contracts;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +20,7 @@ namespace Repository
                   .Include(f => f.Rooms)
                   .Include(f => f.WeeklyOpenings)
                   .Include(f => f.Exceptions)
+                  .Include(f => f.Comments)
                   .OrderBy(f => f.Name)
                   .ToListAsync();
 
@@ -31,6 +28,7 @@ namespace Repository
         public async Task<IEnumerable<Field>> GetFieldsByFacilityIdAsync(int facilityId, bool trackChanges) =>
          await FindByCondition(f => f.FacilityId.Equals(facilityId), trackChanges)
                 .Include(f => f.Rooms)
+                .Include(f => f.Comments)
                 .ToListAsync();
 
         public async Task<Field?> GetFieldAsync(int fieldId, bool trackChanges) =>
@@ -39,6 +37,7 @@ namespace Repository
                   .Include(f => f.Rooms)
                   .Include(f => f.WeeklyOpenings)
                   .Include(f => f.Exceptions)
+                  .Include(f => f.Comments)
                   .SingleOrDefaultAsync();
 
         public async Task<int> GetFacilityIdByFieldIdAsync(int fieldId)

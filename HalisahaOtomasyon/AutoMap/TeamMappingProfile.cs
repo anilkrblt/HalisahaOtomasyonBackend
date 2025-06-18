@@ -9,7 +9,11 @@ namespace HalisahaOtomasyon.AutoMap
         public TeamMappingProfile()
         {
             CreateMap<Team, TeamDto>()
-                .ForMember(dest => dest.Members, opt => opt.MapFrom(src => src.Members));
+                .ForMember(dest => dest.Members, opt => opt.MapFrom(src => src.Members))
+                .ForMember(dest => dest.AvgRating, opt => opt.MapFrom(src =>
+                    src.Comments.Any()
+                    ? src.Comments.Average(c => c.Rating)
+                    : 0));
             CreateMap<TeamForCreationDto, Team>();
             CreateMap<TeamForUpdateDto, Team>();
 

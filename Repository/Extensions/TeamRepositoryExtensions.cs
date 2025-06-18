@@ -29,6 +29,7 @@ namespace Repository.Extensions
         }
 
         public static IQueryable<Team> IncludeMembers(this IQueryable<Team> teams) =>
-            teams.Include(t => t.Members).ThenInclude(m => m.User);
+            teams.Include(t => t.Members).ThenInclude(m => m.User)
+            .Include(t => t.Comments);
     }
 }
