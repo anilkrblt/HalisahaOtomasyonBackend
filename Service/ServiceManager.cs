@@ -50,7 +50,7 @@ public class ServiceManager : IServiceManager
         _facility = new(() => new FacilityService(repo, map, _photo.Value, UserValidationService));
         _notification = new(() => new NotificationService(repo, log, map, hub));
 
-        _comment = new(() => new CommentService(repo, map, UserValidationService));
+        _comment = new(() => new CommentService(repo, map, UserValidationService, PhotoService));
         _field = new(() => new FieldService(repo, log, map, _photo.Value));
         _room = new(() => new RoomService(repo, _notification.Value, code, map, userManager));
         _equipment = new(() => new EquipmentService(repo, map));

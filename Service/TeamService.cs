@@ -1,4 +1,5 @@
 using AutoMapper;
+using AutoMapper.Execution;
 using Contracts;
 using Entities.Exceptions;
 using Entities.Models;
@@ -182,6 +183,16 @@ public class TeamService : ITeamService
     {
         var requests = await _repo.TeamJoinRequest.GetRequestsByTeamIdAsync(teamId, track);
         var requestsDto = _mapper.Map<IEnumerable<TeamJoinRequestDto>>(requests);
+
+        foreach (var requestDto in requestsDto)
+        {
+            var photosDto = await _photoService.
+                GetPhotosAsync("user", requestDto.UserId, false);
+
+            var photoUrl = photosDto?.FirstOrDefault()?.Url ?? "";
+            requestDto.UserPhotoUrl = photoUrl;
+        }
+
         return requestsDto;
     }
 

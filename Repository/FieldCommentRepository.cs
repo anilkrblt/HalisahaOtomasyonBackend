@@ -14,15 +14,18 @@ namespace Repository
 
         public async Task<IEnumerable<FieldComment>> GetAllFieldCommentsAsync(bool trackChanges) =>
             await FindByCondition(c => !c.IsDeleted, trackChanges)
+                  .Include(c => c.FromUser)
                   .OrderBy(c => c.CreatedAt)
                   .ToListAsync();
 
         public async Task<FieldComment?> GetFieldCommentAsync(int commentId, bool trackChanges) =>
             await FindByCondition(c => c.Id == commentId && !c.IsDeleted, trackChanges)
+                  .Include(c => c.FromUser)
                   .SingleOrDefaultAsync();
 
         public async Task<IEnumerable<FieldComment>> GetFieldCommentsByFieldIdAsync(int fieldId, bool trackChanges) =>
             await FindByCondition(c => c.FieldId == fieldId && !c.IsDeleted, trackChanges)
+                  .Include(c => c.FromUser)
                   .OrderByDescending(c => c.CreatedAt)
                   .ToListAsync();
     }

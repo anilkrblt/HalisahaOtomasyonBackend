@@ -9,6 +9,9 @@ public abstract class CommentDto
     public string Content { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime? UpdatedAt { get; set; }
+    public string UserPhotoUrl { get; set; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
 }
 
 public abstract class CommentDtoForManipulation
