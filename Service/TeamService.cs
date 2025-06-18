@@ -2,7 +2,6 @@ using AutoMapper;
 using Contracts;
 using Entities.Exceptions;
 using Entities.Models;
-using Microsoft.AspNetCore.Identity;
 using Service.Contracts;
 using Shared.DataTransferObjects;
 
@@ -13,17 +12,17 @@ public class TeamService : ITeamService
     private readonly IRepositoryManager _repo;
     private readonly IMapper _mapper;
     private readonly IPhotoService _photoService;
-    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IUserValidationService _uservalidationService;
 
     public TeamService(IRepositoryManager repo,
                        IMapper mapper,
                        IPhotoService photoService,
-                       UserManager<ApplicationUser> userManager)
+                       IUserValidationService userValidationService)
     {
         _photoService = photoService;
         _repo = repo;
         _mapper = mapper;
-        _userManager = userManager;
+        _uservalidationService = userValidationService;
     }
 
     public async Task<TeamDto> CreateTeamAsync(TeamForCreationDto dto, int creatorUserId)
@@ -122,11 +121,10 @@ public class TeamService : ITeamService
     {
         foreach (var userId in dtos.Select(tm => tm.UserId))
         {
-            await CheckUserExists(userId);
+            await _uservalidationService.CheckUserExists(userId);
         }
 
-        var team = await _repo.Team.GetTeamAsync(teamId, true)
-                   ?? throw new TeamNotFoundException(teamId);
+        await CheckTeamExists(teamId);
 
         var members = await _repo.
             TeamMember
@@ -151,7 +149,7 @@ public class TeamService : ITeamService
     public async Task<TeamMemberDto> SetAdminAndCaptain(int teamId, int userId, TeamMemberDtoForUpdateAdminAndCaptain teamMemberDto)
     {
         await CheckTeamExists(teamId);
-        await CheckUserExists(userId);
+        await _uservalidationService.CheckUserExists(userId);
 
         var member = await CheckTeamMembership(teamId, userId);
 
@@ -172,7 +170,7 @@ public class TeamService : ITeamService
     public async Task RemoveMemberAsync(int teamId, int userId)
     {
         await CheckTeamExists(teamId);
-        await CheckUserExists(userId);
+        await _uservalidationService.CheckUserExists(userId);
 
         var member = await CheckTeamMembership(teamId, userId);
 
@@ -215,14 +213,15 @@ public class TeamService : ITeamService
 
     public async Task RespondJoinRequestAsync(int teamId, int requestId, TeamJoinRequestDtoForUpdate dto ,int responderId)
     {
-        var req = await _repo.TeamJoinRequest
-                            .GetJoinRequestAsync(requestId, trackChanges: true)
-                  ?? throw new JoinRequestNotFoundException(requestId);
+        var req = await CheckTeamJoinRequest(requestId);
 
         var member = await CheckTeamMembership(teamId, responderId);
 
         if (!member.IsCaptain)
             throw new UnauthorizedAccessException("Bu işlemi yalnızca takım kaptanları yapabilir.");
+
+        req.Status = dto.Status;
+        req.RespondedAt = DateTime.UtcNow;
 
         if (dto.Status == RequestStatus.Accepted)
         {
@@ -236,22 +235,7 @@ public class TeamService : ITeamService
             _repo.TeamMember.AddMember(newMember);
         }
 
-        req.Status = RequestStatus.Accepted;
-        req.RespondedAt = DateTime.UtcNow;
-
         await _repo.SaveAsync();
-    }
-
-    private async Task CheckUserExists(int userId)
-    {
-        var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user is null)
-            throw new UserNotFoundException(userId);
-
-        var roles = await _userManager.GetRolesAsync(user);
-
-        if (roles.Contains("Owner"))
-            throw new InvalidOperationException("Owner rolüne sahip kullanıcılar takımlara eklenemez.");
     }
 
     private async Task<Team> CheckTeamExists(int teamId)
@@ -270,20 +254,28 @@ public class TeamService : ITeamService
         return member;
     }
 
+    private async Task<TeamJoinRequest> CheckTeamJoinRequest(int requestId)
+    {
+        var req = await _repo.TeamJoinRequest
+                           .GetJoinRequestAsync(requestId, trackChanges: true)
+                 ?? throw new JoinRequestNotFoundException(requestId);
+
+        return req;
+    }
+
     private async Task SetUserStatus(TeamDto teamDto, int teamId, int reviewerId)
     {
         var teamMember = teamDto.Members.FirstOrDefault(m => m.UserId == reviewerId);
 
         if (teamMember is not null)
         {
-            if (teamMember.IsCaptain && teamMember.IsAdmin)
-                teamDto.UserStatus = UserStatus.CaptainAndAdmin;
-            else if (teamMember.IsCaptain)
-                teamDto.UserStatus = UserStatus.Captain;
-            else if (teamMember.IsAdmin)
-                teamDto.UserStatus = UserStatus.Admin;
-            else
-                teamDto.UserStatus = UserStatus.Member;
+            teamDto.UserStatus = (teamMember.IsCaptain, teamMember.IsAdmin) switch
+            {
+                (true, true) => UserStatus.CaptainAndAdmin,
+                (true, false) => UserStatus.Captain,
+                (false, true) => UserStatus.Admin,
+                (false, false) => UserStatus.Member
+            };
         }
         else
         {
@@ -291,9 +283,7 @@ public class TeamService : ITeamService
             var hasRequest = joinRequests.Any(r => r.UserId == reviewerId);
 
             if (hasRequest)
-            {
                 teamDto.UserStatus = UserStatus.JoinRequestPending;
-            }
             else
                 teamDto.UserStatus = UserStatus.NotMember;
         }

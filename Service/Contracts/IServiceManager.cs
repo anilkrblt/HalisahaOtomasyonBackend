@@ -16,5 +16,6 @@
         IRoomService RoomService { get; }
         ITeamService TeamService { get; }
         IReservationService ReservationService { get; }
+        IUserValidationService UserValidationService { get; }
     }
 }

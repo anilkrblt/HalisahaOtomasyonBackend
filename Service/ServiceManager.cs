@@ -28,6 +28,7 @@ public class ServiceManager : IServiceManager
     private readonly Lazy<IRoomService> _room;
     private readonly Lazy<ITeamService> _team;
     private readonly Lazy<IReservationService> _reservation;
+    private readonly Lazy<IUserValidationService> _userValidation;
 
     public ServiceManager(
         UserManager<ApplicationUser> userManager,
@@ -42,22 +43,23 @@ public class ServiceManager : IServiceManager
         ICodeGenerator code,
         IWebHostEnvironment env)
     {
+        _userValidation = new(() => new UserValidationService(userManager));
         _photo = new(() => new PhotoService(repo, map, env));
         _auth = new(() =>
             new AuthService(userManager, signInManager, config, roleManager, redis, _photo.Value, repo));
-        _facility = new(() => new FacilityService(repo, log, map, _photo.Value));
+        _facility = new(() => new FacilityService(repo, map, _photo.Value, UserValidationService));
         _notification = new(() => new NotificationService(repo, log, map, hub));
 
-        _comment = new(() => new CommentService(repo, map, userManager));
+        _comment = new(() => new CommentService(repo, map, UserValidationService));
         _field = new(() => new FieldService(repo, log, map, _photo.Value));
         _room = new(() => new RoomService(repo, _notification.Value, code, map, userManager));
         _equipment = new(() => new EquipmentService(repo, map));
-        _announcement = new(() => new AnnouncementService(repo, log, map));
+        _announcement = new(() => new AnnouncementService(repo, PhotoService, map));
         _match = new(() => new MatchService(repo, map));
 
         _facilityRating = new(() => new FacilityRatingService(repo, map));
         _friendship = new(() => new FriendshipService(repo, map, _photo.Value));
-        _team = new(() => new TeamService(repo, map, _photo.Value, userManager));
+        _team = new(() => new TeamService(repo, map, _photo.Value, UserValidationService));
         _reservation = new(() => new ReservationService(repo, map));
     }
 
@@ -75,4 +77,5 @@ public class ServiceManager : IServiceManager
     public IRoomService RoomService => _room.Value;
     public ITeamService TeamService => _team.Value;
     public IReservationService ReservationService => _reservation.Value;
+    public IUserValidationService UserValidationService => _userValidation.Value;
 }

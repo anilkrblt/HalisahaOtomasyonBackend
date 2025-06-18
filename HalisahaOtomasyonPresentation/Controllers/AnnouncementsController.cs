@@ -20,22 +20,10 @@ namespace HalisahaOtomasyonPresentation.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAnnouncements([FromQuery] int? facilityId)
         {
-            var anns = await _service.AnnouncementService
-                                     .GetAllAnnouncementsAsync(trackChanges: false);
+            var announcements = await _service.AnnouncementService
+                                     .GetAllAnnouncementsAsync(facilityId, trackChanges: false);
 
-            if (facilityId.HasValue)
-                anns = anns
-                    .Where(a => a.FacilityId == facilityId.Value)
-                    .ToList();
-
-            foreach (var ann in anns)
-            {
-                var photos = await _service.PhotoService.GetPhotosAsync("announcement", ann.Id, false);
-                var photo = photos.FirstOrDefault();
-                ann.BannerUrl = photo?.Url;
-            }
-
-            return Ok(anns);
+            return Ok(announcements);
         }
 
         [HttpGet("{announcementId:int}", Name = "GetAnnouncement")]

@@ -24,5 +24,11 @@ namespace Repository
                 .Include(a => a.Facility)
                 .OrderBy(a => a.Id)
                 .ToListAsync();
+
+        public async Task<IEnumerable<Announcement>> GetAnnouncementsForFacilityAsync(int facilityId, bool trackChanges) =>
+            await FindByCondition(a => a.FacilityId == facilityId, trackChanges)
+                .Include(a => a.Facility)
+                .OrderBy(a => a.Id)
+                .ToListAsync();
     }
 }
