@@ -1,5 +1,6 @@
 using System.IO;
 using System.Threading.Tasks;
+using Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Service;
 using Service.Contracts;
@@ -15,11 +16,13 @@ namespace HalisahaOtomasyonPresentation.Controllers
     [Route("api/[controller]")]
     public class PaymentsController : ControllerBase
     {
+        private readonly IRepositoryManager _repo;
         private readonly IServiceManager _svc;
 
-        public PaymentsController(IServiceManager svc)
+        public PaymentsController(IServiceManager svc, IRepositoryManager repo)
         {
             _svc = svc;
+            _repo = repo;
         }
 
 
@@ -84,11 +87,27 @@ namespace HalisahaOtomasyonPresentation.Controllers
                 {
                     var session = stripeEvent.Data.Object as Session;
                     int roomId = int.Parse(session.Metadata["roomId"]);
-                    int userId = int.Parse(session.Metadata["userId"]); // 👈 teamId değil, userId olacak!
+                    int userId = int.Parse(session.Metadata["userId"]);
+
+                    // Room’dan kişi sayısını bul → kişi başı fiyatı hesapla
+                    var room = await _repo.Room.GetOneRoomAsync(roomId, false); // 🔧 DTO değil, entity alındı
+                    int participantCount = room.Participants.Sum(p => p.Team.Members.Count);
+                    decimal pricePerPlayer = room.PricePerPlayer;
+
                     decimal amount = (decimal)(session.AmountTotal ?? 0) / 100;
 
-                    await _svc.RoomService.PayPlayerAsync(roomId, userId, amount);  // 👈 kişi bazlı ödeme
+                    // Güvenlik: Stripe'dan gelen amount ile sistemin hesapladığı tutar eşleşiyor mu?
+                    if (amount == pricePerPlayer)
+                    {
+                        await _svc.RoomService.PayPlayerAsync(roomId, userId, amount);
+                    }
+                    else
+                    {
+                        // log at ya da alert gönder
+                        throw new InvalidOperationException("Ödeme tutarı uyuşmuyor");
+                    }
                 }
+
 
                 // Diğer event tiplerine de bakabilirsin (örn: payment_intent.succeeded)
             }

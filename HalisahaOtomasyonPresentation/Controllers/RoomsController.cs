@@ -35,13 +35,40 @@ public class RoomsController : ControllerBase
     [HttpPost("{roomId:int}/ready/team/{teamId:int}")]
     public async Task<IActionResult> SetTeamReady(int roomId, int teamId)
     {
-        int userId = int.Parse(User.FindFirst("id")!.Value); // Token'dan ID çek
+        int userId = int.Parse(User.FindFirst("id")!.Value);
         await _svc.RoomService.SetTeamReadyAsync(roomId, teamId, userId);
         return NoContent();
     }
 
+    // oda ödeme faslına geçer
+    [HttpPost("{id:int}/start-payment")]
+    [Authorize]
+    public async Task<IActionResult> StartPaymentPhase(int id)
+    {
+        int userId = int.Parse(User.FindFirst("id")!.Value);
+        await _svc.RoomService.StartPaymentPhaseAsync(id, userId);
+        return NoContent();
+    }
 
+    // odada kimlerin ödeyip ödemediğini ve ödediği miktarı gösteriyor
+    [HttpGet("{roomId:int}/payment-status")]
+    public async Task<IActionResult> GetPaymentStatus(int roomId)
+    {
+        return Ok(await _svc.RoomService.GetPaymentStatusAsync(roomId));
+    }
 
+    /*
+
+        [HttpGet("{roomId:int}/payment-info")]
+        [Authorize]
+        public async Task<IActionResult> GetPaymentInfo(int roomId)
+        {
+            int userId = int.Parse(User.FindFirst("id")!.Value);
+            var result = await _svc.RoomService.GetPaymentInfo(roomId, userId);
+            return Ok(result);
+        }
+
+    */
 
 
     // POST api/rooms/42/invite/user/17
@@ -142,12 +169,21 @@ public class RoomsController : ControllerBase
 
 
 
-    [HttpPost("{id:int}/pay-player")]
-    public async Task<IActionResult> PayPlayer(int id, [FromQuery] int userId, [FromBody] PaymentDto dto)
+    [HttpPost("{roomId:int}/pay")]
+    [Authorize]
+    public async Task<IActionResult> PayForRoom(int roomId)
     {
-        await _svc.RoomService.PayPlayerAsync(id, userId, dto.Amount);
+        int userId = int.Parse(User.FindFirst("id")!.Value);
+
+        var room = await _svc.RoomService.GetRoomAsync(roomId);
+        decimal amount = room.PricePerPlayer;
+
+        await _svc.RoomService.PayPlayerAsync(roomId, userId, amount);
         return NoContent();
     }
+
+
+
 
     [HttpPost("{id:int}/confirm")]
     public async Task<IActionResult> ConfirmReservation(int id)

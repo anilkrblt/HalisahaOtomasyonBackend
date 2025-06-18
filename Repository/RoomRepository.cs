@@ -86,9 +86,12 @@ namespace Repository
                 .Include(r => r.Field)
                 .Include(r => r.Participants)
                     .ThenInclude(rp => rp.Team)
+                .Include(r => r.Participants)
+                    .ThenInclude(rp => rp.Customer)
                 .Include(r => r.Match)
                 .ToListAsync();
         }
+
 
         public async Task<Room?> GetRoomByCodeAsync(string joinCode, bool trackChanges)
         {

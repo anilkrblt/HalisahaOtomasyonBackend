@@ -17,6 +17,7 @@ public interface IRoomService
     Task InviteUsersToRoomAsync(int roomId, int teamId, List<int> userIds);
     Task<RoomParticipantDto> JoinRoomAsync(int id, int teamId, int userId);
     Task<RoomParticipantDto> JoinRoomAsAwayTeamAsync(int roomId, int teamId, int userId);
+    Task StartPaymentPhaseAsync(int roomId, int userId);
 
 
     /*──────── PARTICIPATION ────*/

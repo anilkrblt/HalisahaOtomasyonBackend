@@ -72,12 +72,91 @@ public class RoomService : IRoomService
     }
 
 
-    public async Task<RoomDto?> GetRoomAsync(int id) =>
-        _map.Map<RoomDto>(await _repo.Room.GetOneRoomAsync(id, false));
+    public async Task StartPaymentPhaseAsync(int roomId, int userId)
+    {
+        var room = await _repo.Room.GetOneRoomAsync(roomId, true)
+                   ?? throw new RoomNotFoundException(roomId);
 
-    public async Task<IEnumerable<RoomDto>> GetPublicRoomsAsync() =>
-        _map.Map<IEnumerable<RoomDto>>(
-            await _repo.Room.GetPublicRoomsAsync(RoomAccessType.Public));
+        // Odayı oluşturan kişi mi?
+        var creator = room.Participants.FirstOrDefault(p => p.IsHome)?.CustomerId;
+        if (creator != userId)
+            throw new UnauthorizedAccessException("Sadece oda kurucusu başlatabilir.");
+
+        if (room.Status != RoomStatus.WaitingConfirm)
+            throw new InvalidOperationException("Henüz tüm oyuncular hazır değil.");
+
+        room.Status = RoomStatus.WaitingPayment;
+        await _repo.SaveAsync();
+    }
+
+
+
+
+    public async Task<RoomDto?> GetRoomAsync(int id)
+    {
+        var room = await _repo.Room.GetOneRoomAsync(id, false);
+        if (room is null)
+            return null;
+
+        var home = room.Participants.FirstOrDefault(p => p.IsHome);
+        var away = room.Participants.FirstOrDefault(p => !p.IsHome && p.TeamId != home?.TeamId);
+
+        return new RoomDto
+        {
+            RoomId = room.Id,
+            FieldId = room.FieldId,
+            FieldName = room.Field?.Name,
+            SlotStart = room.SlotStart,
+            SlotEnd = room.SlotEnd,
+            AccessType = room.AccessType,
+            JoinCode = room.JoinCode,
+            MaxPlayers = room.MaxPlayers,
+            PricePerPlayer = room.PricePerPlayer,
+            Status = room.Status,
+            CreatedAt = room.CreatedAt,
+            Match = null, // istenirse maplenebilir
+
+            HomeTeamId = home?.TeamId,
+            HomeTeamName = home?.Team?.Name,
+            AwayTeamId = away?.TeamId,
+            AwayTeamName = away?.Team?.Name
+        };
+    }
+
+
+    public async Task<IEnumerable<RoomDto>> GetPublicRoomsAsync()
+    {
+        var rooms = await _repo.Room.GetPublicRoomsAsync(RoomAccessType.Public);
+
+        var result = rooms.Select(room =>
+        {
+            var home = room.Participants.FirstOrDefault(p => p.IsHome);
+            var away = room.Participants.FirstOrDefault(p => !p.IsHome && p.TeamId != home?.TeamId);
+
+            return new RoomDto
+            {
+                RoomId = room.Id,
+                HomeTeamId = home?.TeamId,
+                HomeTeamName = home?.Team?.Name ?? "",
+                AwayTeamId = away?.TeamId,
+                AwayTeamName = away?.Team?.Name ?? "",
+                FieldId = room.FieldId,
+                FieldName = room.Field?.Name ?? "",
+                SlotStart = room.SlotStart,
+                SlotEnd = room.SlotEnd,
+                AccessType = room.AccessType,
+                JoinCode = room.JoinCode,
+                MaxPlayers = room.MaxPlayers,
+                PricePerPlayer = room.PricePerPlayer,
+                Status = room.Status,
+                CreatedAt = room.CreatedAt,
+                Match = null
+            };
+        });
+
+        return result;
+    }
+
 
     /*──────────────── JOIN ───────────────────────────────────*/
     public async Task InviteUsersToRoomAsync(int roomId, int teamId, List<int> userIds)

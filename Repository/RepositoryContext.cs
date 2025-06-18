@@ -61,9 +61,6 @@ public class RepositoryContext
         .IsUnique()
         .HasFilter("CustomerId IS NOT NULL"); // null olanlar için conflict olmasın
 
-   // Aynı odada sadece bir ev sahibi olabilir
-   entity.HasIndex(rp => new { rp.RoomId, rp.IsHome })
-        .IsUnique();
 
    // Room ilişkisi
    entity.HasOne(rp => rp.Room)
