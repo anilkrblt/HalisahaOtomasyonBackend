@@ -71,7 +71,7 @@ public class RoomsController : ControllerBase
         await _svc.RoomService.RespondUserInviteAsync(roomId, userId, accept);
         return NoContent();
     }
-    
+
 
     [HttpGet("{id:int}/participants")]
     public async Task<IActionResult> GetParticipants(int id)
@@ -105,9 +105,10 @@ public class RoomsController : ControllerBase
     public async Task<IActionResult> JoinRoom(int id, [FromQuery] int teamId)
     {
         int userId = int.Parse(User.FindFirst("id")!.Value);
-        var result = await _svc.RoomService.JoinRoomAsync(id, teamId, userId);
+        var result = await _svc.RoomService.JoinRoomAsAwayTeamAsync(id, teamId, userId);
         return Ok(result);
     }
+
 
 
     // POST api/rooms/join?code=ABC123   (private)

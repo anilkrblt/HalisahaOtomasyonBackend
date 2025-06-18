@@ -16,10 +16,11 @@ public interface IRoomService
     Task<IEnumerable<RoomDto>> GetPublicRoomsAsync();
     Task InviteUsersToRoomAsync(int roomId, int teamId, List<int> userIds);
     Task<RoomParticipantDto> JoinRoomAsync(int id, int teamId, int userId);
+    Task<RoomParticipantDto> JoinRoomAsAwayTeamAsync(int roomId, int teamId, int userId);
 
 
     /*──────── PARTICIPATION ────*/
-    Task<RoomParticipantDto> JoinRoomAsync(int roomId, int teamId);          // public
+    //  Task<RoomParticipantDto> JoinRoomAsync(int roomId, int teamId);          // public
     Task<RoomParticipantDto> JoinRoomByCodeAsync(string joinCode, int teamId, int userId);
 
     /*──────── PAYMENT ─────────*/

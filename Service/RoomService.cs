@@ -630,9 +630,46 @@ public class RoomService : IRoomService
         await _repo.SaveAsync();
     }
 
-
-    public Task<RoomParticipantDto> JoinRoomAsync(int roomId, int teamId)
+    public async Task<RoomParticipantDto> JoinRoomAsAwayTeamAsync(int roomId, int teamId, int userId)
     {
-        throw new NotImplementedException();
+        var room = await _repo.Room.GetOneRoomAsync(roomId, true)
+                   ?? throw new RoomNotFoundException(roomId);
+
+        if (room.AccessType != RoomAccessType.Public)
+            throw new InvalidOperationException("Bu oda private.");
+
+        // Kullanıcı zaten bu odada mı?
+        var existing = await _repo.RoomParticipant.GetByCustomerAsync(roomId, userId);
+        if (existing is not null)
+            throw new InvalidOperationException("Bu kullanıcı zaten bu odada.");
+
+        // Takım zaten bu odada mı?
+        var existingTeam = room.Participants.Any(p => p.TeamId == teamId);
+        if (existingTeam)
+            throw new InvalidOperationException("Bu takım zaten bu odada.");
+
+        var participant = new RoomParticipant
+        {
+            RoomId = roomId,
+            TeamId = teamId,
+            CustomerId = userId,
+            Status = ParticipantStatus.Accepted,
+            IsHome = false // ❗ Burada away olarak işaretliyoruz
+        };
+
+        _repo.RoomParticipant.CreateParticipant(participant);
+        await _repo.SaveAsync();
+
+        await NotifyTeamInviteAsync(teamId, roomId);
+
+        // Kapasite dolmuşsa durumu güncelle
+        if (room.Participants.Count + 1 >= 2)
+        {
+            room.Status = RoomStatus.WaitingConfirm;
+            await _repo.SaveAsync();
+        }
+
+        return _map.Map<RoomParticipantDto>(participant);
     }
+
 }
