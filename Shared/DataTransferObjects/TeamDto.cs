@@ -3,6 +3,16 @@ using Entities.Models;
 
 namespace Shared.DataTransferObjects;
 
+public enum UserStatus
+{
+    NotMember,
+    Member,
+    Admin,
+    Captain,
+    JoinRequestPending,
+    CaptainAndAdmin
+}
+
 public class TeamDto
 {
     public int Id { get; set; }
@@ -17,6 +27,7 @@ public class TeamDto
     public int MatchLost { get; set; }
     public string Content { get; set; }
     public double AvgRating { get; set; }
+    public UserStatus UserStatus { get; set; }
     public IEnumerable<TeamMemberDto> Members { get; set; }
 }
 

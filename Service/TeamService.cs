@@ -48,11 +48,13 @@ public class TeamService : ITeamService
         return _mapper.Map<TeamDto>(fullTeam);
     }
 
-    public async Task<TeamDto> GetTeamAsync(int teamId, bool track)
+    public async Task<TeamDto> GetTeamAsync(int teamId, int reviewerId, bool track)
     {
         var members = await CheckTeamExists(teamId);
 
         var teamDto = _mapper.Map<TeamDto>(members);
+
+        await SetUserStatus(teamDto, teamId, reviewerId);
 
         foreach (var memberDto in teamDto.Members)
         {
@@ -206,7 +208,9 @@ public class TeamService : ITeamService
         var req = new TeamJoinRequest { TeamId = teamId, UserId = userId };
         _repo.TeamJoinRequest.CreateJoinRequest(req);
         await _repo.SaveAsync();
-        return _mapper.Map<TeamJoinRequestDto>(req);
+
+        var reqDto = await _repo.TeamJoinRequest.GetJoinRequestAsync(req.Id, false);
+        return _mapper.Map<TeamJoinRequestDto>(reqDto);
     }
 
     public async Task RespondJoinRequestAsync(int teamId, int requestId, TeamJoinRequestDtoForUpdate dto ,int responderId)
@@ -231,6 +235,10 @@ public class TeamService : ITeamService
             };
             _repo.TeamMember.AddMember(newMember);
         }
+
+        req.Status = RequestStatus.Accepted;
+        req.RespondedAt = DateTime.UtcNow;
+
         await _repo.SaveAsync();
     }
 
@@ -260,5 +268,34 @@ public class TeamService : ITeamService
              ?? throw new TeamMemberNotFoundException(teamId, userId);
         
         return member;
+    }
+
+    private async Task SetUserStatus(TeamDto teamDto, int teamId, int reviewerId)
+    {
+        var teamMember = teamDto.Members.FirstOrDefault(m => m.UserId == reviewerId);
+
+        if (teamMember is not null)
+        {
+            if (teamMember.IsCaptain && teamMember.IsAdmin)
+                teamDto.UserStatus = UserStatus.CaptainAndAdmin;
+            else if (teamMember.IsCaptain)
+                teamDto.UserStatus = UserStatus.Captain;
+            else if (teamMember.IsAdmin)
+                teamDto.UserStatus = UserStatus.Admin;
+            else
+                teamDto.UserStatus = UserStatus.Member;
+        }
+        else
+        {
+            var joinRequests = await _repo.TeamJoinRequest.GetPendingRequestsByTeamIdAsync(teamId, false);
+            var hasRequest = joinRequests.Any(r => r.UserId == reviewerId);
+
+            if (hasRequest)
+            {
+                teamDto.UserStatus = UserStatus.JoinRequestPending;
+            }
+            else
+                teamDto.UserStatus = UserStatus.NotMember;
+        }
     }
 }

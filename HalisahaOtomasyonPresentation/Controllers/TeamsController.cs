@@ -25,10 +25,18 @@ public class TeamsController : ControllerBase
         return Ok(teams);
     }
 
+    [Authorize]
     [HttpGet("{teamId:int}", Name = "GetTeam")]
     public async Task<IActionResult> GetTeam([FromRoute(Name = "teamId")] int teamId)
     {
-        var team = await _serviceManager.TeamService.GetTeamAsync(teamId, false);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? User.FindFirst("id")?.Value;
+        if (userIdClaim is null)
+            return Unauthorized();
+
+        var reviewerId = int.Parse(userIdClaim);
+
+        var team = await _serviceManager.TeamService.GetTeamAsync(teamId, reviewerId, false);
         return Ok(team);
     }
 
