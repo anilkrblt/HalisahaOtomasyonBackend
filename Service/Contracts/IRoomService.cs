@@ -45,7 +45,7 @@ public interface IRoomService
     Task<RoomParticipantsGroupedDto> GetParticipantsByRoomAsync(int roomId, bool trackChanges);
     Task<IEnumerable<RoomParticipantDto>> GetParticipantsByTeamAsync(int teamId, bool trackChanges);
     Task UpdateParticipantStatusAsync(int roomId, int teamId, ParticipantStatus status);
-    Task RemoveParticipantAsync(int roomId, int teamId);
+    Task RemoveParticipantAsync(int roomId, int userId);
 
     Task<MonthlyMembershipDto> CreateMembershipAsync(MonthlyMembershipForCreationDto dto);
     Task<IEnumerable<MonthlyMembershipDto>> GetMembershipsByUserAsync(int userId, bool trackChanges);

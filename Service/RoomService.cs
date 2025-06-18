@@ -636,10 +636,41 @@ public class RoomService : IRoomService
         throw new NotImplementedException();
     }
 
-    public Task RemoveParticipantAsync(int roomId, int teamId)
+    public async Task RemoveParticipantAsync(int roomId, int userId)
     {
-        throw new NotImplementedException();
+        var room = await _repo.Room.GetOneRoomAsync(roomId, true)
+            ?? throw new RoomNotFoundException(roomId);
+
+        if (room.Status != RoomStatus.PendingOpponent && room.Status != RoomStatus.WaitingConfirm)
+            throw new InvalidOperationException("Bu durumdaki odadan çıkılamaz.");
+
+        // Doğru participant'i bul (hem roomId hem userId)
+        var participant = room.Participants
+            .FirstOrDefault(p => p.CustomerId.Equals(userId) && roomId.Equals(p.RoomId));
+
+        if (participant is null)
+            throw new InvalidOperationException("Kullanıcı bu odada bir takımda değil.");
+        if (participant.IsReady == true)
+            throw new InvalidOperationException("Kullanıcı hazır durumdayken odadan çıkamaz");
+
+        var member = participant.Team.Members.FirstOrDefault(m => m.UserId == userId);
+        if (member != null)
+            participant.Team.Members.Remove(member);
+
+        // Eğer takımda kimse kalmadıysa RoomParticipant'ı da kaldır
+        if (!participant.Team.Members.Any())
+            room.Participants.Remove(participant);
+
+        // Eğer odada kimse kalmadıysa odayı sil
+        if (!room.Participants.Any())
+        {
+            _repo.Room.DeleteRoom(room);
+        }
+
+        await _repo.SaveAsync();
     }
+
+
 
     public Task<MonthlyMembershipDto> CreateMembershipAsync(MonthlyMembershipForCreationDto dto)
     {

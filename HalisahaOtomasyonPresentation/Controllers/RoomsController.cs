@@ -110,13 +110,15 @@ public class RoomsController : ControllerBase
 
 
 
-    // DELETE api/rooms/42/leave?teamId=5
-    [HttpDelete("{id:int}/leave")]
-    public async Task<IActionResult> LeaveRoom(int id, [FromQuery] int teamId)
+    [HttpDelete("{roomId:int}/leave")]
+    [Authorize]
+    public async Task<IActionResult> LeaveRoom(int roomId)
     {
-        await _svc.RoomService.RemoveParticipantAsync(id, teamId);
+        int userId = int.Parse(User.FindFirst("id")!.Value);
+        await _svc.RoomService.RemoveParticipantAsync(roomId, userId);
         return NoContent();
     }
+
 
 
 
