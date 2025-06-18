@@ -504,13 +504,17 @@ public class RoomService : IRoomService
         var room = await _repo.Room.GetOneRoomAsync(roomId, trackChanges)
                    ?? throw new RoomNotFoundException(roomId);
 
-        RoomTeamDto? MapTeam(RoomParticipant teamParticipant)
-        {
-            if (teamParticipant.Team == null) return null;
+        // Home takım id’si
+        var homeTeamId = room.Participants.FirstOrDefault(p => p.IsHome)?.TeamId;
+        var awayTeamId = room.Participants.FirstOrDefault(p => !p.IsHome && p.TeamId != homeTeamId)?.TeamId;
 
-            // Sadece Accepted katılımcıları al
+        RoomTeamDto? MapTeam(int teamId)
+        {
+            var teamParticipant = room.Participants.FirstOrDefault(p => p.TeamId == teamId);
+            if (teamParticipant?.Team == null) return null;
+
             var roomParticipants = room.Participants
-                .Where(p => p.TeamId == teamParticipant.TeamId && p.Status == ParticipantStatus.Accepted)
+                .Where(p => p.TeamId == teamId && p.Status == ParticipantStatus.Accepted)
                 .ToList();
 
             var members = roomParticipants
@@ -535,16 +539,12 @@ public class RoomService : IRoomService
             };
         }
 
-        var homePart = room.Participants.FirstOrDefault(p => p.IsHome);
-        var awayPart = room.Participants.FirstOrDefault(p => !p.IsHome);
-
         return new RoomParticipantsGroupedDto
         {
-            HomeTeam = homePart != null ? MapTeam(homePart) : null,
-            AwayTeam = awayPart != null ? MapTeam(awayPart) : null
+            HomeTeam = homeTeamId != null ? MapTeam(homeTeamId.Value) : null,
+            AwayTeam = awayTeamId != null ? MapTeam(awayTeamId.Value) : null
         };
     }
-
 
 
     public Task<IEnumerable<RoomParticipantDto>> GetParticipantsByTeamAsync(int teamId, bool trackChanges)
@@ -617,9 +617,19 @@ public class RoomService : IRoomService
         var participant = await _repo.RoomParticipant.GetByCustomerAsync(roomId, userId)
                           ?? throw new Exception("Kullanıcı bu odaya davetli değil.");
 
-        participant.Status = accept ? ParticipantStatus.Accepted : ParticipantStatus.Rejected;
+        if (!accept)
+        {
+            participant.Status = ParticipantStatus.Rejected;
+        }
+        else
+        {
+            participant.Status = ParticipantStatus.Accepted;
+            // IsHome ve TeamId zaten davette doğru şekilde set edilmişti
+        }
+
         await _repo.SaveAsync();
     }
+
 
     public Task<RoomParticipantDto> JoinRoomAsync(int roomId, int teamId)
     {

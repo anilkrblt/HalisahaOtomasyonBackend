@@ -71,6 +71,7 @@ public class RoomsController : ControllerBase
         await _svc.RoomService.RespondUserInviteAsync(roomId, userId, accept);
         return NoContent();
     }
+    
 
     [HttpGet("{id:int}/participants")]
     public async Task<IActionResult> GetParticipants(int id)
