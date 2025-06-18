@@ -22,5 +22,14 @@ namespace Repository
             .IncludeMembers()
             .OrderBy(t => t.Name)
             .ToListAsync();
+        public async Task<Team?> GetTeamCreatedByUserIdAsync(int userId)
+        {
+            return await RepositoryContext.TeamMembers
+                .Where(tm => tm.UserId == userId && tm.IsCaptain)
+                .Select(tm => tm.Team)
+                .FirstOrDefaultAsync();
+        }
+
+
     }
 }

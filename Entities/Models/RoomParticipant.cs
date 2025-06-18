@@ -11,6 +11,8 @@ public enum PaymentStatus
 
 public class RoomParticipant
 {
+    public int Id { get; set; } // EF için yeni PK
+
     /* --------- Composite PK --------- */
     public int RoomId { get; set; }
     public Room Room { get; set; } = null!;

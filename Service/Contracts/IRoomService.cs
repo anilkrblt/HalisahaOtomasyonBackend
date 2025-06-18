@@ -8,18 +8,19 @@ namespace Service.Contracts;
 public interface IRoomService
 {
     Task RespondUserInviteAsync(int roomId, int userId, bool accept);
-    Task InviteUserToRoomAsync(int roomId, int userId);
-    Task SetReadyAsync(int roomId, int teamId);
-    /*──────── ROOM CRUD ────────*/
-    Task<RoomDto> CreateRoomAsync(RoomCreateDto dto, int creatorTeamId);
+    Task InviteUserToRoomAsync(int roomId, int userId, int teamId);
+    Task SetTeamReadyAsync(int roomId, int teamId, int userId);
+    Task<RoomDto> CreateRoomAsync(RoomCreateDto dto, int creatorTeamId, int creatorUserId);
+
     Task<RoomDto?> GetRoomAsync(int roomId);
     Task<IEnumerable<RoomDto>> GetPublicRoomsAsync();
-    Task InviteUsersToRoomAsync(int roomId, List<int> userIds);
+    Task InviteUsersToRoomAsync(int roomId, int teamId, List<int> userIds);
+    Task<RoomParticipantDto> JoinRoomAsync(int id, int teamId, int userId);
 
 
     /*──────── PARTICIPATION ────*/
     Task<RoomParticipantDto> JoinRoomAsync(int roomId, int teamId);          // public
-    Task<RoomParticipantDto> JoinRoomByCodeAsync(string joinCode, int teamId);   // private
+    Task<RoomParticipantDto> JoinRoomByCodeAsync(string joinCode, int teamId, int userId);
 
     /*──────── PAYMENT ─────────*/
     Task PayPlayerAsync(int roomId, int userId, decimal amount);
@@ -28,7 +29,9 @@ public interface IRoomService
     Task<object> GetPaymentStatusAsync(int roomId); // dönüş tipi ihtiyaca göre değişebilir
     Task<IEnumerable<ReservationPaymentReportDto>> GetPaymentsByFieldOwnerAsync(int ownerId);
 
+    Task ToggleUserReadyAsync(int roomId, int userId);
 
+    Task<IEnumerable<RoomDto>> GetRoomsUserIsInvitedToAsync(int userId);
 
 
     Task PayAsync(int roomId, int teamId, decimal amount);

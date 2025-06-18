@@ -10,5 +10,7 @@ namespace Contracts
         void DeleteTeam(Team team);
         Task<Team> GetTeamAsync(int teamId, bool trackChanges);
         Task<IEnumerable<Team>> GetTeamsAsync(string city, string teamName, bool trackChanges);
+        Task<Team?> GetTeamCreatedByUserIdAsync(int userId);
+
     }
 }

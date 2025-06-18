@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
 using Shared.DataTransferObjects;
@@ -14,39 +15,52 @@ public class RoomsController : ControllerBase
 
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> CreateRoom([FromBody] RoomCreateDto dto, [FromQuery] int creatorTeamId)
     {
-        var room = await _svc.RoomService.CreateRoomAsync(dto, creatorTeamId);
+        int userId = int.Parse(User.FindFirst("id")!.Value);
+
+        var room = await _svc.RoomService.CreateRoomAsync(dto, creatorTeamId, userId);
         return CreatedAtRoute("GetRoomById", new { id = room.RoomId }, room);
     }
+
 
     // GET api/rooms/42
     [HttpGet("{id:int}", Name = "GetRoomById")]
     public async Task<IActionResult> GetRoom(int id) =>
         Ok(await _svc.RoomService.GetRoomAsync(id));
 
-    // POST api/rooms/42/ready?teamId=5
-    [HttpPost("{id:int}/ready")]
-    public async Task<IActionResult> SetReady(int id, [FromQuery] int teamId)
+
+
+    [HttpPost("{roomId:int}/ready/team/{teamId:int}")]
+    public async Task<IActionResult> SetTeamReady(int roomId, int teamId)
     {
-        await _svc.RoomService.SetReadyAsync(id, teamId);
+        int userId = int.Parse(User.FindFirst("id")!.Value); // Token'dan ID çek
+        await _svc.RoomService.SetTeamReadyAsync(roomId, teamId, userId);
         return NoContent();
     }
+
+
+
 
 
     // POST api/rooms/42/invite/user/17
     [HttpPost("{roomId:int}/invite/user/{userId:int}")]
-    public async Task<IActionResult> InviteUser(int roomId, int userId)
+    public async Task<IActionResult> InviteUser(int roomId, int userId, [FromQuery] int teamId)
     {
-        await _svc.RoomService.InviteUserToRoomAsync(roomId, userId);
+        await _svc.RoomService.InviteUserToRoomAsync(roomId, userId, teamId);
         return NoContent();
     }
+
+
+
     [HttpPost("{roomId:int}/invite/users")]
-    public async Task<IActionResult> InviteUsers(int roomId, [FromBody] List<int> userIds)
+    public async Task<IActionResult> InviteUsers(int roomId, [FromQuery] int teamId, [FromBody] List<int> userIds)
     {
-        await _svc.RoomService.InviteUsersToRoomAsync(roomId, userIds);
+        await _svc.RoomService.InviteUsersToRoomAsync(roomId, teamId, userIds);
         return NoContent();
     }
+
 
 
     // POST api/rooms/42/invite/respond?teamId=5&userId=17&accept=true
@@ -85,26 +99,37 @@ public class RoomsController : ControllerBase
 
     /*──────── PARTICIPATION ────*/
 
-    // POST api/rooms/42/join   (public)
     [HttpPost("{id:int}/join")]
-    public async Task<IActionResult> JoinRoom(int id, [FromQuery] int teamId) =>
-        Ok(await _svc.RoomService.JoinRoomAsync(id, teamId));
+    [Authorize]
+    public async Task<IActionResult> JoinRoom(int id, [FromQuery] int teamId)
+    {
+        int userId = int.Parse(User.FindFirst("id")!.Value);
+        var result = await _svc.RoomService.JoinRoomAsync(id, teamId, userId);
+        return Ok(result);
+    }
+
 
     // POST api/rooms/join?code=ABC123   (private)
     [HttpPost("join")]
-    public async Task<IActionResult> JoinRoomByCode([FromQuery] string code,
-                                                    [FromQuery] int teamId) =>
-        Ok(await _svc.RoomService.JoinRoomByCodeAsync(code, teamId));
+    public async Task<IActionResult> JoinRoomByCode([FromQuery] string code, [FromQuery] int teamId)
+    {
+        int userId = int.Parse(User.FindFirst("id")!.Value); // 👈 userId tokenden
+        var result = await _svc.RoomService.JoinRoomByCodeAsync(code, teamId, userId);
+        return Ok(result);
+    }
+
 
     /*──────── PAYMENT ─────────*/
 
-    // POST api/rooms/42/pay
-    [HttpPost("{id:int}/pay")]
-    public async Task<IActionResult> Pay(int id, [FromQuery] int teamId, [FromBody] PaymentDto dto)
+    [HttpPost("{roomId:int}/ready/user/toggle")]
+    [Authorize]
+    public async Task<IActionResult> ToggleUserReady(int roomId)
     {
-        await _svc.RoomService.PayAsync(id, teamId, dto.Amount);
+        var userId = int.Parse(User.FindFirst("id")!.Value);
+        await _svc.RoomService.ToggleUserReadyAsync(roomId, userId);
         return NoContent();
     }
+
 
     /*──────── MATCH START ─────*/
 
@@ -134,4 +159,14 @@ public class RoomsController : ControllerBase
         var result = await _svc.RoomService.GetPaymentsByFieldOwnerAsync(ownerId);
         return Ok(result);
     }
+
+
+    // GET api/rooms/invited?userId=42
+    [HttpGet("invited")]
+    public async Task<IActionResult> GetRoomsInvitedTo([FromQuery] int userId)
+    {
+        var rooms = await _svc.RoomService.GetRoomsUserIsInvitedToAsync(userId);
+        return Ok(rooms);
+    }
+
 }

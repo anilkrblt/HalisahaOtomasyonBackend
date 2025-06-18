@@ -19,6 +19,8 @@ public class RepositoryContext
   {
     base.OnModelCreating(mb);
 
+
+
     /*─ Facility ─*/
     mb.Entity<Facility>()
       .HasIndex(f => f.Email)
@@ -28,7 +30,6 @@ public class RepositoryContext
     mb.Entity<Notification>().Property(n => n.Type).HasConversion<int>();
     mb.Entity<Room>().Property(r => r.Status).HasConversion<int>();
     mb.Entity<Room>().Property(r => r.AccessType).HasConversion<int>();
-    mb.Entity<RoomParticipant>().Property(p => p.Status).HasConversion<int>();
     mb.Entity<TeamJoinRequest>().Property(r => r.Status).HasConversion<int>();
 
     mb.Entity<TeamMember>()
@@ -50,23 +51,39 @@ public class RepositoryContext
     mb.Entity<Friendship>().HasKey(f => new { f.UserId1, f.UserId2 });
 
 
+    mb.Entity<RoomParticipant>(entity =>
+ {
+   // Tekil Primary Key
+   entity.HasKey(rp => rp.Id);
 
-    mb.Entity<RoomParticipant>().HasKey(rp => new { rp.RoomId, rp.TeamId });
-    mb.Entity<RoomParticipant>().HasKey(rp => new { rp.RoomId, rp.TeamId });
+   // Aynı oyuncu aynı odada sadece bir kez yer alabilir
+   entity.HasIndex(rp => new { rp.RoomId, rp.CustomerId })
+        .IsUnique()
+        .HasFilter("CustomerId IS NOT NULL"); // null olanlar için conflict olmasın
 
-    mb.Entity<RoomParticipant>()
-        .HasOne(rp => rp.Room)
-        .WithMany(r => r.Participants)
-        .HasForeignKey(rp => rp.RoomId);
-
-    mb.Entity<RoomParticipant>()
-        .HasOne(rp => rp.Team)
-        .WithMany(t => t.TeamReservations)
-        .HasForeignKey(rp => rp.TeamId);
-
-    mb.Entity<RoomParticipant>()
-        .HasIndex(rp => new { rp.RoomId, rp.IsHome })
+   // Aynı odada sadece bir ev sahibi olabilir
+   entity.HasIndex(rp => new { rp.RoomId, rp.IsHome })
         .IsUnique();
+
+   // Room ilişkisi
+   entity.HasOne(rp => rp.Room)
+        .WithMany(r => r.Participants)
+        .HasForeignKey(rp => rp.RoomId)
+        .OnDelete(DeleteBehavior.Cascade);
+
+   // Team ilişkisi
+   entity.HasOne(rp => rp.Team)
+        .WithMany(t => t.TeamReservations)
+        .HasForeignKey(rp => rp.TeamId)
+        .OnDelete(DeleteBehavior.Cascade);
+
+   // Customer ilişkisi (opsiyonel olabilir)
+   entity.HasOne(rp => rp.Customer)
+        .WithMany(c => c.RoomParticipations)
+        .HasForeignKey(rp => rp.CustomerId)
+        .OnDelete(DeleteBehavior.NoAction);
+ });
+
 
 
 

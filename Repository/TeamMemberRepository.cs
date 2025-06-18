@@ -29,6 +29,13 @@ namespace Repository
                 FindByCondition(m => m.TeamId == teamId && m.UserId == userId, trackChanges))
                 .SingleOrDefaultAsync();
 
+        public async Task<bool> ExistsAsync(int teamId, int userId)
+        {
+            return await RepositoryContext.TeamMembers
+                .AnyAsync(tm => tm.TeamId == teamId && tm.UserId == userId);
+        }
+
+
         public async Task<IEnumerable<TeamMember>> GetMembersByTeamIdWithUserAsync(int teamId, bool trackChanges) =>
             await IncludeUser(
                     FindByCondition(m => m.TeamId == teamId, trackChanges))

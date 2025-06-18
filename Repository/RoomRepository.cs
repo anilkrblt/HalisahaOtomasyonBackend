@@ -20,7 +20,12 @@ namespace Repository
             q.Include(r => r.Field)
              .ThenInclude(f => f.Facility)
              .Include(r => r.Participants)
-                 .ThenInclude(p => p.Team);
+                 .ThenInclude(p => p.Team)
+                     .ThenInclude(t => t.Members)
+                         .ThenInclude(m => m.User)
+             .Include(r => r.Participants)
+                 .ThenInclude(p => p.Customer); // Eğer Customer üzerinden erişim de varsa
+
 
 
 

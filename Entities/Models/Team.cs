@@ -19,7 +19,7 @@ public class Team
     [MaxLength(128)]
     public string Town { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public string Content { get; set;   }
+    public string Content { get; set; }
     public int MatchPlayed { get; set; }
     public int MatchWon { get; set; }
     public int MatchDrawn { get; set; }

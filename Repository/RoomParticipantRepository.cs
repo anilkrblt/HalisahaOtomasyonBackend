@@ -21,7 +21,7 @@ namespace Repository
         public async Task<RoomParticipant?> GetByCustomerAsync(int roomId, int customerId)
         {
             return await FindByCondition(p =>
-                p.RoomId == roomId && p.CustomerId == customerId, false)
+                p.RoomId == roomId && p.CustomerId == customerId, true)
                 .FirstOrDefaultAsync();
         }
 
@@ -34,9 +34,11 @@ namespace Repository
                   .SingleOrDefaultAsync();
         public async Task<RoomParticipant?> GetParticipantByRoomAndUserAsync(int roomId, int userId, bool trackChanges)
         {
-            return await FindByCondition(p => p.RoomId == roomId && p.CustomerId == userId, trackChanges)
-                         .FirstOrDefaultAsync();
+            return await RepositoryContext.RoomParticipants
+                .Include(rp => rp.Customer)
+                .FirstOrDefaultAsync(rp => rp.RoomId == roomId && rp.CustomerId == userId);
         }
+
 
         /* -------- Rezervasyona göre liste -------- */
         public async Task<IEnumerable<RoomParticipant>> GetParticipantsByReservationIdAsync(int roomId, bool trackChanges) =>
@@ -44,6 +46,15 @@ namespace Repository
                   .Include(p => p.Team)
                   .OrderByDescending(p => p.IsHome)
                   .ToListAsync();
+
+        public async Task<IEnumerable<RoomParticipant>> GetParticipantsByUserAsync(int userId, bool trackChanges)
+        {
+            return await FindByCondition(p => p.CustomerId == userId, trackChanges)
+                         .Include(p => p.Room)
+                         .ThenInclude(r => r.Field)
+                         .ToListAsync();
+        }
+
 
         public async Task<IEnumerable<RoomParticipant>> GetParticipantsByRoomAsync(int roomId, bool trackChanges)
         {

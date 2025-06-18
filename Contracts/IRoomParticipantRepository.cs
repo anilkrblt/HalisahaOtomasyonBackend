@@ -11,6 +11,7 @@ namespace Contracts
         void DeleteParticipant(RoomParticipant participant);
         Task<RoomParticipant?> GetByCustomerAsync(int roomId, int customerId);
 
+        Task<IEnumerable<RoomParticipant>> GetParticipantsByUserAsync(int userId, bool trackChanges);
 
 
         Task<IEnumerable<RoomParticipant>> GetParticipantsByRoomAsync(int roomId, bool trackChanges);

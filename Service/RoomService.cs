@@ -31,9 +31,10 @@ public class RoomService : IRoomService
 
     /*──────────────── ROOM CRUD ───────────────────────────────*/
 
-    public async Task<RoomDto> CreateRoomAsync(RoomCreateDto dto, int creatorTeamId)
+    public async Task<RoomDto> CreateRoomAsync(RoomCreateDto dto, int creatorTeamId, int creatorUserId)
     {
-        var field = await _repo.Field.GetFieldAsync(dto.FieldId, false) ?? throw new FieldNotFoundException(dto.FieldId);
+        var field = await _repo.Field.GetFieldAsync(dto.FieldId, false)
+                     ?? throw new FieldNotFoundException(dto.FieldId);
 
         ValidateSlotAgainstField(dto.SlotStart, field);
 
@@ -41,7 +42,6 @@ public class RoomService : IRoomService
                      .Any(r => r.SlotStart < dto.SlotStart.AddHours(1) && r.SlotEnd > dto.SlotStart);
         bool clash2 = (await _repo.Reservation.GetByFieldAsync(dto.FieldId, dto.SlotStart)).Any();
         if (clash || clash2) throw new InvalidOperationException("Bu saat dolu.");
-
 
         var room = new Room
         {
@@ -56,17 +56,21 @@ public class RoomService : IRoomService
         _repo.Room.CreateRoom(room);
         await _repo.SaveAsync();
 
+        // 👇 creatorUserId ile tek RoomParticipant kaydı oluştur
         _repo.RoomParticipant.CreateParticipant(new RoomParticipant
         {
             RoomId = room.Id,
             TeamId = creatorTeamId,
+            CustomerId = creatorUserId,
             IsHome = true,
             Status = ParticipantStatus.Accepted
         });
+
         await _repo.SaveAsync();
 
         return _map.Map<RoomDto>(room);
     }
+
 
     public async Task<RoomDto?> GetRoomAsync(int id) =>
         _map.Map<RoomDto>(await _repo.Room.GetOneRoomAsync(id, false));
@@ -76,13 +80,13 @@ public class RoomService : IRoomService
             await _repo.Room.GetPublicRoomsAsync(RoomAccessType.Public));
 
     /*──────────────── JOIN ───────────────────────────────────*/
-    public async Task InviteUsersToRoomAsync(int roomId, List<int> userIds)
+    public async Task InviteUsersToRoomAsync(int roomId, int teamId, List<int> userIds)
     {
         foreach (var userId in userIds)
         {
             try
             {
-                await InviteUserToRoomAsync(roomId, userId);
+                await InviteUserToRoomAsync(roomId, userId, teamId);
             }
             catch (InvalidOperationException)
             {
@@ -92,7 +96,8 @@ public class RoomService : IRoomService
     }
 
 
-    public async Task InviteUserToRoomAsync(int roomId, int userId)
+
+    public async Task InviteUserToRoomAsync(int roomId, int userId, int teamId)
     {
         var room = await _repo.Room.GetOneRoomAsync(roomId, false)
                    ?? throw new RoomNotFoundException(roomId);
@@ -100,7 +105,6 @@ public class RoomService : IRoomService
         var user = await _userManager.FindByIdAsync(userId.ToString())
                     ?? throw new UserNotFoundException(userId);
 
-        // Aynı kullanıcı zaten bu odada mı?
         var existing = await _repo.RoomParticipant.GetByCustomerAsync(roomId, userId);
         if (existing is not null)
             throw new InvalidOperationException("Bu kullanıcı zaten bu odada.");
@@ -108,8 +112,10 @@ public class RoomService : IRoomService
         var participant = new RoomParticipant
         {
             RoomId = roomId,
+            TeamId = teamId,
             CustomerId = userId,
-            Status = ParticipantStatus.Invited
+            Status = ParticipantStatus.Invited,
+            IsHome = false
         };
 
         _repo.RoomParticipant.CreateParticipant(participant);
@@ -119,14 +125,16 @@ public class RoomService : IRoomService
         {
             UserId = userId,
             Title = "Maç Daveti",
-            Content = $"Bir maça davet edildin! Oda ID: #{roomId}",
+            Content = $"Takımın seni bir maça davet etti! Oda ID: #{roomId}",
             RelatedId = roomId,
             RelatedType = "room"
         });
     }
 
 
-    public async Task<RoomParticipantDto> JoinRoomAsync(int id, int teamId)
+
+
+    public async Task<RoomParticipantDto> JoinRoomAsync(int id, int teamId, int userId)
     {
         var room = await _repo.Room.GetOneRoomAsync(id, true)
                    ?? throw new RoomNotFoundException(id);
@@ -134,18 +142,20 @@ public class RoomService : IRoomService
         if (room.AccessType != RoomAccessType.Public)
             throw new InvalidOperationException("Bu oda private.");
 
-        return await InternalAddParticipant(room, teamId);
+        return await InternalAddParticipant(room, teamId, userId);
     }
 
-    public async Task<RoomParticipantDto> JoinRoomByCodeAsync(string code, int teamId)
+
+    public async Task<RoomParticipantDto> JoinRoomByCodeAsync(string code, int teamId, int userId)
     {
         var room = await _repo.Room.GetRoomByCodeAsync(code, true)
                    ?? throw new ArgumentException("Kod hatalı.");
 
-        return await InternalAddParticipant(room, teamId);
+        return await InternalAddParticipant(room, teamId, userId);
     }
 
-    private async Task<RoomParticipantDto> InternalAddParticipant(Room room, int teamId)
+
+    private async Task<RoomParticipantDto> InternalAddParticipant(Room room, int teamId, int userId)
     {
         // 1. Aynı anahtara sahip bir RoomParticipant zaten var mı? Kontrol et:
         var existing = await _repo.RoomParticipant.GetParticipantAsync(room.Id, teamId, true);
@@ -159,7 +169,9 @@ public class RoomService : IRoomService
         {
             RoomId = room.Id,
             TeamId = teamId,
+            CustomerId = userId,
             Status = ParticipantStatus.Accepted
+
         };
 
         _repo.RoomParticipant.CreateParticipant(participant);
@@ -271,7 +283,7 @@ public class RoomService : IRoomService
                     Amount = p.PaidAmount ?? 0,
                     Status = PaymentStatus.Paid,
                     PaidAt = DateTime.UtcNow,
-                    ProviderRef = p.ChargeId, // Stripe chargeId
+                    ProviderRef = p.ChargeId,
                 }).ToList()
             };
         }
@@ -301,6 +313,55 @@ public class RoomService : IRoomService
 
         return result;
     }
+    // Service/RoomService.cs
+
+    public async Task ToggleUserReadyAsync(int roomId, int userId)
+    {
+        var participant = await _repo.RoomParticipant
+            .GetParticipantByRoomAndUserAsync(roomId, userId, true);
+
+        if (participant is null)
+        {
+            Console.WriteLine($"❌ Participant bulunamadı: RoomId={roomId}, UserId={userId}");
+            throw new ParticipantNotFoundException(userId, roomId);
+        }
+
+        participant.IsReady = !participant.IsReady;
+
+        await _repo.SaveAsync();
+        await CheckAndUpdateRoomStatusAsync(roomId);
+    }
+
+
+
+    public async Task CheckAndUpdateRoomStatusAsync(int roomId)
+    {
+        var room = await _repo.Room.GetRoomWithParticipantsAsync(roomId, trackChanges: true)
+                   ?? throw new RoomNotFoundException(roomId);
+
+        // Tüm daveti kabul edenler hazır mı?
+        bool everyoneReady = room.Participants
+            .Where(p => p.Status == ParticipantStatus.Accepted)
+            .All(p => p.IsReady);
+
+        if (everyoneReady && room.Status == RoomStatus.PendingOpponent)
+        {
+            room.Status = RoomStatus.WaitingConfirm;
+            await _repo.SaveAsync();
+        }
+    }
+    public async Task<IEnumerable<RoomDto>> GetRoomsUserIsInvitedToAsync(int userId)
+    {
+        var participants = await _repo.RoomParticipant
+            .GetParticipantsByUserAsync(userId, trackChanges: false);
+
+        var rooms = participants
+            .Where(p => p.Status == ParticipantStatus.Invited)
+            .Select(p => p.Room);
+
+        return _map.Map<IEnumerable<RoomDto>>(rooms);
+    }
+
 
 
     public async Task<(string ChargeId, decimal Amount)?> GetPaymentInfo(int roomId, int userId)
@@ -351,6 +412,15 @@ public class RoomService : IRoomService
         if (!isStarterParticipant)
             throw new UnauthorizedAccessException("Bu takım maçı başlatamaz.");
 
+        // 🧾 Ödeme kontrolü
+        var allPaid = room.Participants
+            .Where(p => p.CustomerId != null)
+            .All(p => p.PaymentStatus == PaymentStatus.Paid);
+
+        if (!allPaid)
+            throw new InvalidOperationException("Tüm oyuncular ödeme yapmadan maç başlatılamaz.");
+
+        // 🏟️ Maç başlatılıyor
         if (room.Match is null)
         {
             var homeId = room.Participants.FirstOrDefault(p => p.IsHome)?.TeamId;
@@ -377,8 +447,6 @@ public class RoomService : IRoomService
 
         return _map.Map<MatchDto>(room.Match);
     }
-
-
 
 
 
@@ -440,13 +508,13 @@ public class RoomService : IRoomService
         {
             if (teamParticipant.Team == null) return null;
 
-            // O takıma ait tüm RoomParticipant kayıtları (oyuncular)
+            // Sadece Accepted katılımcıları al
             var roomParticipants = room.Participants
-                .Where(p => p.TeamId == teamParticipant.TeamId)
+                .Where(p => p.TeamId == teamParticipant.TeamId && p.Status == ParticipantStatus.Accepted)
                 .ToList();
 
             var members = roomParticipants
-                .Select(p => p.Team?.Members.FirstOrDefault(m => m.UserId == p.CustomerId)) // TeamMember
+                .Select(p => p.Team?.Members.FirstOrDefault(m => m.UserId == p.CustomerId))
                 .Where(m => m != null)
                 .Select(m => new RoomTeamMemberDto
                 {
@@ -454,7 +522,7 @@ public class RoomService : IRoomService
                     UserName = m.User?.UserName ?? "",
                     FullName = $"{m.User?.FirstName} {m.User?.LastName}",
                     Positions = PositionHelper.ParsePositions(m.Position),
-                    IsReady = roomParticipants.First(rp => rp.CustomerId == m.UserId).IsReady
+                    IsReady = roomParticipants.First(rp => rp.CustomerId == m.UserId)?.IsReady ?? false
                 })
                 .ToList();
 
@@ -467,7 +535,6 @@ public class RoomService : IRoomService
             };
         }
 
-
         var homePart = room.Participants.FirstOrDefault(p => p.IsHome);
         var awayPart = room.Participants.FirstOrDefault(p => !p.IsHome);
 
@@ -477,6 +544,7 @@ public class RoomService : IRoomService
             AwayTeam = awayPart != null ? MapTeam(awayPart) : null
         };
     }
+
 
 
     public Task<IEnumerable<RoomParticipantDto>> GetParticipantsByTeamAsync(int teamId, bool trackChanges)
@@ -519,14 +587,31 @@ public class RoomService : IRoomService
         throw new NotImplementedException();
     }
 
-    public async Task SetReadyAsync(int roomId, int teamId)
+    public async Task SetTeamReadyAsync(int roomId, int teamId, int userId)
     {
-        var part = await _repo.RoomParticipant.GetParticipantAsync(roomId, teamId, true)
-                  ?? throw new Exception("Katılımcı bulunamadı.");
+        // Kullanıcının o takımda admin olup olmadığını kontrol et
+        var member = await _repo.TeamMember.GetMemberAsync(teamId, userId, false);
+        if (member is null || !member.IsAdmin)
+            throw new UnauthorizedAccessException("Bu işlemi yapmaya yetkiniz yok.");
 
-        part.IsReady = true;
+        var room = await _repo.Room.GetRoomWithParticipantsAsync(roomId, true)
+                   ?? throw new RoomNotFoundException(roomId);
+
+        var teamParticipants = room.Participants
+            .Where(p => p.TeamId == teamId && p.CustomerId != null)
+            .ToList();
+
+        if (!teamParticipants.Any())
+            throw new InvalidOperationException("Takımda oyuncu yok.");
+
+        foreach (var p in teamParticipants)
+            p.IsReady = true;
+
         await _repo.SaveAsync();
+
+        await CheckAndUpdateRoomStatusAsync(roomId);
     }
+
     public async Task RespondUserInviteAsync(int roomId, int userId, bool accept)
     {
         var participant = await _repo.RoomParticipant.GetByCustomerAsync(roomId, userId)
@@ -536,5 +621,8 @@ public class RoomService : IRoomService
         await _repo.SaveAsync();
     }
 
-
+    public Task<RoomParticipantDto> JoinRoomAsync(int roomId, int teamId)
+    {
+        throw new NotImplementedException();
+    }
 }
