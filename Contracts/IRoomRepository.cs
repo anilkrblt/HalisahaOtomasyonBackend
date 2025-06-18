@@ -11,6 +11,9 @@ namespace Contracts
         void CreateRoom(Room room);
         void DeleteRoom(Room room);
 
+
+        Task<Room?> GetRoomWithParticipantsAsync(int roomId, bool trackChanges);
+
         Task<IEnumerable<Room>> GetAllRoomsAsync(bool trackChanges);
 
         Task<IEnumerable<Room>> GetRoomsByFacilityIdAsync(int facilityId, bool trackChanges);

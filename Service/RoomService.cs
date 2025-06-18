@@ -1,4 +1,3 @@
-// Service/RoomService.cs
 using AutoMapper;
 using Contracts;
 using Entities.Exceptions;
@@ -217,6 +216,124 @@ public class RoomService : IRoomService
             await _repo.SaveAsync();
         }
     }
+
+
+    public async Task PayPlayerAsync(int roomId, int userId, decimal amount)
+    {
+        var room = await _repo.Room.GetRoomWithParticipantsAsync(roomId, trackChanges: true)
+                    ?? throw new RoomNotFoundException(roomId);
+
+        var participant = room.Participants
+            .FirstOrDefault(p => p.Customer != null && p.Customer.Id == userId);
+
+        if (participant is null)
+            throw new ParticipantNotFoundException(userId, roomId);
+
+        participant.PaymentStatus = PaymentStatus.Paid;
+        participant.PaidAmount = amount;
+
+        await _repo.SaveAsync();
+    }
+
+    public async Task ConfirmReservationAsync(int roomId)
+    {
+        var room = await _repo.Room.GetRoomWithParticipantsAsync(roomId, trackChanges: true)
+                    ?? throw new RoomNotFoundException(roomId);
+
+        // Sadece bireysel oyuncuların ödeme durumunu kontrol et
+        var individualParticipants = room.Participants
+            .Where(p => p.CustomerId != null)
+            .ToList();
+
+        var allPaid = individualParticipants.All(p => p.PaymentStatus == PaymentStatus.Paid);
+        if (!allPaid)
+            throw new InvalidOperationException("Tüm oyuncular ödeme yapmadan rezervasyon onaylanamaz.");
+
+        // Toplam ücret = ödeyen herkesin ödediği toplam
+        var totalPrice = individualParticipants.Sum(p => p.PaidAmount ?? 0);
+
+        // Zaten oluşturulmadıysa rezervasyon nesnesini yarat
+        if (room.Reservation is null)
+        {
+            room.Reservation = new Reservation
+            {
+                RoomId = room.Id,
+                SlotStart = room.SlotStart,
+                SlotEnd = room.SlotEnd,
+                FieldId = room.FieldId,
+                CreatedAt = DateTime.UtcNow,
+                PriceTotal = totalPrice,
+                Status = ReservationStatus.Confirmed,
+                Payments = individualParticipants.Select(p => new ReservationPayment
+                {
+                    RoomParticipantRoomId = p.RoomId,
+                    RoomParticipantTeamId = p.TeamId,
+                    Amount = p.PaidAmount ?? 0,
+                    Status = PaymentStatus.Paid,
+                    PaidAt = DateTime.UtcNow,
+                    ProviderRef = p.ChargeId, // Stripe chargeId
+                }).ToList()
+            };
+        }
+        else
+        {
+            room.Reservation.Status = ReservationStatus.Confirmed;
+        }
+
+        room.Status = RoomStatus.Confirmed;
+        await _repo.SaveAsync();
+    }
+
+    public async Task<IEnumerable<ReservationPaymentReportDto>> GetPaymentsByFieldOwnerAsync(int ownerId)
+    {
+        var reservations = await _repo.Reservation.GetReservationsWithPaymentsByOwnerAsync(ownerId);
+
+        var result = reservations
+            .SelectMany(r => r.Payments.Select(p => new ReservationPaymentReportDto
+            {
+                ReservationId = r.Id,
+                SlotStart = r.SlotStart,
+                Amount = p.Amount,
+                PaidAt = p.PaidAt,
+                ProviderRef = p.ProviderRef,
+                PaidBy = p.Participant?.Customer?.FirstName ?? "Bilinmiyor"
+            }));
+
+        return result;
+    }
+
+
+    public async Task<(string ChargeId, decimal Amount)?> GetPaymentInfo(int roomId, int userId)
+    {
+        var participant = await _repo.RoomParticipant
+            .GetParticipantByRoomAndUserAsync(roomId, userId, false);
+
+        if (participant is null || string.IsNullOrEmpty(participant.ChargeId))
+            return null;
+
+        return (participant.ChargeId, participant.PaidAmount ?? 0);
+    }
+
+
+
+    public async Task<object> GetPaymentStatusAsync(int roomId)
+    {
+        var participants = await _repo.RoomParticipant.GetParticipantsByRoomAsync(roomId, false);
+
+        var statusList = participants.Select(p => new
+        {
+            UserId = p.CustomerId,
+            TeamId = p.TeamId,
+            IsReady = p.IsReady,
+            PaymentStatus = p.PaymentStatus.ToString(),
+            PaidAmount = p.PaidAmount
+        });
+
+        return statusList;
+    }
+
+
+
 
 
     /*──────────────── MATCH START ────────────────────────────*/

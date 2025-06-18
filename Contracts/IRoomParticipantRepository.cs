@@ -12,6 +12,10 @@ namespace Contracts
         Task<RoomParticipant?> GetByCustomerAsync(int roomId, int customerId);
 
 
+
+        Task<IEnumerable<RoomParticipant>> GetParticipantsByRoomAsync(int roomId, bool trackChanges);
+        Task<RoomParticipant?> GetParticipantByRoomAndUserAsync(int roomId, int userId, bool trackChanges);
+
         /* Query – tek satır (bileşik PK) */
         Task<RoomParticipant?> GetParticipantAsync(int reservationId, int teamId, bool trackChanges);
 

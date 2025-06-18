@@ -112,4 +112,26 @@ public class RoomsController : ControllerBase
     [HttpPost("{id:int}/start")]
     public async Task<IActionResult> StartMatch(int id, [FromQuery] int teamId) =>
         Ok(await _svc.RoomService.StartMatchAsync(id, teamId));
+
+
+
+    [HttpPost("{id:int}/pay-player")]
+    public async Task<IActionResult> PayPlayer(int id, [FromQuery] int userId, [FromBody] PaymentDto dto)
+    {
+        await _svc.RoomService.PayPlayerAsync(id, userId, dto.Amount);
+        return NoContent();
+    }
+
+    [HttpPost("{id:int}/confirm")]
+    public async Task<IActionResult> ConfirmReservation(int id)
+    {
+        await _svc.RoomService.ConfirmReservationAsync(id);
+        return NoContent();
+    }
+    [HttpGet("payments")]
+    public async Task<IActionResult> GetPayments([FromQuery] int ownerId)
+    {
+        var result = await _svc.RoomService.GetPaymentsByFieldOwnerAsync(ownerId);
+        return Ok(result);
+    }
 }

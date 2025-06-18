@@ -43,5 +43,19 @@ namespace Repository
                        trackChanges: false)
                    .ToListAsync();
         }
+
+        public async Task<IEnumerable<Reservation>> GetReservationsWithPaymentsByOwnerAsync(int ownerId)
+        {
+            return await RepositoryContext.Reservations
+                .Include(r => r.Payments)
+                    .ThenInclude(p => p.Participant)
+                        .ThenInclude(pa => pa.Customer)
+                .Include(r => r.Field)
+                    .ThenInclude(f => f.Facility) // 👈 Facility dahil edilmeli
+                .Where(r => r.Field.Facility.OwnerId == ownerId) // 👈 Doğru erişim
+                .ToListAsync();
+        }
+
+
     }
 }

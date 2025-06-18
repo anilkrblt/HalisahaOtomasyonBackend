@@ -32,6 +32,11 @@ namespace Repository
                   .Include(p => p.Team)
                   .Include(p => p.Room)
                   .SingleOrDefaultAsync();
+        public async Task<RoomParticipant?> GetParticipantByRoomAndUserAsync(int roomId, int userId, bool trackChanges)
+        {
+            return await FindByCondition(p => p.RoomId == roomId && p.CustomerId == userId, trackChanges)
+                         .FirstOrDefaultAsync();
+        }
 
         /* -------- Rezervasyona göre liste -------- */
         public async Task<IEnumerable<RoomParticipant>> GetParticipantsByReservationIdAsync(int roomId, bool trackChanges) =>
@@ -40,6 +45,13 @@ namespace Repository
                   .OrderByDescending(p => p.IsHome)
                   .ToListAsync();
 
+        public async Task<IEnumerable<RoomParticipant>> GetParticipantsByRoomAsync(int roomId, bool trackChanges)
+        {
+            return await FindByCondition(p => p.RoomId == roomId, trackChanges)
+                         .Include(p => p.Customer)
+                         .Include(p => p.Team)
+                         .ToListAsync();
+        }
         /* -------- Takıma göre liste -------- */
         public async Task<IEnumerable<RoomParticipant>> GetParticipantsByTeamIdAsync(int teamId, bool trackChanges) =>
             await FindByCondition(p => p.TeamId == teamId, trackChanges)
@@ -47,4 +59,8 @@ namespace Repository
                       .ThenInclude(r => r.Field)
                   .ToListAsync();
     }
+
+
+
+
 }

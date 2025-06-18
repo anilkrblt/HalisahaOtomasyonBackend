@@ -61,6 +61,18 @@ namespace Repository
                  .OrderByDescending(r => r.SlotStart)
                  .ToListAsync();
 
+
+        public async Task<Room?> GetRoomWithParticipantsAsync(int roomId, bool trackChanges)
+        {
+            return await FindByCondition(r => r.Id == roomId, trackChanges)
+                .Include(r => r.Participants)
+                    .ThenInclude(p => p.Customer)
+                .Include(r => r.Participants)
+                    .ThenInclude(p => p.Team)
+                .FirstOrDefaultAsync();
+        }
+
+
         public async Task<IEnumerable<Room>> GetPublicRoomsAsync(RoomAccessType accessType)
         {
             return await RepositoryContext.Rooms

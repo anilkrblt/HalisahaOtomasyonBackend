@@ -19,6 +19,8 @@ namespace Shared.DataTransferObjects
         public int RoomId { get; set; }
     }
 
+
+
     public class ReservationForCreationDto
     {
         public int FieldId { get; set; }

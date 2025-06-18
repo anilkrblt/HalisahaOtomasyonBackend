@@ -22,6 +22,15 @@ public interface IRoomService
     Task<RoomParticipantDto> JoinRoomByCodeAsync(string joinCode, int teamId);   // private
 
     /*──────── PAYMENT ─────────*/
+    Task PayPlayerAsync(int roomId, int userId, decimal amount);
+    Task ConfirmReservationAsync(int roomId);
+    Task<(string ChargeId, decimal Amount)?> GetPaymentInfo(int roomId, int userId);
+    Task<object> GetPaymentStatusAsync(int roomId); // dönüş tipi ihtiyaca göre değişebilir
+    Task<IEnumerable<ReservationPaymentReportDto>> GetPaymentsByFieldOwnerAsync(int ownerId);
+
+
+
+
     Task PayAsync(int roomId, int teamId, decimal amount);
 
     /*──────── MATCH START ─────*/

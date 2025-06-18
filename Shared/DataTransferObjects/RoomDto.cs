@@ -8,6 +8,7 @@ namespace Shared.DataTransferObjects;
 
 /* — API’den dönen — */
 
+
 public record RoomDto
 {
     public int RoomId { get; set; }
@@ -29,6 +30,16 @@ public record RoomDto
     public MatchDto? Match { get; set; }
 }
 
+
+public class ReservationPaymentReportDto
+{
+    public int ReservationId { get; set; }
+    public DateTime SlotStart { get; set; }
+    public decimal Amount { get; set; }
+    public string? PaidBy { get; set; }
+    public DateTime? PaidAt { get; set; }
+    public string? ProviderRef { get; set; }
+}
 
 /* — Oluştururken gönderilen — */
 public record RoomCreateDto

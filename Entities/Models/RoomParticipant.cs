@@ -18,6 +18,9 @@ public class RoomParticipant
     public int TeamId { get; set; }
     public Team Team { get; set; } = null!;
 
+    public string? ChargeId { get; set; }  // Stripe Charge ID (refund için kullanılır)
+
+
 
     public int? CustomerId { get; set; }           // bireysel oyuncu
     public Customer? Customer { get; set; }

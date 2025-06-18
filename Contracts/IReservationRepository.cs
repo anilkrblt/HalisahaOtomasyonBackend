@@ -16,5 +16,8 @@ namespace Contracts
         /// Belirli saha + başlangıç saatine çakışan tüm rezervasyonları getirir
         /// </summary>
         Task<IEnumerable<Reservation>> GetByFieldAsync(int fieldId, DateTime slotStart);
+
+        Task<IEnumerable<Reservation>> GetReservationsWithPaymentsByOwnerAsync(int ownerId);
+
     }
 }
