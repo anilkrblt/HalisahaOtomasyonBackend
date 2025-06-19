@@ -67,19 +67,21 @@ namespace Service
                 await _repositoryManager.SaveAsync();
             }
 
-            // Sonra ekle
-            foreach (var ex in dto.Exceptions.DistinctBy(x => x.Date.Date))
+            if (dto.Exceptions is not null)
             {
-                _repositoryManager.FieldException.CreateFieldException(
-                    new FieldException
-                    {
-                        FieldId = entity.Id,
-                        Date = ex.Date.Date,
-                        IsOpen = ex.IsOpen
-                    });
-            }
+                foreach (var ex in dto.Exceptions.DistinctBy(x => x.Date.Date))
+                {
+                    _repositoryManager.FieldException.CreateFieldException(
+                        new FieldException
+                        {
+                            FieldId = entity.Id,
+                            Date = ex.Date.Date,
+                            IsOpen = ex.IsOpen
+                        });
+                }
 
-            await _repositoryManager.SaveAsync();
+                await _repositoryManager.SaveAsync();
+            }
 
             var full = await _repositoryManager.Field.GetFieldAsync(entity.Id, trackChanges: false);
             return _mapper.Map<FieldDto>(full);
