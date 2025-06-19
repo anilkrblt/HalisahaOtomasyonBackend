@@ -20,9 +20,17 @@ namespace Repository
         public void DeleteReservationPayment(ReservationPayment ReservationPayment) => Delete(ReservationPayment);
 
         public async Task<IEnumerable<ReservationPayment>> GetAllReservationPaymentsAsync(bool trackChanges) =>
-        await FindAll(trackChanges).ToListAsync();
+        await RepositoryContext.ReservationPayments
+            .Include(p => p.Participant)
+                .ThenInclude(pa => pa.Customer)
+            .ToListAsync();
 
-        public async Task<ReservationPayment?> GetReservationPaymentAsync(int ReservationPaymentId, bool trackChanges) =>
-        await FindByCondition(rp => ReservationPaymentId.Equals(rp.Id), trackChanges).FirstOrDefaultAsync();
+
+        public async Task<ReservationPayment?> GetReservationPaymentAsync(int id, bool trackChanges) =>
+    await RepositoryContext.ReservationPayments
+        .Include(p => p.Participant)
+            .ThenInclude(pa => pa.Customer)
+        .FirstOrDefaultAsync(p => p.Id == id);
+
     }
 }

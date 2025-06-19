@@ -28,5 +28,15 @@ namespace Repository
                   .Include(c => c.FromUser)
                   .OrderByDescending(c => c.CreatedAt)
                   .ToListAsync();
+        public async Task<IEnumerable<FieldComment>> GetCommentsForFieldsAsync(IEnumerable<int> fieldIds)
+        {
+            return await FindByCondition(
+                    c => fieldIds.Contains(c.FieldId) && !c.IsDeleted,
+                    trackChanges: false)
+                .Include(c => c.FromUser)
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
+        }
+
     }
 }

@@ -52,24 +52,12 @@ namespace HalisahaOtomasyonPresentation.Controllers
             return Ok(notifs);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateNotification([FromBody] NotificationForCreationDto dto)
-        {
-            var notif = await _service.NotificationService.CreateNotificationAsync(dto);
-            return CreatedAtAction(nameof(GetNotification), new { id = notif.Id }, notif);
-        }
+
 
         [HttpPut("{id:int}/read")]
         public async Task<IActionResult> MarkAsRead(int id)
         {
             await _service.NotificationService.MarkAsReadAsync(id);
-            return NoContent();
-        }
-
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> DeleteNotification(int id)
-        {
-            await _service.NotificationService.DeleteNotificationAsync(id);
             return NoContent();
         }
     }

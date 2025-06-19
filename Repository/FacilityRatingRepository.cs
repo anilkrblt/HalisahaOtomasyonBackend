@@ -16,10 +16,20 @@ namespace Repository
         public void CreateRating(FacilityRating rating) => Create(rating);
         public void DeleteRating(FacilityRating rating) => Delete(rating);
 
+        public async Task<IEnumerable<FacilityRating>> GetRatingsByOwnerIdAsync(int ownerId)
+        {
+            return await RepositoryContext.FacilityRatings
+                .Include(r => r.Facility)
+                .Where(r => r.Facility.OwnerId == ownerId && !string.IsNullOrWhiteSpace(r.Comment))
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
+        }
+
+
         /* -------- Query: Tek Kayıt -------- */
         public async Task<FacilityRating?> GetRatingAsync(int facilityId, int userId, bool trackChanges) =>
             await FindByCondition(r => r.FacilityId == facilityId &&
-                                       r.UserId     == userId,
+                                       r.UserId == userId,
                                   trackChanges)
                   .SingleOrDefaultAsync();
 

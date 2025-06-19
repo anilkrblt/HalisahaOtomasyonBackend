@@ -10,6 +10,7 @@ namespace Contracts
         void CreateParticipant(RoomParticipant participant);
         void DeleteParticipant(RoomParticipant participant);
         Task<RoomParticipant?> GetByCustomerAsync(int roomId, int customerId);
+        Task<RoomParticipant?> GetByKeyAsync(int roomId, int teamId);
 
         Task<IEnumerable<RoomParticipant>> GetParticipantsByUserAsync(int userId, bool trackChanges);
 

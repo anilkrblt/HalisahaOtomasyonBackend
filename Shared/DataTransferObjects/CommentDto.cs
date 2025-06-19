@@ -2,6 +2,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Shared.DataTransferObjects;
 
+public class CommentForAIAnalysisDto
+{
+    public string Content { get; set; } = string.Empty;
+    public int Rating { get; set; }
+}
+
 public abstract class CommentDto
 {
     public int Id { get; set; }

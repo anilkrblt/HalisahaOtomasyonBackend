@@ -24,6 +24,13 @@ namespace Repository
                 p.RoomId == roomId && p.CustomerId == customerId, true)
                 .FirstOrDefaultAsync();
         }
+        public async Task<RoomParticipant?> GetByKeyAsync(int roomId, int teamId)
+        {
+            return await RepositoryContext.RoomParticipants
+                .Include(rp => rp.Customer)
+                .FirstOrDefaultAsync(rp =>
+                    rp.RoomId == roomId && rp.TeamId == teamId);
+        }
 
         /* -------- Tek kayıt -------- */
         public async Task<RoomParticipant?> GetParticipantAsync(

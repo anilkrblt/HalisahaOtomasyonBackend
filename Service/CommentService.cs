@@ -25,6 +25,47 @@ public class CommentService : ICommentService
         _photoService = photoService;
     }
 
+    public async Task<IEnumerable<CommentForAIAnalysisDto>> GetLast10CommentsForUserFieldsAsync(int ownerId)
+    {
+        // 1. Owner'ın sahip olduğu sahaları al
+        var fields = await _repo.Field.GetFieldsByOwnerIdAsync(ownerId, false);
+        var fieldIds = fields.Select(f => f.Id).ToList();
+
+        // 2. Sahalara ait yorumları al
+        var fieldComments = await _repo.FieldComment.GetCommentsForFieldsAsync(fieldIds);
+        var fieldPart = fieldComments
+            .Where(fc => !string.IsNullOrWhiteSpace(fc.Content))
+            .Select(fc => new CommentForAIAnalysisDto
+            {
+                Content = fc.Content,
+                Rating = fc.Rating
+            });
+
+        // 3. Tesis yorumlarını al
+        var facilityRatings = await _repo.FacilityRating.GetRatingsByOwnerIdAsync(ownerId);
+        var facilityPart = facilityRatings
+            .Where(fr => !string.IsNullOrWhiteSpace(fr.Comment))
+            .Select(fr => new CommentForAIAnalysisDto
+            {
+                Content = fr.Comment!,
+                Rating = fr.Stars
+            });
+
+        // 4. Birleştir, tarihe göre sırala, ilk 10’u al
+        var combined = fieldPart
+            .Concat(facilityPart)
+            .OrderByDescending(c => c.Content.Length) // (alternatif olarak CreatedAt eklenebilir)
+            .Take(10);
+
+        return combined;
+    }
+
+
+
+
+
+
+
     public async Task<FieldCommentDto> GetFieldCommentAsync(int commentId, bool trackChanges)
     {
         var entity = await CheckFieldCommentExists(commentId);

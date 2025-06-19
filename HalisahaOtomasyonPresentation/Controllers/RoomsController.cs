@@ -198,6 +198,8 @@ public class RoomsController : ControllerBase
         await _svc.RoomService.ConfirmReservationAsync(id);
         return NoContent();
     }
+
+    
     [HttpGet("payments")]
     public async Task<IActionResult> GetPayments([FromQuery] int ownerId)
     {

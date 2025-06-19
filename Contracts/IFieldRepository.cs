@@ -16,6 +16,8 @@ namespace Contracts
         Task<Field> GetFieldAsync(int fieldId, bool trackChanges);
         Task<IEnumerable<Field>> GetFieldsByFacilityIdAsync(int facilityId, bool trackChanges);
         Task<int> GetFacilityIdByFieldIdAsync(int fieldId);
+        Task<IEnumerable<Field>> GetFieldsByOwnerIdAsync(int ownerId, bool trackChanges);
+
 
     }
 }

@@ -45,6 +45,18 @@ namespace Repository
             var field = await GetFieldAsync(fieldId, trackChanges: false);
             return field.FacilityId;
         }
+        public async Task<IEnumerable<Field>> GetFieldsByOwnerIdAsync(int ownerId, bool trackChanges)
+        {
+            var query = RepositoryContext.Fields
+                .Include(f => f.Facility)
+                .Where(f => f.Facility.OwnerId == ownerId);
+
+            if (!trackChanges)
+                query = query.AsNoTracking();
+
+            return await query.ToListAsync();
+        }
+
 
 
     }

@@ -4,7 +4,9 @@ namespace Service.Contracts;
 
 public interface ICommentService
 {
-    Task<FieldCommentDto> GetFieldCommentAsync(int commentId, bool trackChanges);
+
+    Task<IEnumerable<CommentForAIAnalysisDto>> GetLast10CommentsForUserFieldsAsync(int ownerId);
+     Task<FieldCommentDto> GetFieldCommentAsync(int commentId, bool trackChanges);
     Task<IEnumerable<FieldCommentDto>> GetFieldCommentsAsync(int fieldId, bool trackChanges);
     Task<FieldCommentDto> AddFieldCommentAsync(FieldCommentForCreationDto dto, int fromUserId);
     Task<FieldCommentDto> UpdateFieldCommentAsync(int commentId, FieldCommentForUpdateDto dto);

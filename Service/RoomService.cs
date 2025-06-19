@@ -399,20 +399,41 @@ public class RoomService : IRoomService
     {
         var reservations = await _repo.Reservation.GetReservationsWithPaymentsByOwnerAsync(ownerId);
 
-        var result = reservations
-            .SelectMany(r => r.Payments.Select(p => new ReservationPaymentReportDto
-            {
-                ReservationId = r.Id,
-                SlotStart = r.SlotStart,
-                Amount = p.Amount,
-                PaidAt = p.PaidAt,
-                ProviderRef = p.ProviderRef,
-                PaidBy = p.Participant?.Customer?.FirstName ?? "Bilinmiyor"
-            }));
+        var list = new List<ReservationPaymentReportDto>();
 
-        return result;
+        foreach (var r in reservations)
+        {
+            foreach (var p in r.Payments)
+            {
+                RoomParticipant? participant = null;
+
+                if (p.RoomParticipantRoomId.HasValue && p.RoomParticipantTeamId.HasValue)
+                {
+                    participant = await _repo.RoomParticipant
+                        .GetByKeyAsync(p.RoomParticipantRoomId.Value, p.RoomParticipantTeamId.Value);
+                }
+
+
+                list.Add(new ReservationPaymentReportDto
+                {
+                    ReservationId = r.Id,
+                    SlotStart = r.SlotStart,
+                    SlotEnd = r.SlotEnd,
+                    FieldName = r.Field?.Name ?? "Bilinmeyen Saha",
+                    Amount = p.Amount,
+                    PaidAt = p.PaidAt,
+                    ProviderRef = p.ProviderRef,
+                    PaidBy = participant?.Customer?.FirstName + " " + participant?.Customer?.LastName ?? "Bilinmiyor",
+                    Detail = $"Rezervasyon: {r.SlotStart:dd.MM.yyyy HH:mm} - {r.SlotEnd:HH:mm}"
+                });
+            }
+        }
+
+        return list;
+
+
     }
-    // Service/RoomService.cs
+
 
     public async Task ToggleUserReadyAsync(int roomId, int userId)
     {

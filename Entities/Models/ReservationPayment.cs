@@ -13,13 +13,14 @@ namespace Entities.Models
         public Reservation Reservation { get; set; } = null!;
 
         public int? RoomParticipantRoomId { get; set; }   // kimin ödediği
+        
         public int? RoomParticipantTeamId { get; set; }
         public RoomParticipant? Participant { get; set; }
 
         public decimal Amount { get; set; }
         public PaymentStatus Status { get; set; } = PaymentStatus.Pending;
 
-        public string? ProviderRef { get; set; }    // ödeme linki / intent id
+        public string? ProviderRef { get; set; }
         public DateTime? PaidAt { get; set; }
         public DateTime? RefundedAt { get; set; }
     }

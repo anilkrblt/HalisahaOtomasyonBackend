@@ -1,4 +1,5 @@
 // Presentation/Controllers/FriendshipsController.cs
+using Entities.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
@@ -55,6 +56,14 @@ namespace HalisahaOtomasyonPresentation.Controllers
         {
 
             var created = await _svc.FriendshipService.SendFriendRequestAsync(CallerId, dto.ToUserId);
+            await _svc.NotificationService.CreateNotificationAsync(new NotificationForCreationDto
+            {
+                UserId = dto.ToUserId,
+                Title = "Yeni Arkadaşlık İsteği",
+                Content = "Bir kullanıcı sana arkadaşlık isteği gönderdi.",
+                RelatedId = CallerId,
+                RelatedType = "user"
+            });
             return Created(string.Empty, created);
         }
 
@@ -67,6 +76,20 @@ namespace HalisahaOtomasyonPresentation.Controllers
                 return Forbid();
 
             await _svc.FriendshipService.RespondFriendRequestAsync(userB, userA, dto.Status);
+
+            if (dto.Status == FriendshipStatus.Accepted)
+            {
+                int otherUserId = CallerId == userA ? userB : userA;
+
+                await _svc.NotificationService.CreateNotificationAsync(new NotificationForCreationDto
+                {
+                    UserId = otherUserId,
+                    Title = "Arkadaşlık İsteği Kabul Edildi",
+                    Content = "Arkadaşlık isteğiniz kabul edildi.",
+                    RelatedId = CallerId,
+                    RelatedType = "user"
+                });
+            }
             return NoContent();
         }
 
@@ -105,7 +128,7 @@ namespace HalisahaOtomasyonPresentation.Controllers
         }
 
 
-  
+
         [HttpDelete("{fromId:int}/{toId:int}/cancel")]
         public async Task<IActionResult> Cancel(int fromId, int toId)
         {

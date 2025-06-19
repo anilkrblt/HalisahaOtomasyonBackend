@@ -37,11 +37,15 @@ public class ReservationPaymentReportDto
 {
     public int ReservationId { get; set; }
     public DateTime SlotStart { get; set; }
+    public DateTime SlotEnd { get; set; }              // ✅ slot end eklendi
+    public string FieldName { get; set; } = string.Empty;  // ✅ saha adı
     public decimal Amount { get; set; }
     public string? PaidBy { get; set; }
     public DateTime? PaidAt { get; set; }
     public string? ProviderRef { get; set; }
+    public string? Detail { get; set; }                // ✅ ekstra açıklama/detay alanı
 }
+
 
 /* — Oluştururken gönderilen — */
 public record RoomCreateDto

@@ -37,6 +37,26 @@ namespace Service
             _repo.Reservation.CreateReservation(entity);
             await _repo.SaveAsync();
 
+
+            // 🔔 Bildirim ekle
+            if (field.Facility != null && field.Facility.OwnerId != null)
+            {
+                _repo.Notification.CreateNotification(new Notification
+                {
+                    UserId = field.Facility.OwnerId,
+                    Title = "Yeni Rezervasyon",
+                    Description = $"Sahanıza {dto.SlotStart:yyyy-MM-dd HH:mm} için yeni bir rezervasyon yapıldı.",
+                    EntityId = entity.Id,
+                    EntityType = "Reservation",
+                    Type = NotificationType.Reservation,
+                    CreatedAt = DateTime.UtcNow
+                });
+
+                await _repo.SaveAsync();
+            }
+
+
+
             return _map.Map<ReservationDto>(entity);
         }
 

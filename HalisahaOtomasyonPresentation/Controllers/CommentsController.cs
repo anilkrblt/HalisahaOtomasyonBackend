@@ -1,6 +1,9 @@
+using System.Text;
+using System.Text.Json;
 using HalisahaOtomasyon.ActionFilters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Service.Contracts;
 using Shared.DataTransferObjects;
 
@@ -11,10 +14,12 @@ namespace HalisahaOtomasyonPresentation.Controllers;
 public class CommentsController : ControllerBase
 {
     private readonly IServiceManager _serviceManager;
+    private readonly IConfiguration _config;
 
-    public CommentsController(IServiceManager service)
+    public CommentsController(IServiceManager service, IConfiguration config)
     {
         _serviceManager = service;
+        _config = config;
     }
 
     [HttpGet("fields/{fieldId:int}", Name = "GetFieldComments")]
@@ -46,6 +51,20 @@ public class CommentsController : ControllerBase
 
         var created = await _serviceManager.CommentService.AddFieldCommentAsync(dto, userId);
 
+
+        var field = await _serviceManager.FieldService.GetFieldAsync(dto.FieldId, false);
+        if (field?.OwnerId is not null && field.OwnerId != userId)
+        {
+            await _serviceManager.NotificationService.CreateNotificationAsync(new NotificationForCreationDto
+            {
+                UserId = field.OwnerId,
+                Title = "Sahanıza Yorum Yapıldı",
+                Content = "Bir kullanıcı sahanıza yorum yaptı.",
+                RelatedId = created.Id,
+                RelatedType = "field-comment"
+            });
+        }
+
         return CreatedAtRoute(
             routeName: "GetFieldComment",
             routeValues: new
@@ -58,7 +77,7 @@ public class CommentsController : ControllerBase
     [ServiceFilter(typeof(ValidationFilterAttribute))]
     [HttpPut("field-comments/{commentId:int}")]
     [Authorize]
-    public async Task<IActionResult> UpdateFieldComment([FromRoute(Name = "commentId")] int commentId, 
+    public async Task<IActionResult> UpdateFieldComment([FromRoute(Name = "commentId")] int commentId,
         [FromBody] FieldCommentForUpdateDto dto)
     {
         await _serviceManager.CommentService.UpdateFieldCommentAsync(commentId, dto);
@@ -85,7 +104,7 @@ public class CommentsController : ControllerBase
     {
         var teamComment = await _serviceManager.CommentService.GetTeamCommentAsync(commentId, trackChanges: false);
         return Ok(teamComment);
-}
+    }
 
     [ServiceFilter(typeof(ValidationFilterAttribute))]
     [HttpPost("team-comments")]
@@ -98,6 +117,25 @@ public class CommentsController : ControllerBase
         var userId = int.Parse(userIdClaim);
 
         var created = await _serviceManager.CommentService.AddTeamCommentAsync(dto, userId);
+
+        var team = await _serviceManager.TeamService.GetTeamAsync(dto.ToTeamId, userId, false);
+        if (team?.Members != null && !team.Members.Any(m => m.UserId == userId))
+        {
+            var ownerMember = team.Members.FirstOrDefault(m => m.IsCaptain || m.IsAdmin);
+
+            if (ownerMember is not null)
+            {
+                await _serviceManager.NotificationService.CreateNotificationAsync(new NotificationForCreationDto
+                {
+                    UserId = ownerMember.UserId,
+                    Title = "Takımınıza Yorum Yapıldı",
+                    Content = "Bir kullanıcı takımınıza yorum yaptı.",
+                    RelatedId = created.Id,
+                    RelatedType = "team-comment"
+                });
+            }
+        }
+
 
         return CreatedAtRoute(
             routeName: "GetTeamComment",
@@ -158,10 +196,21 @@ public class CommentsController : ControllerBase
         var userId = int.Parse(userIdClaim);
 
         var created = await _serviceManager.CommentService.AddUserCommentAsync(dto, userId);
+        if (dto.ToUserId != userId)
+        {
+            await _serviceManager.NotificationService.CreateNotificationAsync(new NotificationForCreationDto
+            {
+                UserId = dto.ToUserId,
+                Title = "Profilinize Yorum Yapıldı",
+                Content = "Bir kullanıcı sizin hakkınızda yorum yaptı.",
+                RelatedId = created.Id,
+                RelatedType = "user-comment"
+            });
+        }
 
         return CreatedAtRoute(
             routeName: "GetUserComment",
-            routeValues: new { commentId = created.Id},
+            routeValues: new { commentId = created.Id },
             value: created);
     }
 
@@ -181,4 +230,68 @@ public class CommentsController : ControllerBase
         await _serviceManager.CommentService.DeleteUserCommentAsync(commentId);
         return NoContent();
     }
+
+
+
+    [HttpPost("ai-analyze")]
+    [Authorize]
+    public async Task<IActionResult> AnalyzeCommentWithAI()
+    {
+        var userIdClaim = User.FindFirst("id")?.Value;
+        if (userIdClaim is null)
+            return Unauthorized();
+
+        var userId = int.Parse(userIdClaim);
+
+        // 1. Kullanıcıya ait sahalardaki ve tesislerdeki son 10 yorum
+        var comments = await _serviceManager.CommentService.GetLast10CommentsForUserFieldsAsync(userId);
+
+        if (comments == null || !comments.Any())
+            return NotFound("Yorum bulunamadı.");
+
+        var uniqueSuggestions = new HashSet<string>();
+
+        var aiUrl = _config["AI:AnalyzeUrl"];
+
+        using var client = new HttpClient();
+
+        foreach (var comment in comments)
+        {
+            var payload = new
+            {
+                comment = comment.Content,
+                rating = comment.Rating
+            };
+
+            var json = JsonSerializer.Serialize(payload);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            try
+            {
+                var response = await client.PostAsync(aiUrl, content);
+                if (!response.IsSuccessStatusCode)
+                    continue;
+
+                var responseBody = await response.Content.ReadAsStringAsync();
+                var doc = JsonDocument.Parse(responseBody).RootElement;
+
+                var issues = doc.GetProperty("detected_issues")
+                                .EnumerateArray()
+                                .Select(x => x.GetString());
+
+                foreach (var issue in issues)
+                {
+                    if (!string.IsNullOrWhiteSpace(issue))
+                        uniqueSuggestions.Add(issue!);
+                }
+            }
+            catch
+            {
+                continue;
+            }
+        }
+
+        return Ok(uniqueSuggestions.ToList());
+    }
+
 }

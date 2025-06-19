@@ -7,6 +7,8 @@ namespace Contracts
     public interface IFacilityRatingRepository
     {
         /* Command */
+        Task<IEnumerable<FacilityRating>> GetRatingsByOwnerIdAsync(int ownerId);
+
         void CreateRating(FacilityRating rating);
         void DeleteRating(FacilityRating rating);
 

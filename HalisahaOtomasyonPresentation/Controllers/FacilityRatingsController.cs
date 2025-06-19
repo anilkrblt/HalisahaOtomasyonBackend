@@ -10,17 +10,17 @@ namespace HalisahaOtomasyonPresentation.Controllers;
 [Route("api/facilities/{facilityId:int}/ratings")]
 public class FacilityRatingsController : ControllerBase
 {
-    private readonly IFacilityRatingService _svc;
+    private readonly IServiceManager _svc;
     public FacilityRatingsController(IServiceManager sm)
-        => _svc = sm.FacilityRatingService;
+        => _svc = sm;
 
     [HttpGet]
     public async Task<IActionResult> GetRatings(int facilityId)
-        => Ok(await _svc.GetRatingsByFacilityAsync(facilityId, false));
+        => Ok(await _svc.FacilityRatingService.GetRatingsByFacilityAsync(facilityId, false));
 
     [HttpGet("average")]
     public async Task<IActionResult> GetAverage(int facilityId)
-        => Ok(await _svc.GetAverageStarsAsync(facilityId));
+        => Ok(await _svc.FacilityRatingService.GetAverageStarsAsync(facilityId));
 
     [HttpPost]
     [Authorize]
@@ -33,7 +33,20 @@ public class FacilityRatingsController : ControllerBase
         if (userIdClaim is null) return Unauthorized();
 
         var userId = int.Parse(userIdClaim);
-        var created = await _svc.AddRatingAsync(facilityId, dto, userId);
+        var created = await _svc.FacilityRatingService.AddRatingAsync(facilityId, dto, userId);
+
+        var facility = await _svc.FacilityService.GetFacilityAsync(facilityId, false);
+        if (facility?.OwnerId is not null && facility.OwnerId != userId)
+        {
+            await _svc.NotificationService.CreateNotificationAsync(new NotificationForCreationDto
+            {
+                UserId = facility.OwnerId,
+                Title = "Yeni Tesis Puanlaması",
+                Content = "Bir kullanıcı tesisinize puan verdi.",
+                RelatedId = created.UserId,
+                RelatedType = "facility-rating"
+            });
+        }
 
         return CreatedAtAction(
             nameof(GetRatings),
@@ -43,11 +56,8 @@ public class FacilityRatingsController : ControllerBase
 
     [HttpPut]
     [Authorize]
-    public async Task<IActionResult> UpdateRating(
-        int facilityId,
-        [FromBody] FacilityRatingForUpdateDto dto)
+    public async Task<IActionResult> UpdateRating(int facilityId, [FromBody] FacilityRatingForUpdateDto dto)
     {
-
 
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                 ?? User.FindFirst("id")?.Value;
@@ -55,21 +65,7 @@ public class FacilityRatingsController : ControllerBase
 
         var userId = int.Parse(userIdClaim);
 
-        await _svc.UpdateRatingAsync(facilityId, userId, dto);
+        await _svc.FacilityRatingService.UpdateRatingAsync(facilityId, userId, dto);
         return NoContent();
     }
-
-
-    /*
-        [HttpGet("/api/users/{userId:int}/rated-facilities")]
-        [Authorize]
-        public async Task<IActionResult> GetUserRatedFacilities(int userId)
-        {
-            var tokenUser = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
-            if (tokenUser != userId) return Forbid();
-
-            var list = await _svc.GetRatedFacilitiesByUserAsync(userId, false);
-            return Ok(list);
-        }
-        */
 }

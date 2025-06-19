@@ -83,9 +83,15 @@ namespace HalisahaOtomasyonPresentation.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateReservation([FromBody] ReservationForCreationDto dto)
         {
+            if (dto.SlotStart < DateTime.UtcNow)
+            {
+                return BadRequest("Geçmiş bir zaman için rezervasyon oluşturulamaz.");
+            }
+
             var created = await _service.ReservationService.CreateReservationAsync(dto);
             return CreatedAtAction(nameof(GetReservationById), new { id = created.Id }, created);
         }
+
 
         // Rezervasyon sil
         [HttpDelete("{id:int}")]
