@@ -30,6 +30,16 @@ namespace Repository
                 .FirstOrDefaultAsync();
         }
 
+        public async Task<IEnumerable<Team>> GetTeamsUserIsAdminOfAsync(int userId)
+        {
+            return await RepositoryContext.TeamMembers
+                .Where(tm => tm.UserId == userId && tm.IsAdmin)
+                .Include(tm => tm.Team)
+                .Select(tm => tm.Team)
+                .ToListAsync();
+        }
+
+
 
     }
 }

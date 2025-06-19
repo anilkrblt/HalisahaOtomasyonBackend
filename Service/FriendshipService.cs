@@ -204,6 +204,36 @@ public class FriendshipService : IFriendshipService
         return list;
     }
 
+    public async Task<IEnumerable<FriendshipMobilDto>> GetFriendsMobilAsync(int userId, bool track)
+    {
+        var friendships = await _repo.Friendship.GetFriendsOfUserAsync(userId, track);
+
+        var list = new List<FriendshipMobilDto>();
+
+        foreach (var f in friendships)
+        {
+            var user = f.UserId1 == userId ? f.User2! : f.User1!;
+
+            var photos = await _photoService.GetPhotosAsync("user", user.Id, true);
+            var photoUrl = photos.FirstOrDefault()?.Url;
+
+            var dto = new FriendshipMobilDto
+            {
+                CreatedAt = f.CreatedAt,
+                UpdatedAt = f.UpdatedAt,
+                FriendUserId = user.Id,
+                UserName = user.UserName!,
+                FullName = $"{user.FirstName} {user.LastName}",
+                PhotoUrl = photoUrl
+            };
+
+
+            list.Add(dto);
+        }
+
+        return list;
+    }
+
 
     public async Task<IEnumerable<FriendshipDto>> GetPendingRequestsAsync(int userId, bool track)
     {

@@ -26,6 +26,19 @@ namespace Shared.DataTransferObjects
     }
 
 
+    public class FriendshipMobilDto
+    {
+        public int FriendUserId { get; set; }
+        public string UserName { get; set; } = string.Empty;
+        public string FullName { get; set; } = string.Empty;
+        public string? PhotoUrl { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+    }
+
+
+
+
     /* İstek gönderme */
     public record FriendRequestForCreationDto(int ToUserId);
 

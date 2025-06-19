@@ -25,6 +25,16 @@ public class TeamsController : ControllerBase
         return Ok(teams);
     }
 
+
+    [HttpGet("user/{userId:int}/admin-teams")]
+    public async Task<IActionResult> GetTeamsUserIsAdminOf(int userId)
+    {
+        var teams = await _serviceManager.TeamService.GetTeamsUserIsAdminOfAsync(userId);
+        return Ok(teams);
+    }
+
+
+
     [Authorize]
     [HttpGet("{teamId:int}", Name = "GetTeam")]
     public async Task<IActionResult> GetTeam([FromRoute(Name = "teamId")] int teamId)
@@ -150,7 +160,7 @@ public class TeamsController : ControllerBase
     [HttpPut("{teamId:int}/join-requests/{requestId:int}")]
     [Authorize]
     public async Task<IActionResult> RespondJoinRequest([FromRoute(Name = "teamId")] int teamId,
-        [FromRoute(Name = "requestId")] int requestId, 
+        [FromRoute(Name = "requestId")] int requestId,
         [FromBody] TeamJoinRequestDtoForUpdate dto)
     {
         var responderClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value

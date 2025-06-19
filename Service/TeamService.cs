@@ -26,6 +26,23 @@ public class TeamService : ITeamService
         _uservalidationService = userValidationService;
     }
 
+
+    public async Task<IEnumerable<TeamMiniDto>> GetTeamsUserIsAdminOfAsync(int userId)
+    {
+        var teams = await _repo.Team.GetTeamsUserIsAdminOfAsync(userId);
+
+        return teams.Select(t => new TeamMiniDto
+        {
+            Id = t.Id,
+            Name = t.Name,
+            LogoUrl = t.LogoUrl,
+            City = t.City,
+            Town = t.Town
+        });
+    }
+
+
+
     public async Task<TeamDto> CreateTeamAsync(TeamForCreationDto dto, int creatorUserId)
     {
         var entity = _mapper.Map<Team>(dto);
@@ -222,7 +239,7 @@ public class TeamService : ITeamService
         return _mapper.Map<TeamJoinRequestDto>(reqDto);
     }
 
-    public async Task RespondJoinRequestAsync(int teamId, int requestId, TeamJoinRequestDtoForUpdate dto ,int responderId)
+    public async Task RespondJoinRequestAsync(int teamId, int requestId, TeamJoinRequestDtoForUpdate dto, int responderId)
     {
         var req = await CheckTeamJoinRequest(requestId);
 
@@ -261,7 +278,7 @@ public class TeamService : ITeamService
     {
         var member = await _repo.TeamMember.GetMemberAsync(teamId, userId, true)
              ?? throw new TeamMemberNotFoundException(teamId, userId);
-        
+
         return member;
     }
 

@@ -11,6 +11,7 @@ namespace Contracts
         Task<Team> GetTeamAsync(int teamId, bool trackChanges);
         Task<IEnumerable<Team>> GetTeamsAsync(string city, string teamName, bool trackChanges);
         Task<Team?> GetTeamCreatedByUserIdAsync(int userId);
+        Task<IEnumerable<Team>> GetTeamsUserIsAdminOfAsync(int userId);
 
     }
 }

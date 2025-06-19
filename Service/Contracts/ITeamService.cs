@@ -6,6 +6,7 @@ namespace Service.Contracts
 {
     public interface ITeamService
     {
+        Task<IEnumerable<TeamMiniDto>> GetTeamsUserIsAdminOfAsync(int userId);
         Task<TeamDto> CreateTeamAsync(TeamForCreationDto dto, int creatorUserId);
         Task<TeamDto> GetTeamAsync(int teamId, int reviewerId, bool trackChanges);
         Task<IEnumerable<TeamDto>> GetTeamsAsync(string? city, string? teamName, bool trackChanges);

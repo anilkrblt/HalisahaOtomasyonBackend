@@ -16,6 +16,7 @@ public interface IFriendshipService
     Task RespondFriendRequestAsync(int userIdA, int userIdB, FriendshipStatus status);
     Task DeleteFriendAsync(int userIdA, int userIdB);
     Task CancelFriendRequestAsync(int fromUserId, int toUserId);
+    Task<IEnumerable<FriendshipMobilDto>> GetFriendsMobilAsync(int userId, bool track);
 
     Task<IEnumerable<FriendshipDto>> GetFriendsAsync(int userId, bool trackChanges);
     Task<IEnumerable<FriendshipDto>> GetPendingRequestsAsync(int userId, bool trackChanges);

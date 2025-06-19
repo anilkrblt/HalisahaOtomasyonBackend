@@ -32,6 +32,14 @@ namespace HalisahaOtomasyonPresentation.Controllers
         }
 
 
+        [HttpGet("users/mobil/{userId:int}")]
+        public async Task<IActionResult> GetFriendsFixedFormat(int userId)
+        {
+            var list = await _svc.FriendshipService.GetFriendsMobilAsync(userId, false);
+            return Ok(list);
+        }
+
+
         [HttpGet("users/{userId:int}/pending")]
         public async Task<IActionResult> GetPending(int userId)
         {

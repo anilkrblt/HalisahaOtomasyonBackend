@@ -46,8 +46,17 @@ public class TeamForUpdateDto
     public string City { get; set; }
     public string Town { get; set; }
     public string Content { get; set; }
-    public string? LogoUrl {  get; set; }
+    public string? LogoUrl { get; set; }
 }
+public class TeamMiniDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string LogoUrl { get; set; } = string.Empty;
+    public string City { get; set; } = string.Empty;
+    public string Town { get; set; } = string.Empty;
+}
+
 
 public class TeamMemberDto
 {
@@ -87,7 +96,7 @@ public class TeamJoinRequestDto
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public RequestStatus Status { get; set; }
-    public DateTime CreatedAt { get; set; } 
+    public DateTime CreatedAt { get; set; }
     public DateTime? RespondedAt { get; set; }
     public string UserPhotoUrl { get; set; }
 }
