@@ -12,7 +12,7 @@ public interface IRoomService
     Task SetTeamReadyAsync(int roomId, int teamId, int userId);
     Task<RoomDto> CreateRoomAsync(RoomCreateDto dto, int creatorTeamId, int creatorUserId);
 
-    Task<RoomDto?> GetRoomAsync(int roomId);
+    Task<RoomDto?> GetRoomAsync(int id, int userId);
     Task<IEnumerable<RoomDto>> GetPublicRoomsAsync();
     Task InviteUsersToRoomAsync(int roomId, int teamId, List<int> userIds);
     Task<RoomParticipantDto> JoinRoomAsync(int id, int teamId, int userId);

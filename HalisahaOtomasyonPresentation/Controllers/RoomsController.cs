@@ -25,11 +25,16 @@ public class RoomsController : ControllerBase
     }
 
 
-    // GET api/rooms/42
-    [HttpGet("{id:int}", Name = "GetRoomById")]
-    public async Task<IActionResult> GetRoom(int id) =>
-        Ok(await _svc.RoomService.GetRoomAsync(id));
 
+
+    [HttpGet("{id:int}", Name = "GetRoomById")]
+    [Authorize]
+    public async Task<IActionResult> GetRoom(int id)
+    {
+        int userId = int.Parse(User.FindFirst("id")!.Value);
+        var room = await _svc.RoomService.GetRoomAsync(id, userId);
+        return Ok(room);
+    }
 
 
     [HttpPost("{roomId:int}/ready/team/{teamId:int}")]
@@ -109,7 +114,7 @@ public class RoomsController : ControllerBase
 
 
 
-
+    // TODO ayrılma bugı silmiyor
     [HttpDelete("{roomId:int}/leave")]
     [Authorize]
     public async Task<IActionResult> LeaveRoom(int roomId)
@@ -177,7 +182,7 @@ public class RoomsController : ControllerBase
     {
         int userId = int.Parse(User.FindFirst("id")!.Value);
 
-        var room = await _svc.RoomService.GetRoomAsync(roomId);
+        var room = await _svc.RoomService.GetRoomAsync(roomId, userId);
         decimal amount = room.PricePerPlayer;
 
         await _svc.RoomService.PayPlayerAsync(roomId, userId, amount);

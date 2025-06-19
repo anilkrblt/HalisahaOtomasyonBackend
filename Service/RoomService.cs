@@ -92,7 +92,7 @@ public class RoomService : IRoomService
 
 
 
-    public async Task<RoomDto?> GetRoomAsync(int id)
+    public async Task<RoomDto?> GetRoomAsync(int id, int userId)
     {
         var room = await _repo.Room.GetOneRoomAsync(id, false);
         if (room is null)
@@ -100,6 +100,25 @@ public class RoomService : IRoomService
 
         var home = room.Participants.FirstOrDefault(p => p.IsHome);
         var away = room.Participants.FirstOrDefault(p => !p.IsHome && p.TeamId != home?.TeamId);
+
+        string? userStatus = null;
+        var participant = room.Participants
+            .FirstOrDefault(p => p.Team.Members.Any(m => m.UserId == userId));
+
+        if (participant is null)
+        {
+            userStatus = "NotInRoom";
+        }
+        else
+        {
+            var isHome = participant.TeamId == home?.TeamId;
+            var isAdmin = participant.Team.Members
+                .FirstOrDefault(m => m.UserId == userId)?.IsAdmin ?? false;
+
+            userStatus = isHome
+                ? (isAdmin ? "HomeTeamAdmin" : "HomeTeam")
+                : (isAdmin ? "AwayTeamAdmin" : "AwayTeam");
+        }
 
         return new RoomDto
         {
@@ -119,7 +138,8 @@ public class RoomService : IRoomService
             HomeTeamId = home?.TeamId,
             HomeTeamName = home?.Team?.Name,
             AwayTeamId = away?.TeamId,
-            AwayTeamName = away?.Team?.Name
+            AwayTeamName = away?.Team?.Name,
+            UserStatus = userStatus  // 👈 eklendi
         };
     }
 
@@ -401,7 +421,7 @@ public class RoomService : IRoomService
 
         if (participant is null)
         {
-            Console.WriteLine($"❌ Participant bulunamadı: RoomId={roomId}, UserId={userId}");
+            Console.WriteLine($"Participant bulunamadı: RoomId={roomId}, UserId={userId}");
             throw new ParticipantNotFoundException(userId, roomId);
         }
 

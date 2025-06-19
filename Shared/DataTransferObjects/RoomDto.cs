@@ -28,6 +28,8 @@ public record RoomDto
     public RoomStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }
     public MatchDto? Match { get; set; }
+    public string? UserStatus { get; set; }
+
 }
 
 
