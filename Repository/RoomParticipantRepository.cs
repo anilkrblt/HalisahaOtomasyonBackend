@@ -24,6 +24,8 @@ namespace Repository
                 p.RoomId == roomId && p.CustomerId == customerId, true)
                 .FirstOrDefaultAsync();
         }
+
+
         public async Task<RoomParticipant?> GetByKeyAsync(int roomId, int teamId)
         {
             return await RepositoryContext.RoomParticipants
@@ -57,6 +59,7 @@ namespace Repository
         public async Task<IEnumerable<RoomParticipant>> GetParticipantsByUserAsync(int userId, bool trackChanges)
         {
             return await FindByCondition(p => p.CustomerId == userId, trackChanges)
+                        .Include(p => p.Team) // 💥 Team burada dahil ediliyor
                          .Include(p => p.Room)
                          .ThenInclude(r => r.Field)
                          .ToListAsync();

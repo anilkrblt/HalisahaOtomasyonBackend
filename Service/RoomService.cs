@@ -470,17 +470,49 @@ public class RoomService : IRoomService
             await _repo.SaveAsync();
         }
     }
-    public async Task<IEnumerable<RoomDto>> GetRoomsUserIsInvitedToAsync(int userId)
+
+    public async Task<IEnumerable<RoomInviteDto>> GetRoomsUserIsInvitedToAsync(int userId)
     {
         var participants = await _repo.RoomParticipant
             .GetParticipantsByUserAsync(userId, trackChanges: false);
 
-        var rooms = participants
+        var invitedParticipants = participants
             .Where(p => p.Status == ParticipantStatus.Invited)
-            .Select(p => p.Room);
+            .DistinctBy(p => p.Room.Id);
 
-        return _map.Map<IEnumerable<RoomDto>>(rooms);
+        var dtos = new List<RoomInviteDto>();
+
+        foreach (var participant in invitedParticipants)
+        {
+            var room = participant.Room;
+            var team = participant.Team;
+
+            var dto = new RoomInviteDto
+            {
+                RoomId = room.Id,
+                FieldId = room.FieldId,
+                FieldName = room.Field?.Name,
+                SlotStart = room.SlotStart,
+                SlotEnd = room.SlotEnd,
+                AccessType = room.AccessType,
+                JoinCode = room.JoinCode,
+                MaxPlayers = room.MaxPlayers,
+                PricePerPlayer = room.PricePerPlayer,
+                Status = room.Status,
+                CreatedAt = room.CreatedAt,
+                TeamId = team.Id,
+                TeamName = team.Name,
+                LogoUrl = team.LogoUrl
+
+            };
+
+            dtos.Add(dto);
+        }
+
+        return dtos;
     }
+
+
 
 
 

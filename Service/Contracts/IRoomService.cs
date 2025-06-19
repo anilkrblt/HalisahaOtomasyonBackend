@@ -33,7 +33,7 @@ public interface IRoomService
 
     Task ToggleUserReadyAsync(int roomId, int userId);
 
-    Task<IEnumerable<RoomDto>> GetRoomsUserIsInvitedToAsync(int userId);
+    Task<IEnumerable<RoomInviteDto>> GetRoomsUserIsInvitedToAsync(int userId);
 
 
     Task PayAsync(int roomId, int teamId, decimal amount);

@@ -7,6 +7,7 @@ namespace Contracts
     public interface IRoomParticipantRepository
     {
         /* Command */
+        
         void CreateParticipant(RoomParticipant participant);
         void DeleteParticipant(RoomParticipant participant);
         Task<RoomParticipant?> GetByCustomerAsync(int roomId, int customerId);

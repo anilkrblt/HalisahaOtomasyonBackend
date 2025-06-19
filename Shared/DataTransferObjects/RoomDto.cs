@@ -8,6 +8,30 @@ namespace Shared.DataTransferObjects;
 
 /* — API’den dönen — */
 
+public class RoomInviteDto
+{
+    public int RoomId { get; set; }
+
+    public int FieldId { get; set; }
+    public string? FieldName { get; set; }
+    public DateTime SlotStart { get; set; }
+    public DateTime SlotEnd { get; set; }
+
+    public RoomAccessType AccessType { get; set; }
+    public string? JoinCode { get; set; }
+
+    public int MaxPlayers { get; set; }
+    public decimal PricePerPlayer { get; set; }
+
+    public RoomStatus Status { get; set; }
+    public DateTime CreatedAt { get; set; }
+
+    public int TeamId { get; set; }
+    public string TeamName { get; set; } = string.Empty;
+    public string LogoUrl { get; set; } = string.Empty;
+}
+
+
 
 public record RoomDto
 {

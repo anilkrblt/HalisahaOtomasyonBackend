@@ -37,7 +37,9 @@ public class TeamService : ITeamService
             Name = t.Name,
             LogoUrl = t.LogoUrl,
             City = t.City,
-            Town = t.Town
+            Town = t.Town,
+            AvgRating = t.AvgRating
+            
         });
     }
 
