@@ -90,7 +90,21 @@ namespace HalisahaOtomasyon.AutoMap
             CreateMap<FacilityRatingForCreationDto, FacilityRating>();
 
             CreateMap<Match, MatchDto>().ReverseMap();
-            
+
+
+
+            CreateMap<NotificationForCreationDto, Notification>()
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Content)) 
+            .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title))
+            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
+            .ForMember(dest => dest.FacilityId, opt => opt.MapFrom(src => src.FacilityId))
+            .ForMember(dest => dest.EntityType, opt => opt.MapFrom(src => src.RelatedType))
+            .ForMember(dest => dest.EntityId, opt => opt.MapFrom(src => src.RelatedId))
+            .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type));
+            CreateMap<Notification, NotificationDto>()
+                .ForMember(dest => dest.Content, opt => opt.MapFrom(src => src.Description));
+
+            /*
             CreateMap<Notification, NotificationDto>().ReverseMap();
             CreateMap<NotificationForCreationDto, Notification>();
 

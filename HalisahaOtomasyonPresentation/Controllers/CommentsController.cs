@@ -55,11 +55,12 @@ public class CommentsController : ControllerBase
         var field = await _serviceManager.FieldService.GetFieldAsync(dto.FieldId, false);
         if (field?.OwnerId is not null && field.OwnerId != userId)
         {
+            
             await _serviceManager.NotificationService.CreateNotificationAsync(new NotificationForCreationDto
             {
                 UserId = field.OwnerId,
                 Title = "Sahanıza Yorum Yapıldı",
-                Content = "Bir kullanıcı sahanıza yorum yaptı.",
+                Content = created.Content ?? "",
                 RelatedId = created.Id,
                 RelatedType = "field-comment"
             });
